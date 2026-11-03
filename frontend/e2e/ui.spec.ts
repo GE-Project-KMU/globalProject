@@ -20,7 +20,11 @@ function fixtures() {
       type: "pothole",
       location: { lat: 37.55, lon: 126.98, quality: "valid" },
       review: { status: "unreviewed", priority: "normal" },
-      pothole: { confidence: 0.92, track_observations: 4 },
+      pothole: {
+        confidence: 0.92,
+        track_observations: 4,
+        bbox_xywh_px: [10, 10, 40, 30],
+      },
       lane: null,
     },
     {
@@ -40,6 +44,13 @@ function fixtures() {
         segment_support_ratio: 0.85,
         color: "white",
         line_type: "dashed",
+        paint_mask_rle: { size: [2, 2], counts: [1, 2, 1] },
+        outline_polygon_px: [
+          [0, 0],
+          [50, 0],
+          [50, 50],
+          [0, 50],
+        ],
       },
     },
     {
@@ -457,4 +468,28 @@ test("duplicate decisions require viewing both evidence images first", async ({
     source_version: 1,
     target_version: 3,
   });
+});
+
+test("evidence overlays render actual boxes and optional lane RLE without inventing absent masks", async ({
+  page,
+}) => {
+  await mock(page);
+  await login(page);
+  await page.getByRole("button", { name: "점검 목록", exact: true }).click();
+  await page.locator(".row-target").first().click();
+  await expect(page.locator(".evidence-overlay rect")).toHaveAttribute(
+    "width",
+    "40",
+  );
+  await page.getByLabel("검출 박스·도막·외곽 표시").uncheck();
+  await expect(page.locator(".evidence-overlay")).toHaveCount(0);
+  await page.getByRole("button", { name: "상세 닫기" }).click();
+  await page.locator(".row-target").nth(1).click();
+  await expect(page.locator(".evidence-overlay image")).toHaveCount(1);
+  await expect(page.locator(".evidence-overlay polygon")).toHaveCount(1);
+  await page.getByRole("button", { name: "상세 닫기" }).click();
+  await page.locator(".row-target").nth(2).click();
+  await expect(
+    page.getByText("도막 픽셀 마스크 미제공", { exact: false }),
+  ).toBeVisible();
 });
