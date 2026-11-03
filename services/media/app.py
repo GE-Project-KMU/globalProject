@@ -33,3 +33,41 @@ async def approve(b:Approval,req:Request):
     id=uid();store.create(id,p["org_id"],"approval",{**b.model_dump(),"reviewer_id":p["sub"],"approved_at":iso(),"approval_expires_at":now()+900,"used":False},captured+90*86400)
     store.audit(p,"image.approve",id)
     return ok({"approval_id":id,"expires_at":iso(now()+900)})
+@app.post("/api/v1/images",status_code=201)
+async def upload(req:Request,file:UploadFile=File(...),metadata:str=Form(...)):
+    p=principal(req);role(p,"device")
+    try:
+        b=json.loads(metadata)
+        if set(b)!={"file_id","approval_id","sha256","captured_at"}:raise ValueError()
+        id=valid_uuid(b["file_id"]);valid_uuid(b["approval_id"])
+    except (ValueError,TypeError):fail(422,"INVALID_METADATA")
+    content=await file.read(5000001)
+    if len(content)>5000000:fail(413,"PAYLOAD_TOO_LARGE")
+    try:
+        im=Image.open(io.BytesIO(content))
+        if im.width>4096 or im.height>4096:fail(413,"IMAGE_DIMENSIONS_EXCEEDED")
+        width,height=im.size;fmt=im.format;im.verify()
+    except (UnidentifiedImageError,OSError,Image.DecompressionBombError):fail(415,"UNSUPPORTED_MEDIA")
+    mime={"PNG":"image/png","JPEG":"image/jpeg"}.get(fmt)
+    if not mime or file.content_type!=mime:fail(415,"UNSUPPORTED_MEDIA")
+    sha=digest(content)
+    if sha!=b["sha256"]:fail(422,"HASH_MISMATCH")
+    try:
+        old=store.get(id,p["org_id"],"image")
+        if old["sha256"]!=sha or old["device_id"]!=p["sub"] or old["captured_at"]!=b["captured_at"]:fail(409,"IDEMPOTENCY_CONFLICT")
+        return ok({"image_id":id,"state":"ready","sha256":sha,"expires_at":iso(old["expires"]),"deduplicated":True})
+    except HTTPException as e:
+        if e.status_code!=404:raise
+    approval=store.get(b["approval_id"],p["org_id"],"approval")
+    if approval["device_id"]!=p["sub"]:fail(403,"FORBIDDEN")
+    if approval["approval_expires_at"]<now() or approval["used"]:fail(409,"APPROVAL_EXPIRED")
+    if any(approval[k]!=b[k] for k in ("file_id","sha256","captured_at")) or approval["size_bytes"]!=len(content) or approval["mime"]!=mime:fail(422,"APPROVAL_MISMATCH")
+    path=FILES/id;tmp=FILES/(id+".tmp");tmp.write_bytes(content);tmp.replace(path)
+    expires=stamp(b["captured_at"])+90*86400
+    with store.tx() as s:
+        a=store.get(b["approval_id"],p["org_id"],"approval",s)
+        if a["used"]:fail(409,"APPROVAL_ALREADY_USED")
+        payload={k:v for k,v in a.items() if k not in ("id","org_id","kind","version","created","expires")};payload["used"]=True
+        store.change(a["id"],p["org_id"],payload,a["version"],s)
+        store.create(id,p["org_id"],"image",{"sha256":sha,"device_id":p["sub"],"captured_at":b["captured_at"],"mime":mime,"width":width,"height":height,"state":"ready","approval_id":a["id"]},expires,s)
+    return ok({"image_id":id,"state":"ready","sha256":sha,"expires_at":iso(expires),"deduplicated":False})
