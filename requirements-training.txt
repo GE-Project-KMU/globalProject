@@ -1,0 +1,24 @@
+# Dedicated Python 3.11 training environment; do not install into application .venv.
+--extra-index-url https://download.pytorch.org/whl/cu126
+torch==2.7.1+cu126
+torchvision==0.22.1+cu126
+numpy==1.26.4
+pillow==11.3.0
+opencv-python-headless==4.10.0.84
+scipy==1.13.1
+matplotlib==3.9.4
+onnx==1.17.0
+onnxruntime==1.20.1
+onnxscript==0.2.7
+protobuf==5.29.5
+loguru==0.7.3
+tqdm==4.67.1
+thop==0.1.1.post2209072238
+tabulate==0.9.0
+psutil==7.0.0
+tensorboard==2.19.0
+pycocotools==2.0.10
+ninja==1.11.1.4
+httpx==0.28.1
+pyyaml==6.0.2
+packaging==25.0
