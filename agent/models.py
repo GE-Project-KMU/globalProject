@@ -5,6 +5,7 @@ explicit blocked state, never a source of synthetic positive detections.
 """
 import json
 import math
+from datetime import datetime,timezone
 import cv2
 import numpy as np
 from .paths import workspace_path, sha256
@@ -18,6 +19,15 @@ def readiness(manifest_path):
     try:
         manifest_path = workspace_path(manifest_path, exists=True)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if manifest.get("data_revoked") or manifest.get("needs_revalidation"):raise ValueError("model_training_data_revoked_needs_revalidation")
+        if manifest.get("training_provenance"):
+            provenance=json.loads(workspace_path(manifest["training_provenance"],exists=True).read_text(encoding="utf-8"))
+            if provenance.get("data_revoked") or provenance.get("needs_revalidation"):raise ValueError("model_training_data_revoked_needs_revalidation")
+            from .governance import blocked_identities
+            blocked=blocked_identities()
+            if any(asset.get("revoked_at") or set(asset.get("identity_hashes",[]))&blocked or
+                   datetime.fromisoformat(asset["expires_at"])<=datetime.now(timezone.utc) for asset in provenance.get("assets",[])):
+                raise ValueError("model_training_data_expired_or_revoked")
         if manifest.get("format") != "onnx":
             raise ValueError("only_onnx_runtime_supported")
         task = manifest.get("task")
@@ -90,6 +100,7 @@ class OnnxModel:
             blob = ((image - mean) / std).transpose(2, 0, 1)[None].astype(np.float32)
         self.net.setInput(blob)
         output = self.net.forward()
+        if not np.isfinite(output).all(): raise ModelNotReady("non_finite_model_output")
         if not np.isfinite(output).all():
             raise ModelNotReady("non_finite_model_output")
         if task == "lane":
