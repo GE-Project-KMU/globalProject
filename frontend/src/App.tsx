@@ -13,19 +13,12 @@ import {
   ChevronRight,
   RefreshCw,
   TriangleAlert,
-  CheckCircle2,
   ShieldCheck,
-  ArrowRight,
-  Search,
-  X,
-  LoaderCircle,
 } from "lucide-react";
 import { ApiError, request } from "./api";
 import type { ListResult, Observation, Summary, User } from "./types";
-import { statusLabels, date, id, typeName } from "./labels";
-import { Badge, Empty, ErrorBox } from "./components/UI";
-import ObservationMap from "./components/ObservationMap";
-import ObservationTable from "./components/ObservationTable";
+import { statusLabels, id, typeName } from "./labels";
+import { ErrorBox } from "./components/UI";
 import Detail from "./components/Detail";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -50,6 +43,9 @@ export default function App() {
     [user, setUser] = useState<User | null>(null),
     [page, setPage] = useState("overview"),
     [mobile, setMobile] = useState(false),
+    [isCompact, setIsCompact] = useState(
+      () => window.matchMedia("(max-width: 700px)").matches,
+    ),
     [items, setItems] = useState<Observation[]>([]),
     [summary, setSummary] = useState<Summary | null>(null),
     [loading, setLoading] = useState(false),
@@ -98,6 +94,12 @@ export default function App() {
       .finally(() => setLoading(false));
   }, [token, type, status, quality, logout]);
   useEffect(load, [load]);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 700px)");
+    const update = () => setIsCompact(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
   const onSelect = useCallback((o: Observation) => setSelected(o), []),
     onClose = useCallback(() => setSelected(null), []);
   async function more() {
@@ -145,7 +147,12 @@ export default function App() {
   };
   return (
     <div className="workspace">
-      <aside className={`sidebar ${mobile ? "open" : ""}`}>
+      <aside
+        id="workspace-navigation"
+        className={`sidebar ${mobile ? "open" : ""}`}
+        aria-hidden={isCompact && !mobile}
+        inert={isCompact && !mobile}
+      >
         <div className="brand">
           <span className="brand-symbol">
             <Route size={22} />
@@ -227,6 +234,8 @@ export default function App() {
               className="icon-button mobile-menu"
               onClick={() => setMobile(true)}
               aria-label="메뉴 열기"
+              aria-controls="workspace-navigation"
+              aria-expanded={mobile}
             >
               <Menu size={21} />
             </button>

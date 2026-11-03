@@ -10,6 +10,12 @@ import { request } from "../api";
 import type { User } from "../types";
 import { ErrorBox } from "../components/UI";
 
+function localDateTime(value: Date) {
+  return new Date(value.getTime() - value.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+}
+
 export default function MediaReview({
   token,
   user,
@@ -26,6 +32,10 @@ export default function MediaReview({
     [checked, setChecked] = useState(false),
     [device, setDevice] = useState(""),
     [deviceToken, setDeviceToken] = useState(""),
+    [capturedAt, setCapturedAt] = useState(""),
+    [decoded, setDecoded] = useState(false),
+    [dimensions, setDimensions] = useState({ width: 0, height: 0 }),
+    [maskInput, setMaskInput] = useState({ x: "0", y: "0", w: "", h: "" }),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [result, setResult] = useState("");
@@ -38,14 +48,37 @@ export default function MediaReview({
     setRects([]);
     setChecked(false);
     setResult("");
+    setCapturedAt(localDateTime(new Date(file.lastModified)));
+    setDecoded(false);
+    setDimensions({ width: 0, height: 0 });
     return () => URL.revokeObjectURL(url);
   }, [file]);
   useEffect(() => {
     if (!preview) return;
+    let active = true;
     const img = new Image();
     img.onload = () => {
+      if (!active) return;
+      if (!img.width || !img.height || img.width > 4096 || img.height > 4096) {
+        setError("가로와 세로가 각각 4,096픽셀 이하인 이미지를 선택해 주세요.");
+        setDecoded(false);
+        image.current = null;
+        return;
+      }
       image.current = img;
+      setDecoded(true);
+      setDimensions({ width: img.width, height: img.height });
       paint();
+    };
+    img.onerror = () => {
+      if (!active) return;
+      setError(
+        "이미지를 읽지 못했습니다. 유효한 JPEG 또는 PNG 파일을 선택해 주세요.",
+      );
+      setDecoded(false);
+      image.current = null;
+      const c = canvas.current;
+      if (c) c.getContext("2d")?.clearRect(0, 0, c.width, c.height);
     };
     img.src = preview;
     function paint() {
@@ -58,23 +91,51 @@ export default function MediaReview({
       ctx.fillStyle = "#111827";
       rects.forEach((r) => ctx.fillRect(r.x, r.y, r.w, r.h));
     }
+    return () => {
+      active = false;
+    };
   }, [preview, rects]);
   function point(e: React.PointerEvent<HTMLCanvasElement>) {
     const c = e.currentTarget,
       b = c.getBoundingClientRect();
     return {
-      x: ((e.clientX - b.left) * c.width) / b.width,
-      y: ((e.clientY - b.top) * c.height) / b.height,
+      x: Math.max(
+        0,
+        Math.min(c.width, ((e.clientX - b.left) * c.width) / b.width),
+      ),
+      y: Math.max(
+        0,
+        Math.min(c.height, ((e.clientY - b.top) * c.height) / b.height),
+      ),
     };
   }
   async function submit() {
-    if (!file || !canvas.current) return;
+    if (!file || !canvas.current || !decoded || !checked) return;
     setBusy(true);
     setError("");
     setResult("");
     try {
+      const capturedDate = new Date(capturedAt);
+      if (
+        !Number.isFinite(capturedDate.getTime()) ||
+        capturedDate.getTime() > Date.now()
+      )
+        throw new Error(
+          "실제 촬영 시각을 확인해 주세요. 미래 시각은 사용할 수 없습니다.",
+        );
+      // Build from the current immutable source + rectangles at submission,
+      // rather than relying on an asynchronously repainted preview canvas.
+      const source = image.current;
+      if (!source) throw new Error("검수할 이미지를 다시 선택해 주세요.");
+      const output = document.createElement("canvas");
+      output.width = source.width;
+      output.height = source.height;
+      const context = output.getContext("2d")!;
+      context.drawImage(source, 0, 0);
+      context.fillStyle = "#111827";
+      rects.forEach((rect) => context.fillRect(rect.x, rect.y, rect.w, rect.h));
       const blob = await new Promise<Blob>((resolve, reject) =>
-        canvas.current!.toBlob(
+        output.toBlob(
           (b) => (b ? resolve(b) : reject(new Error("이미지 변환 실패"))),
           "image/png",
         ),
@@ -91,7 +152,7 @@ export default function MediaReview({
         .map((x) => x.toString(16).padStart(2, "0"))
         .join("");
       const fid = crypto.randomUUID(),
-        captured = new Date(file.lastModified).toISOString();
+        captured = capturedDate.toISOString();
       const approval = await request<any>(token, "/image-approvals", {
         method: "POST",
         body: JSON.stringify({
@@ -154,6 +215,7 @@ export default function MediaReview({
               ref={canvas}
               aria-label="검수 이미지, 드래그하여 개인정보 가림"
               onPointerDown={(e) => {
+                if (!decoded) return;
                 setDrag(point(e));
                 e.currentTarget.setPointerCapture(e.pointerId);
               }}
@@ -170,6 +232,7 @@ export default function MediaReview({
                 setDrag(null);
                 setChecked(false);
               }}
+              onPointerCancel={() => setDrag(null)}
             />
           ) : (
             <div className="empty">
@@ -189,11 +252,19 @@ export default function MediaReview({
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) {
-                  if (f.size > 5000000) {
+                  if (
+                    f.size > 5000000 ||
+                    !["image/jpeg", "image/png"].includes(f.type)
+                  ) {
+                    setFile(null);
+                    setPreview("");
+                    setDecoded(false);
+                    setChecked(false);
                     setError("5 MB 이하의 JPEG/PNG를 선택해 주세요.");
                     return;
                   }
                   setError("");
+                  setDecoded(false);
                   setFile(f);
                 }
               }}
@@ -202,6 +273,68 @@ export default function MediaReview({
           <span className="help-text">
             JPEG/PNG · 5 MB 이하 · 가림 영역 {rects.length}개
           </span>
+          {decoded && (
+            <fieldset className="mask-coordinates">
+              <legend>
+                좌표로 가림 영역 추가 · {dimensions.width} × {dimensions.height}
+                px
+              </legend>
+              <div className="form-row">
+                {(
+                  [
+                    ["x", "왼쪽 X"],
+                    ["y", "위쪽 Y"],
+                    ["w", "너비"],
+                    ["h", "높이"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label key={key}>
+                    {label}
+                    <input
+                      type="number"
+                      min={key === "w" || key === "h" ? 1 : 0}
+                      step="1"
+                      value={maskInput[key]}
+                      onChange={(e) =>
+                        setMaskInput((v) => ({ ...v, [key]: e.target.value }))
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
+              <button
+                className="button secondary"
+                type="button"
+                onClick={() => {
+                  const r = {
+                    x: Number(maskInput.x),
+                    y: Number(maskInput.y),
+                    w: Number(maskInput.w),
+                    h: Number(maskInput.h),
+                  };
+                  if (
+                    Object.values(r).some((v) => !Number.isFinite(v)) ||
+                    r.x < 0 ||
+                    r.y < 0 ||
+                    r.w <= 0 ||
+                    r.h <= 0 ||
+                    r.x + r.w > dimensions.width ||
+                    r.y + r.h > dimensions.height
+                  ) {
+                    setError(
+                      "가림 영역의 좌표와 크기를 이미지 범위 안에서 입력해 주세요.",
+                    );
+                    return;
+                  }
+                  setRects((v) => [...v, r]);
+                  setChecked(false);
+                  setError("");
+                }}
+              >
+                가림 영역 추가
+              </button>
+            </fieldset>
+          )}
         </div>
       </section>
       <section className="panel media-form">
@@ -217,6 +350,22 @@ export default function MediaReview({
             {result}
           </div>
         )}
+        <label>
+          실제 촬영 시각
+          <input
+            type="datetime-local"
+            value={capturedAt}
+            onChange={(e) => {
+              setCapturedAt(e.target.value);
+              setChecked(false);
+            }}
+            required
+          />
+        </label>
+        <p className="help-text">
+          초기값은 파일 수정 시각입니다. 실제 촬영 시각과 다르면 수정해 주세요.
+          서버에는 UTC로 변환해 전송합니다.
+        </p>
         <label>
           연결할 기기 ID
           <input
@@ -248,6 +397,8 @@ export default function MediaReview({
           className="button primary full"
           disabled={
             !file ||
+            !decoded ||
+            !capturedAt ||
             !checked ||
             !device ||
             !deviceToken ||
