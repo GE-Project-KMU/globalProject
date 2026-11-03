@@ -119,6 +119,15 @@ def purge(store, org=None):
         query = select(Aggregate)
         if org is not None: query = query.where(Aggregate.org == org)
         all_rows=list(s.scalars(query));moment=now()
+        for case in [row for row in all_rows if row.kind=="case" and row.payload.get("reason")]:
+            value=dict(case.payload);deadline=value.get("reason_expires_at")
+            if deadline is None:
+                histories=[row for row in all_rows if row.kind=="history" and row.org==case.org and row.payload.get("case_id")==case.id and row.payload.get("reason")==value["reason"] and row.payload.get("action") in (None,"case.review")]
+                latest=max(histories,key=lambda row:row.created,default=None)
+                deadline=latest.expires if latest is not None else moment
+                value["reason_expires_at"]=deadline
+            if deadline is not None and deadline<=moment:value.pop("reason",None)
+            if value!=case.payload:case.payload=value;case.version+=1
         active=[r for r in all_rows if r.kind=="observation" and (r.expires is None or r.expires>moment)]
         active_ids={r.id for r in active};cases={r.id:r for r in all_rows if r.kind=="case"}
         keepcases=set();keepevents=set();deadlines={}

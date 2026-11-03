@@ -95,3 +95,18 @@ def test_inspection_retention_physically_removes_expired_payloads_and_adds_tombs
     assert store.get(runtime.digest("observation:"+oid),org,"tombstone")["reason"]=="ttl_expiry"
     assert store.get(keep["id"],"other-org")["id"]==keep["id"]
     store.engine.dispose()
+
+
+def test_live_case_context_does_not_extend_old_review_free_text(monkeypatch):
+    from common import runtime
+    from services.inspection.privacy import purge
+    folder=ROOT/".cache/retention-tests"/uuid.uuid4().hex;folder.mkdir(parents=True)
+    monkeypatch.setattr(runtime,"DATA",folder);store=runtime.Store("reason-retention")
+    org="synthetic";case_id=uuid.uuid4().hex;observation_id=uuid.uuid4().hex
+    case=store.create(case_id,org,"case",{"status":"confirmed","priority":"normal","reason":"old private free text","reason_expires_at":runtime.now()-1},runtime.now()+86400)
+    store.create(observation_id,org,"observation",{"case_id":case_id,"payload":{}},runtime.now()+86400)
+    purge(store,org)
+    kept=store.get(case_id,org,"case")
+    assert "reason" not in kept and kept["status"]=="confirmed"
+    assert kept["expires"]==case["expires"]
+    store.engine.dispose()
