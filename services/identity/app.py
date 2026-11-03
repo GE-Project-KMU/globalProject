@@ -59,14 +59,14 @@ def users(req:Request):
 @app.post("/api/v1/users",status_code=201)
 async def create_user(req:Request):
     p=principal(req);role(p,"admin");b=await req.json()
-    if set(b)-{"login","password","role"} or not 1<=len(b.get("login",""))<=254 or not 12<=len(b.get("password",""))<=128 or b.get("role") not in ("admin","reviewer","viewer"):fail(422,"VALIDATION_ERROR")
+    if set(b)-{"login","password","role"} or not isinstance(b.get("login"),str) or not isinstance(b.get("password"),str) or not 1<=len(b["login"])<=254 or not 12<=len(b["password"])<=128 or b.get("role") not in ("admin","reviewer","viewer"):fail(422,"VALIDATION_ERROR")
     if any(x["login"]==b["login"] for x in store.list(p["org_id"],"user")):fail(409,"LOGIN_EXISTS")
     x=store.create(uid(),p["org_id"],"user",{"login":b["login"],"password_hash":ph.hash(b["password"]),"role":b["role"],"active":True})
     store.audit(p,"user.create",x["id"]);return ok(public_user(x))
 @app.patch("/api/v1/users/{id}")
 async def change_user(id:str,req:Request):
     p=principal(req);role(p,"admin");b=await req.json()
-    if not b or set(b)-{"role","active","password"} or ("role" in b and b["role"] not in ("admin","reviewer","viewer")) or ("active" in b and not isinstance(b["active"],bool)) or ("password" in b and not 12<=len(b["password"])<=128):fail(422,"VALIDATION_ERROR")
+    if not b or set(b)-{"role","active","password"} or ("role" in b and b["role"] not in ("admin","reviewer","viewer")) or ("active" in b and not isinstance(b["active"],bool)) or ("password" in b and (not isinstance(b["password"],str) or not 12<=len(b["password"])<=128)):fail(422,"VALIDATION_ERROR")
     with store.tx() as s:
         x=store.get(id,p["org_id"],"user",s)
         if x["role"]=="admin" and x["active"] and (b.get("active") is False or b.get("role",x["role"])!="admin"):
@@ -102,13 +102,13 @@ async def new_device(req:Request):
 @app.patch("/api/v1/devices/{id}")
 async def update_device(id:str,req:Request):
     p=principal(req);role(p,"admin");b=await req.json()
-    if not b or set(b)-{"name","active"} or ("active" in b and not isinstance(b["active"],bool)) or ("name" in b and not 1<=len(b["name"])<=100):fail(422,"VALIDATION_ERROR")
+    if not b or set(b)-{"name","active"} or ("active" in b and not isinstance(b["active"],bool)) or ("name" in b and (not isinstance(b["name"],str) or not 1<=len(b["name"])<=100)):fail(422,"VALIDATION_ERROR")
     x=store.get(id,p["org_id"],"device");payload={k:x[k] for k in ("name","active","credential_id")};payload.update(b)
     x=store.change(id,p["org_id"],payload,x["version"]);return ok({k:v for k,v in x.items() if k!="credential_id"})
 @app.post("/api/v1/devices/{id}/credentials")
 async def rotate(id:str,req:Request):
     p=principal(req);role(p,"admin");b=await req.json()
-    if not 1<=len(b.get("reason",""))<=500:fail(422,"REASON_REQUIRED")
+    if set(b)!={"reason"} or not isinstance(b.get("reason"),str) or not 1<=len(b["reason"])<=500:fail(422,"REASON_REQUIRED")
     x=store.get(id,p["org_id"],"device");token=secrets.token_urlsafe(32);tid=digest(token)
     with store.tx() as s:
         store.delete(x["credential_id"],p["org_id"],s)
