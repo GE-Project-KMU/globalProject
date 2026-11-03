@@ -1,5 +1,5 @@
 """Technical infrastructure only. Domain services never open one another's stores."""
-import base64, hashlib, hmac, json, logging, os, secrets, time, uuid
+import base64, hashlib, hmac, json, logging, math, os, secrets, time, uuid
 from contextlib import contextmanager
 from pathlib import Path
 from datetime import datetime, timezone
@@ -34,6 +34,20 @@ def digest(v):
     if not isinstance(v,bytes): v=json.dumps(v,sort_keys=True,separators=(",",":"),ensure_ascii=False,allow_nan=False).encode()
     return hashlib.sha256(v).hexdigest()
 def fail(code,msg,**details): raise HTTPException(code,{"code":msg,"message":msg,"details":details})
+def strict_pairs(pairs):
+    result={}
+    for key,value in pairs:
+        if key in result:raise ValueError("Duplicate JSON key")
+        result[key]=value
+    return result
+def strict_float(raw):
+    value=float(raw)
+    if not math.isfinite(value):raise ValueError("Non-finite JSON number")
+    return value
+def strict_int(raw):
+    value=int(raw)
+    if abs(value)>9007199254740991:raise ValueError("Integer exceeds JSON-safe range")
+    return value
 def ok(data, **meta): return {"data":data,"meta":{"schema_version":"0.4",**meta}}
 def valid_uuid(v):
     try: return str(uuid.UUID(v))
@@ -141,6 +155,8 @@ def app_for(name):
     @app.middleware("http")
     async def guard(req,call_next):
         req.state.request_id=uid()
+        def reject(status,code,message):
+            return JSONResponse({"error":{"code":code,"message":message},"meta":{"request_id":req.state.request_id}},status_code=status,headers={"X-Request-ID":req.state.request_id})
         try:
             public=req.url.path=="/health" or (name=="identity" and req.url.path=="/api/v1/auth/login")
             if not public:
@@ -152,7 +168,16 @@ def app_for(name):
                 if p["aud"]!=name or p["exp"]<now():raise ValueError()
                 req.state.principal=p
         except (ValueError,KeyError,TypeError,json.JSONDecodeError):
-            return JSONResponse({"error":{"code":"UNAUTHENTICATED","message":"Internal authentication required"}},status_code=401)
+            return reject(401,"UNAUTHENTICATED","Internal authentication required")
+        if req.method in ("POST","PUT","PATCH") and req.headers.get("content-type","").split(";")[0]=="application/json":
+            raw=await req.body()
+            if len(raw)>64000:
+                return reject(413,"PAYLOAD_TOO_LARGE","JSON exceeds 64000 bytes")
+            try:
+                body=json.loads(raw,object_pairs_hook=strict_pairs,parse_float=strict_float,parse_int=strict_int,parse_constant=lambda x: (_ for _ in ()).throw(ValueError(x)))
+                if not isinstance(body,dict):raise ValueError("Object required")
+            except (ValueError,UnicodeDecodeError):
+                return reject(422,"VALIDATION_ERROR","A valid JSON object is required")
         try:
             response=await call_next(req)
         except Exception:
