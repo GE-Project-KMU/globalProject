@@ -205,6 +205,7 @@ def verify(args):
     if args.metadata_only:return result
     if not validated["weight_path"].is_file() or digest(validated["weight_path"])!=m["sha256"]:raise ValueError("weight_hash_mismatch_or_missing")
     result["weight_hash_verified"]=True
+    if args.checkpoint:result["checkpoint_sha256"]=digest(scoped(args.checkpoint))
     if not math.isfinite(args.rtol) or not math.isfinite(args.atol) or not 0<=args.rtol<=.01 or not 0<=args.atol<=.01:raise ValueError("finite_bounded_parity_tolerances_required")
     import cv2,numpy as np
     from agent.models import OnnxModel

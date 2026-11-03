@@ -1,0 +1,24 @@
+{
+  "created_before_fresh_test_inference": true,
+  "models": {
+    "baseline": "data/training/lane-a2d2-v1/lane.json",
+    "candidate": "data/training/lane-a2d2-v2/portable/lane.json"
+  },
+  "baseline_manifest_sha256": "1240a6d4c44635d4764f8e80ea645e91bbde5bc9747ca4f1f0c9612b5f3e78d2",
+  "candidate_release_sha256": "ee5d8cb5e4a34870e190eda80cda72890fa29510cc650b5fce516ba560c46a8d",
+  "selection": "One candidate recipe, maximum validation original-resolution paintIoU over fixed14thresholds; max60/min15/patience12 delta.001; no test-based choices",
+  "benchmark_manifest": "data/public/a2d2-improvement-v2/regression-manifest.json",
+  "benchmark_sha256": "d5ea8f7c66f1b66ee5935f86db816309c01379458ae117f6ee69e17ccc801595",
+  "role": "diagnostic_previously_examined_regression",
+  "parent_plan": "docs/reports/LANE-IMPROVEMENT-REGRESSION-PLAN.json",
+  "parent_plan_sha256": "2ebaf0e88f471879ff940eac022c3b86994ffd24350f6486e3cf7fffffdfdc14",
+  "parent_created_at": "2026-11-03T18:23:14.353991+00:00",
+  "created_at": "2026-11-03T19:58:51.004948+00:00",
+  "verification_mode": "diagnostic_accuracy_only_with_unresolved_checkpoint_raw_parity",
+  "revision_reason": "Strict checkpoint raw-tensor parity failed on preselected VAL before any new TEST access; original plan and failure are preserved. This separate plan measures actual-app research accuracy only.",
+  "checkpoint_raw_tensor_parity_passed": false,
+  "project_acceptance_eligible": false,
+  "production_approved": false,
+  "raw_rtol": 0.001,
+  "raw_atol": 0.0001
+}

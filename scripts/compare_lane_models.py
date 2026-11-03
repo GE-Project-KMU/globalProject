@@ -18,12 +18,28 @@ def preserve_freeze(path,value):
     else:atomic_json(path,value)
 
 
-def verified_lane_artifact(path):
+def verified_lane_artifact(path,*,diagnostic=False):
     proof=json.loads((path.parent/"verification-final.json").read_text(encoding="utf-8"))
-    if (proof.get("manifest_sha256")!=sha256(path) or proof.get("numerical_parity_passed") is not True
+    if (proof.get("manifest_sha256")!=sha256(path)
         or proof.get("torch_checkpoint_compared") is not True or proof.get("synthetic_input") is not False
         or proof.get("lane_adapter_postprocess_matches_reference") is not True):
         raise ValueError("positive_validation_numerical_and_postprocess_verification_required")
+    strict=proof.get("numerical_parity_passed") is True
+    if not strict:
+        if not diagnostic:raise ValueError("positive_validation_numerical_and_postprocess_verification_required")
+        model=json.loads(path.read_text(encoding="utf-8"))
+        masks=proof.get("mask_agreement",{})
+        if (proof.get("numerical_parity_passed") is not False or proof.get("artifact_contract_verified") is not False
+            or proof.get("app_vs_ort",{}).get("passed") is not True
+            or model.get("checkpoint_raw_tensor_parity_passed") is not False
+            or "checkpoint_raw_tensor_parity_unresolved" not in model.get("deployment_blocked_reasons",[])
+            or model.get("research_only") is not True or model.get("production_approved") is not False
+            or model.get("project_acceptance_eligible") is not False
+            or not model.get("trained_checkpoint_sha256") or proof.get("checkpoint_sha256")!=model["trained_checkpoint_sha256"]
+            or any(masks.get(name,{}).get("pixel_agreement")!=1.0 or masks.get(name,{}).get("paint_pixels",0)<1 for name in ("app","ort","torch"))):
+            raise ValueError("explicit_runtime_consistent_research_diagnostic_required")
+    return {"checkpoint_raw_tensor_parity_passed":strict,"diagnostic_accuracy_only":not strict,
+            "verification_manifest_sha256":proof["manifest_sha256"],"validation_probe_scope":"one predeclared positive validation image"}
 
 
 def _compare(plan_path,output):
@@ -46,9 +62,10 @@ def _compare(plan_path,output):
         if seen&{r["sha256"] for r in development} or groups&{r["leakage_group_id"] for r in development}:raise ValueError("holdout_training_or_validation_leakage")
         if name=="baseline" and sha256(path)!=plan["baseline_manifest_sha256"]:raise ValueError("baseline_changed")
         if name=="candidate" and m["dataset_release"]!="manifest-sha256:"+plan["candidate_release_sha256"]:raise ValueError("candidate_source_changed")
-        verified_lane_artifact(path)
+        diagnostic=plan.get("verification_mode")=="diagnostic_accuracy_only_with_unresolved_checkpoint_raw_parity"
+        verification=verified_lane_artifact(path,diagnostic=diagnostic and name=="candidate")
         models[name]=model;paths[name]=path;frozen[name]={"manifest_sha256":sha256(path),"weights_sha256":m["sha256"],"paint_threshold":m["paint_threshold"],
-            "input_size":m["input_size"],"backend":model.backend,"backend_version":model.backend_version}
+            "input_size":m["input_size"],"backend":model.backend,"backend_version":model.backend_version,"verification":verification}
     if set(models)!={"baseline","candidate"}:raise ValueError("exactly_one_baseline_and_candidate_required")
     # This receipt is written before any holdout prediction. It records no
     # scores and is not a threshold/model-selection mechanism.
@@ -71,6 +88,8 @@ def _compare(plan_path,output):
         "plan_sha256":sha256(plan_path),"benchmark_sha256":sha256(bench),"samples":len(rows),"results":results,
         "paint_iou_change":results["candidate"]["paint_iou"]-results["baseline"]["paint_iou"],
         "test_used_for_model_or_threshold_selection":False,"physical_route_independence_verified":False,"project_acceptance_passed":False,
+        "checkpoint_raw_tensor_parity_all_models_passed":all(value["verification"]["checkpoint_raw_tensor_parity_passed"] for value in frozen.values()),
+        "diagnostic_accuracy_only":any(value["verification"]["diagnostic_accuracy_only"] for value in frozen.values()),
         "retention_mae_pp":None,"limits":["Two recording groups do not prove independent physical roads", "Publisher paint proxy only; no outline/gap/valid wear-ratio GT", "Single-model CPU timing under shared host load, not full-pipeline FPS"]}
     atomic_json(output,report);atomic_json(output.with_name(output.stem+"-per-image.json"),samples)
     return report
