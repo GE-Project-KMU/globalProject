@@ -46,16 +46,29 @@ class Tracker:
     def __init__(self, iou_threshold=.3):
         self.iou_threshold = iou_threshold
         self.tracks = []
+        self.last_at = None
 
     def update(self, detections, at):
+        if not np.isfinite(at) or self.last_at is not None and at<=self.last_at:raise ValueError("tracking_time_must_increase")
+        self.last_at=at
+        self.tracks=[track for track in self.tracks if at-track["last_at"]<=1]
         available = {i for i, track in enumerate(self.tracks) if at - track["last_at"] <= 1}
         updated = []
         for detection in sorted(detections, key=lambda x: x["confidence"], reverse=True):
-            matches = [(intersection_over_union(self.tracks[i]["bbox_xywh_px"], detection["bbox_xywh_px"]), i) for i in available]
+            matches=[]
+            for i in available:
+                track=self.tracks[i]
+                a,b=track["bbox_xywh_px"],detection["bbox_xywh_px"]
+                movement=np.array([b[0]+b[2]/2-a[0]-a[2]/2,b[1]+b[3]/2-a[1]-a[3]/2])
+                velocity=np.asarray(track.get("direction",[0.,0.]))
+                if np.linalg.norm(movement)>2 and np.linalg.norm(velocity)>2 and np.dot(movement,velocity)<-.5*np.linalg.norm(movement)*np.linalg.norm(velocity):continue
+                matches.append((intersection_over_union(a,b),i))
             best = max(matches, default=(0, None))
             if best[0] >= self.iou_threshold:
                 track = self.tracks[best[1]]
                 available.remove(best[1])
+                a,b=track["bbox_xywh_px"],detection["bbox_xywh_px"]
+                track["direction"]=[b[0]+b[2]/2-a[0]-a[2]/2,b[1]+b[3]/2-a[1]-a[3]/2]
             else:
                 track = {"event_id": str(uuid.uuid4()), "observations_at": []}
                 self.tracks.append(track)
