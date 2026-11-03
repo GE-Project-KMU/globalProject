@@ -12,6 +12,7 @@ from PIL import Image
 from cryptography.exceptions import InvalidTag
 from .capture import EncryptedStore
 from .paths import workspace_path, sha256
+from .tls import gateway_tls
 
 
 class Outbox:
@@ -38,7 +39,9 @@ class Outbox:
         raw = bytes(row["payload"])
         return json.loads(self.cipher.decrypt(raw[:12], raw[12:], row["id"].encode()))
 
-    def enqueue(self, observation, image, *, reviewed_by, confirmed_human_review=False):
+    def enqueue(self, observation, image, *, reviewed_by, confirmed_human_review=False,lineage=None):
+        from .governance import identities,blocked_identities
+        if set(identities(observation|(lineage or {})))&blocked_identities():raise ValueError("source_or_observation_revoked")
         if not confirmed_human_review or not reviewed_by.strip():
             raise ValueError("explicit_human_review_required")
         identifier = str(uuid.UUID(observation["observation_id"]))
@@ -61,6 +64,9 @@ class Outbox:
             raise ValueError("observation_expired")
         item = {"observation": observation, "image_path": str(path), "mime": mime,
                 "reviewed_by": reviewed_by, "reviewed_at": datetime.now(timezone.utc).isoformat()}
+        if lineage:
+            if set(lineage)-{"sample_id","source_id"} or any(not isinstance(v,str) or not v for v in lineage.values()):raise ValueError("invalid_local_lineage")
+            item["lineage"]=lineage
         with self.connect() as db:
             existing = db.execute("SELECT * FROM queue WHERE id=?", (identifier,)).fetchone()
             if existing:
@@ -76,16 +82,45 @@ class Outbox:
         with self.connect() as db:
             return [dict(r) for r in db.execute("SELECT id,state,attempts,next_at,error,approval_id,image_ready FROM queue ORDER BY created_at")]
 
+    def purge_expired(self, *, now=None, dry_run=True):
+        now=now or datetime.now(timezone.utc)
+        expired=[]
+        with self.connect() as db:
+            for row in db.execute("SELECT * FROM queue").fetchall():
+                item=self.decode(row)
+                captured=datetime.fromisoformat(item["observation"]["captured_at"].replace("Z","+00:00"))
+                if captured+timedelta(days=90)<=now:
+                    expired.append(row["id"])
+                    if not dry_run:db.execute("DELETE FROM queue WHERE id=?",(row["id"],))
+        return {"expired":expired,"deleted":not dry_run}
+
+    def revoke_observations(self,identity_hashes,*,dry_run=True):
+        from .governance import identities
+        targets=set(identity_hashes);removed=[]
+        with self.connect() as db:
+            rows=db.execute("SELECT * FROM queue").fetchall()
+            selected=[];shared=set()
+            for row in rows:
+                item=self.decode(row)
+                if set(identities(item["observation"]|item.get("lineage",{})))&targets:
+                    selected.append(row["id"]);shared.add(item["image_path"])
+            for row in rows:
+                item=self.decode(row)
+                if row["id"] in selected or item["image_path"] in shared:
+                    removed.append(row["id"])
+                    if not dry_run:db.execute("DELETE FROM queue WHERE id=?",(row["id"],))
+        return {"removed_observation_ids":removed,"applied":not dry_run}
+
     def retry_blocked(self, identifier):
         with self.connect() as db:
             db.execute("UPDATE queue SET state='pending',next_at=0,error=NULL,approval_id=NULL WHERE id=? AND state='blocked'", (identifier,))
 
-    def drain(self, base_url, *, device_token, reviewer_token=None, transport=None, limit=100):
+    def drain(self, base_url, *, device_token, reviewer_token=None, transport=None, limit=100,ca_bundle=None):
         parsed = urlparse(base_url)
         if parsed.scheme not in ("http", "https") or (parsed.scheme == "http" and parsed.hostname not in ("127.0.0.1", "localhost", "::1")):
             raise ValueError("https_or_loopback_gateway_required")
         results = []
-        with httpx.Client(base_url=base_url.rstrip("/") + "/", timeout=30, transport=transport) as client:
+        with httpx.Client(base_url=base_url.rstrip("/") + "/", timeout=30, transport=transport,verify=gateway_tls(ca_bundle),trust_env=False) as client:
             for _ in range(limit):
                 now = time.time()
                 with self.connect() as db:
