@@ -6,6 +6,8 @@
 
 Python 3.11.9 공식 Windows embeddable package, PyTorch 2.7.1+cu126, torchvision 0.22.1+cu126, NumPy 1.26.4, OpenCV 4.10.0, ONNX 1.17.0, ONNX Runtime 1.20.1을 사용한다. 직접 의존성은 `requirements-training.txt`, 실제 설치된 Windows CPython3.11 의존성 58개는 `requirements-training-lock-windows311.txt`로 고정했다. `pip check`는 의존성 충돌 없이 통과했다.
 
+앱 Python3.14의 실제 추론 backend는 ONNX Runtime1.31.1 CPU다. 별도 학습 환경의 ORT1.20.1은 수치 비교용 reference로 유지한다. OpenCV5는 영상 처리에 사용하며 실제 RTK ONNX에서 확인한 기본 DNN engine 오류 때문에 앱 추론에 자동 선택하지 않는다. 변경 전/후 비교 절차와 진단 보고서는 [모델 산출물 안내](MODEL-ARTIFACTS.md)에 구분한다.
+
 선정 근거: [PyTorch 공식 이전 버전 설치 조합](https://pytorch.org/get-started/previous-versions/)의 torch2.7.1/torchvision0.22.1/CUDA12.6 Windows wheel, [NVIDIA의 Turing 호환 안내](https://docs.nvidia.com/cuda/archive/12.6.0/turing-compatibility-guide/index.html), [Python 공식 3.11.9 배포](https://www.python.org/downloads/release/python-3119/). 애플리케이션 Python3.14와 구형 YOLOX 소스의 학습 의존성을 같은 환경에 혼합하지 않는다.
 
 RTX 2080 Ti 11GB, capability7.5, torch compiled architecture `sm_75`, CUDA runtime12.6을 실제로 확인했다. 합성 텐서로 GPU 행렬 곱과 torchvision CUDA NMS, 다음 모델의 forward/backward/SGD1회를 실행했다.
