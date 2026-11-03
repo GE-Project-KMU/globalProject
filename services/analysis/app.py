@@ -32,3 +32,43 @@ async def create_profile(req:Request):
     except (AssertionError,ValueError,TypeError,KeyError):fail(422,"INVALID_CALIBRATION")
     if any(x["name"]==b["name"] and x["version"]==b["version"] for x in store.list(p["org_id"],"profile")):fail(409,"PROFILE_VERSION_EXISTS")
     id=uid();store.create(id,p["org_id"],"profile",b);return ok({"profile_id":id,**b})
+@app.post("/api/v1/model-bundles",status_code=201)
+async def create_bundle(req:Request):
+    p=principal(req);role(p,"admin");b=await req.json();finite_tree(b)
+    required={"version","weights_hashes","preprocess","thresholds","config_hash"}
+    if not required<=set(b) or set(b)-required-{"code_commit","environment_hash"}:fail(422,"INVALID_BUNDLE")
+    validate_hash(b["config_hash"])
+    if not isinstance(b["version"],str) or not b["version"]:fail(422,"INVALID_VERSION")
+    if set(b["weights_hashes"])!={"pothole","lane","redaction"}:fail(422,"INVALID_WEIGHTS")
+    for h in b["weights_hashes"].values():validate_hash(h)
+    t=b["thresholds"]
+    try:
+        assert 0<=t["pothole_confidence"]<=1 and 0<=t["pothole_nms_iou"]<=1
+        assert 0<=t["single_frame_confidence"]<=1
+        assert 0<=t["lane_monitor"]<t["lane_good"]<=100
+        assert 0<=t["min_valid_ratio"]<=1 and 0<=t["min_segment_support_ratio"]<=1
+    except (AssertionError,KeyError,TypeError):fail(422,"INVALID_THRESHOLDS")
+    if any(x["version"]==b["version"] for x in store.list(p["org_id"],"bundle")):fail(409,"BUNDLE_VERSION_EXISTS")
+    id=uid();store.create(id,p["org_id"],"bundle",b)
+    return ok({"model_bundle_id":id,**b,"deployment_status":"manifest_registered_weights_not_verified"})
+@app.get("/api/v1/profiles")
+def profiles(req:Request):return ok({"items":store.list(principal(req)["org_id"],"profile")})
+@app.get("/api/v1/profiles/{id}")
+def get_profile(id:str,req:Request):return ok(store.get(id,principal(req)["org_id"],"profile"))
+@app.get("/api/v1/model-bundles")
+def bundles(req:Request):return ok({"items":store.list(principal(req)["org_id"],"bundle")})
+@app.get("/api/v1/model-bundles/{id}")
+def get_bundle(id:str,req:Request):return ok(store.get(id,principal(req)["org_id"],"bundle"))
+@app.get("/internal/model-version/{version}")
+def by_version(version:str,req:Request):
+    p=principal(req);x=next((x for x in store.list(p["org_id"],"bundle") if x["version"]==version),None)
+    if not x:fail(404,"MODEL_VERSION_NOT_FOUND")
+    return ok(x)
+@app.get("/api/v1/analysis/capabilities")
+def capabilities(req:Request):
+    p=principal(req)
+    models=DATA/"models"
+    return ok({"raw_processing":"local_agent","server_raw_upload":False,
+               "manifest_count":len(store.list(p["org_id"],"bundle")),
+               "model_status":"target_weights_required","local_agent_command":"python -m agent --help",
+               "note":"Registry metadata is not proof of trained model accuracy."})
