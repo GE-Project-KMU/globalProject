@@ -10,6 +10,7 @@ import {
 import type { Observation, Summary } from "../types";
 import { date, id, typeName } from "../labels";
 import ObservationMap from "../components/ObservationMap";
+import TrendChart from "../components/TrendChart";
 interface Props {
   summary: Summary | null;
   items: Observation[];
@@ -72,6 +73,7 @@ export default function Dashboard({
           </section>
         ))}
       </div>
+      <TrendChart summary={summary} />
       <div className="overview-grid">
         <section className="panel">
           <div className="panel-heading">
