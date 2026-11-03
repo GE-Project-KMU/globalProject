@@ -1,0 +1,17 @@
+{
+  "created_before_candidate_regression_inference": true,
+  "models": {
+    "baseline": "data/training/pothole-nano-rdd2020-v1/model.json",
+    "candidate": "data/training/pothole-nano-rdd2020-v4/model.json"
+  },
+  "baseline_manifest_sha256": "dfcd545e3daccb0978b8c9d5daee66ba0e3a0dfe4b810000908466fa26505ed4",
+  "candidate_release_sha256": "6c5618898d96dd032ae5d9579c8c79aa676a063d6557c1c2f361a37fe5a8388c",
+  "benchmark_manifest": "data/training/research-pothole-rdd2020/release.json",
+  "benchmark_sha256": "eb861554f43d7fa038ff34023a586eddfb8c090fee8480bf8254114b0f4499ac",
+  "role": "previously_examined_czech_regression_actual_app_cpu",
+  "selection": "No threshold or checkpoint selection using this previously examined regression cohort",
+  "app_floor_confidence": 0.01,
+  "fixed_reference_confidence": 0.35,
+  "required_before_inference": "Canonical positive-validation numerical and postprocess verification matching final model manifest hash for both models",
+  "project_acceptance_eligible": false
+}

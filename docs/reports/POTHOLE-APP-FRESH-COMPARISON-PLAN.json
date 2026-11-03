@@ -1,0 +1,18 @@
+{
+  "created_before_candidate_fresh_test_inference": true,
+  "models": {
+    "baseline": "data/training/pothole-nano-rdd2020-v1/model.json",
+    "candidate": "data/training/pothole-nano-rdd2020-v4/model.json"
+  },
+  "baseline_manifest_sha256": "dfcd545e3daccb0978b8c9d5daee66ba0e3a0dfe4b810000908466fa26505ed4",
+  "candidate_release_sha256": "6c5618898d96dd032ae5d9579c8c79aa676a063d6557c1c2f361a37fe5a8388c",
+  "benchmark_manifest": "data/training/research-pothole-rdd2020-v4/release.json",
+  "benchmark_sha256": "6c5618898d96dd032ae5d9579c8c79aa676a063d6557c1c2f361a37fe5a8388c",
+  "role": "new_filename_block_holdout_actual_app_cpu",
+  "selection": "One frozen recipe; checkpoint selected using validation AP50, min15/max60/patience12 delta.001; confidence selected using validation F2; no test tuning",
+  "app_floor_confidence": 0.01,
+  "fixed_reference_confidence": 0.35,
+  "required_before_inference": "Canonical positive-validation numerical and postprocess verification matching final model manifest hash for both models",
+  "physical_route_independence_verified": false,
+  "project_acceptance_eligible": false
+}
