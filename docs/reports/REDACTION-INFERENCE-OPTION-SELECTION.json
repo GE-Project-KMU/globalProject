@@ -1,0 +1,485 @@
+{
+  "backends": {
+    "standard": {
+      "engine": "onnxruntime-cpu",
+      "version": "1.31.1"
+    },
+    "tiled": {
+      "engine": "onnxruntime-cpu",
+      "version": "1.31.1"
+    }
+  },
+  "calibrations": {
+    "standard": {
+      "goal_achieved": false,
+      "grid": [
+        0.01,
+        0.03,
+        0.05,
+        0.1,
+        0.2,
+        0.35,
+        0.5
+      ],
+      "minimum_recall_goal": 0.95,
+      "scores": [
+        {
+          "classes": {
+            "face": {
+              "fn": 369,
+              "fp": 4295,
+              "gt_count": 2786,
+              "precision": 0.36010131108462456,
+              "prediction_count": 6712,
+              "recall": 0.8675520459440057,
+              "tp": 2417
+            },
+            "license_plate": {
+              "fn": 0,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 108,
+              "recall": 1.0,
+              "tp": 108
+            }
+          },
+          "confidence": 0.01,
+          "macro_precision": 0.6800506555423123,
+          "min_class_recall": 0.8675520459440057
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 430,
+              "fp": 2119,
+              "gt_count": 2786,
+              "precision": 0.5264804469273743,
+              "prediction_count": 4475,
+              "recall": 0.8456568557071069,
+              "tp": 2356
+            },
+            "license_plate": {
+              "fn": 0,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 108,
+              "recall": 1.0,
+              "tp": 108
+            }
+          },
+          "confidence": 0.03,
+          "macro_precision": 0.7632402234636871,
+          "min_class_recall": 0.8456568557071069
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 463,
+              "fp": 1506,
+              "gt_count": 2786,
+              "precision": 0.6066858187516323,
+              "prediction_count": 3829,
+              "recall": 0.8338119167264896,
+              "tp": 2323
+            },
+            "license_plate": {
+              "fn": 0,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 108,
+              "recall": 1.0,
+              "tp": 108
+            }
+          },
+          "confidence": 0.05,
+          "macro_precision": 0.8033429093758162,
+          "min_class_recall": 0.8338119167264896
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 531,
+              "fp": 952,
+              "gt_count": 2786,
+              "precision": 0.7031493607733084,
+              "prediction_count": 3207,
+              "recall": 0.8094041636755205,
+              "tp": 2255
+            },
+            "license_plate": {
+              "fn": 1,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 107,
+              "recall": 0.9907407407407407,
+              "tp": 107
+            }
+          },
+          "confidence": 0.1,
+          "macro_precision": 0.8515746803866542,
+          "min_class_recall": 0.8094041636755205
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 594,
+              "fp": 543,
+              "gt_count": 2786,
+              "precision": 0.8014625228519195,
+              "prediction_count": 2735,
+              "recall": 0.7867910983488873,
+              "tp": 2192
+            },
+            "license_plate": {
+              "fn": 1,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 107,
+              "recall": 0.9907407407407407,
+              "tp": 107
+            }
+          },
+          "confidence": 0.2,
+          "macro_precision": 0.9007312614259597,
+          "min_class_recall": 0.7867910983488873
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 716,
+              "fp": 274,
+              "gt_count": 2786,
+              "precision": 0.8831058020477816,
+              "prediction_count": 2344,
+              "recall": 0.7430007178750897,
+              "tp": 2070
+            },
+            "license_plate": {
+              "fn": 3,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 105,
+              "recall": 0.9722222222222222,
+              "tp": 105
+            }
+          },
+          "confidence": 0.35,
+          "macro_precision": 0.9415529010238908,
+          "min_class_recall": 0.7430007178750897
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 895,
+              "fp": 138,
+              "gt_count": 2786,
+              "precision": 0.9319862000985707,
+              "prediction_count": 2029,
+              "recall": 0.6787508973438622,
+              "tp": 1891
+            },
+            "license_plate": {
+              "fn": 3,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 105,
+              "recall": 0.9722222222222222,
+              "tp": 105
+            }
+          },
+          "confidence": 0.5,
+          "macro_precision": 0.9659931000492854,
+          "min_class_recall": 0.6787508973438622
+        }
+      ],
+      "selected": {
+        "classes": {
+          "face": {
+            "fn": 369,
+            "fp": 4295,
+            "gt_count": 2786,
+            "precision": 0.36010131108462456,
+            "prediction_count": 6712,
+            "recall": 0.8675520459440057,
+            "tp": 2417
+          },
+          "license_plate": {
+            "fn": 0,
+            "fp": 0,
+            "gt_count": 108,
+            "precision": 1.0,
+            "prediction_count": 108,
+            "recall": 1.0,
+            "tp": 108
+          }
+        },
+        "confidence": 0.01,
+        "macro_precision": 0.6800506555423123,
+        "min_class_recall": 0.8675520459440057
+      },
+      "selected_on": "validation_only"
+    },
+    "tiled": {
+      "goal_achieved": false,
+      "grid": [
+        0.01,
+        0.03,
+        0.05,
+        0.1,
+        0.2,
+        0.35,
+        0.5
+      ],
+      "minimum_recall_goal": 0.95,
+      "scores": [
+        {
+          "classes": {
+            "face": {
+              "fn": 209,
+              "fp": 8920,
+              "gt_count": 2786,
+              "precision": 0.22414542924241107,
+              "prediction_count": 11497,
+              "recall": 0.9249820531227566,
+              "tp": 2577
+            },
+            "license_plate": {
+              "fn": 0,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 108,
+              "recall": 1.0,
+              "tp": 108
+            }
+          },
+          "confidence": 0.01,
+          "macro_precision": 0.6120727146212055,
+          "min_class_recall": 0.9249820531227566
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 277,
+              "fp": 4341,
+              "gt_count": 2786,
+              "precision": 0.36627737226277374,
+              "prediction_count": 6850,
+              "recall": 0.9005743000717875,
+              "tp": 2509
+            },
+            "license_plate": {
+              "fn": 0,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 108,
+              "recall": 1.0,
+              "tp": 108
+            }
+          },
+          "confidence": 0.03,
+          "macro_precision": 0.6831386861313868,
+          "min_class_recall": 0.9005743000717875
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 304,
+              "fp": 3130,
+              "gt_count": 2786,
+              "precision": 0.44226657163221667,
+              "prediction_count": 5612,
+              "recall": 0.8908829863603733,
+              "tp": 2482
+            },
+            "license_plate": {
+              "fn": 0,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 108,
+              "recall": 1.0,
+              "tp": 108
+            }
+          },
+          "confidence": 0.05,
+          "macro_precision": 0.7211332858161084,
+          "min_class_recall": 0.8908829863603733
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 360,
+              "fp": 2010,
+              "gt_count": 2786,
+              "precision": 0.5468890892696122,
+              "prediction_count": 4436,
+              "recall": 0.8707824838478104,
+              "tp": 2426
+            },
+            "license_plate": {
+              "fn": 1,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 107,
+              "recall": 0.9907407407407407,
+              "tp": 107
+            }
+          },
+          "confidence": 0.1,
+          "macro_precision": 0.7734445446348062,
+          "min_class_recall": 0.8707824838478104
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 425,
+              "fp": 1173,
+              "gt_count": 2786,
+              "precision": 0.668081494057725,
+              "prediction_count": 3534,
+              "recall": 0.8474515434314429,
+              "tp": 2361
+            },
+            "license_plate": {
+              "fn": 1,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 107,
+              "recall": 0.9907407407407407,
+              "tp": 107
+            }
+          },
+          "confidence": 0.2,
+          "macro_precision": 0.8340407470288624,
+          "min_class_recall": 0.8474515434314429
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 521,
+              "fp": 640,
+              "gt_count": 2786,
+              "precision": 0.7796901893287436,
+              "prediction_count": 2905,
+              "recall": 0.8129935391241924,
+              "tp": 2265
+            },
+            "license_plate": {
+              "fn": 3,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 105,
+              "recall": 0.9722222222222222,
+              "tp": 105
+            }
+          },
+          "confidence": 0.35,
+          "macro_precision": 0.8898450946643718,
+          "min_class_recall": 0.8129935391241924
+        },
+        {
+          "classes": {
+            "face": {
+              "fn": 650,
+              "fp": 345,
+              "gt_count": 2786,
+              "precision": 0.8609431680773881,
+              "prediction_count": 2481,
+              "recall": 0.7666905958363245,
+              "tp": 2136
+            },
+            "license_plate": {
+              "fn": 3,
+              "fp": 0,
+              "gt_count": 108,
+              "precision": 1.0,
+              "prediction_count": 105,
+              "recall": 0.9722222222222222,
+              "tp": 105
+            }
+          },
+          "confidence": 0.5,
+          "macro_precision": 0.9304715840386941,
+          "min_class_recall": 0.7666905958363245
+        }
+      ],
+      "selected": {
+        "classes": {
+          "face": {
+            "fn": 209,
+            "fp": 8920,
+            "gt_count": 2786,
+            "precision": 0.22414542924241107,
+            "prediction_count": 11497,
+            "recall": 0.9249820531227566,
+            "tp": 2577
+          },
+          "license_plate": {
+            "fn": 0,
+            "fp": 0,
+            "gt_count": 108,
+            "precision": 1.0,
+            "prediction_count": 108,
+            "recall": 1.0,
+            "tp": 108
+          }
+        },
+        "confidence": 0.01,
+        "macro_precision": 0.6120727146212055,
+        "min_class_recall": 0.9249820531227566
+      },
+      "selected_on": "validation_only"
+    }
+  },
+  "evaluated_at": "2026-11-03T23:37:02.144952+00:00",
+  "exact_ties_prefer_standard": true,
+  "format": "redaction-inference-option-validation-v1",
+  "known_class_conditional_evaluation": true,
+  "limits": [
+    "CPU application predict latency under shared host load, not full pipeline throughput.",
+    "Known-class source annotations only; unknown other-class predictions are not false positives and exhaustive privacy coverage is not established.",
+    "Both source expiry and redistribution restrictions remain in effect."
+  ],
+  "no_new_gradient_steps": true,
+  "production_approved": false,
+  "project_acceptance_passed": false,
+  "selected_option": "tiled",
+  "shared_checkpoint_sha256": "6c985f7e3afb0fa061cbb82d7ec7b304eb5f9fbfcd0cf9f775dbab28873c82ad",
+  "source_expiries_changed": false,
+  "source_release_sha256": "4eeae0afdf67fcaf727e3e8b3a9b35486ef6f1126ae486da64637a7aec5bbd16",
+  "test_images_or_metrics_read": false,
+  "timing_seconds": {
+    "standard": {
+      "first": 0.0918136999825947,
+      "median": 0.08788410000852309,
+      "p95": 0.09608145500242245
+    },
+    "tiled": {
+      "first": 0.3550801999808755,
+      "median": 0.3491583499999251,
+      "p95": 0.3703512549982406
+    }
+  },
+  "unknown_other_class_predictions_not_scored": {
+    "standard": 92,
+    "tiled": 255
+  },
+  "validation_counts": {
+    "face": 400,
+    "license_plate": 108
+  },
+  "validation_manifest_sha256": "754958da4b13d1a80abcd40a64467342eb229f7df1b5e6e0e74132dc2963f7f8",
+  "validation_source_expiry_min": "2026-11-10T16:55:19.285523+00:00"
+}
