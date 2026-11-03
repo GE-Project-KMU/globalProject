@@ -27,6 +27,8 @@
     "native_mosaic_shape_finite_7": true,
     "native_mosaic_boxes_in_frame_7": true,
     "F2_calibration_recovers_GT": true,
+    "verification_case_IoU_identical_and_disjoint": true,
+    "verification_case_IoU_partial_overlap": true,
     "paired_bootstrap_identical_models_delta_zero": true,
     "paired_bootstrap_missed_GT_delta_negative_one": true,
     "Wilson_empty_and_boundary_contract": true,

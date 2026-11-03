@@ -54,7 +54,9 @@ def check(source):
         {"sample_id":"synthetic","class":"pothole","bbox_xywh_px":[20,20,5,5],"confidence":.4}]}
     calibration=trainer.calibration(fixture)
     checks["F2_calibration_recovers_GT"]=calibration["selected_confidence"]<=.2 and max(s["f2"] for s in calibration["scores"])>0
-    from improve_pothole_compare import grouped_interval,wilson
+    from improve_pothole_compare import grouped_interval,wilson,iou
+    checks["verification_case_IoU_identical_and_disjoint"]=iou([0,0,10,10],[0,0,10,10])==1. and iou([0,0,10,10],[20,20,10,10])==0.
+    checks["verification_case_IoU_partial_overlap"]=abs(iou([0,0,10,10],[5,0,10,10])-1/3)<1e-12
     fixture_rows=[{"sample_id":"a","leakage_group_id":"g1"},{"sample_id":"b","leakage_group_id":"g2"}]
     truth=[{"sample_id":r["sample_id"],"class":"pothole","bbox_xywh_px":[0,0,10,10]} for r in fixture_rows]
     perfect={"truth":truth,"predictions":[r|{"confidence":.9} for r in truth]};missed={"truth":truth,"predictions":[]}

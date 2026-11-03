@@ -12,6 +12,12 @@ def wilson(tp,total):
     center=(p+z*z/(2*total))/den;radius=z*math.sqrt(p*(1-p)/total+z*z/(4*total*total))/den
     return [max(0.,center-radius),min(1.,center+radius)]
 
+def iou(a,b):
+    x,y,w,h=a;xx,yy,ww,hh=b
+    area=max(0.,min(x+w,xx+ww)-max(x,xx))*max(0.,min(y+h,yy+hh)-max(y,yy))
+    union=w*h+ww*hh-area
+    return area/union if union>0 else 0.
+
 def grouped_interval(baseline,candidate,rows,repetitions=500):
     groups={}
     for row in rows:groups.setdefault(row["leakage_group_id"],set()).add(row["sample_id"])
@@ -50,11 +56,12 @@ def compare(folder):
     all_rows=json.loads(release.read_text());rows=[r for r in all_rows if r["split"]=="test"]
     val={r["sample_id"]:r for r in all_rows if r["split"]=="validation" and r["objects"]}
     selected=json.loads((folder/"selected-validation-predictions.json").read_text())
-    positives=[p for p in selected["predictions"] if p["sample_id"] in val and p["confidence"]>=manifest["confidence"]]
+    positives=[p for p in selected["predictions"] if p["sample_id"] in val and p["confidence"]>=manifest["confidence"]
+               and any(iou(p["bbox_xywh_px"],obj["bbox_xywh_px"])>=.5 for obj in val[p["sample_id"]]["objects"])]
     if not positives:raise ValueError("no_positive_validation_case_at_frozen_confidence")
     positive=max(positives,key=lambda p:p["confidence"]);image_row=val[positive["sample_id"]]
     atomic_json(folder/"verification-case.json",{"image":image_row["path"],"sample_id":image_row["sample_id"],
-        "selection":"validation positive GT and nonempty predictions at frozen confidence; numerical parity only, no heldout tuning",
+        "selection":"validation GT matched IoU>=.5 at frozen confidence; numerical parity only, no heldout tuning",
         "confidence":manifest["confidence"],"top_prediction":positive,"expires_at":image_row["expires_at"],
         "checkpoint":(folder/"best.pt").relative_to(ROOT).as_posix(),"manifest":(folder/"model.json").relative_to(ROOT).as_posix(),
         "manifest_sha256":sha256(folder/"model.json")})
@@ -62,6 +69,8 @@ def compare(folder):
     checkpoint=ROOT/"data/training/pothole-nano-rdd2020-v1/best.pt"
     model.load_state_dict(torch.load(checkpoint,map_location="cpu",weights_only=True)["model"]);model=model.cuda()
     baseline=evaluate_model(model,rows,["pothole"],size=640,batch_size=8)
+    del model
+    torch.cuda.empty_cache()
     if baseline["truth"]!=heldout["truth"]:raise ValueError("baseline_candidate_truth_mismatch")
     baseline["operating_metrics"]=operating_metrics(baseline,["pothole"],.35)
     baseline["role"]="single final baseline comparison on same new frozen holdout AFTER candidate selection"
@@ -82,6 +91,8 @@ def compare(folder):
             "baseline_old_test_never_reused_as_train":True,"new_final_test_never_used_for_selection":True},
         "limits":["Same-country Japan filename20 block holdout; physical route/recording independence unverified",
             "Small final holdout: uncertainty intervals are descriptive; source/route sampling bias is not removed by bootstrap",
+            "Balanced positive/negative images do not represent deployment pothole prevalence; precision is not an operational false-alarm/km estimate",
+            "Data and training recipe changed together; this is not a controlled attribution/ablation of individual improvements",
             "Official publisher D40 annotation is retained without model-based relabeling; real-world Korean camera domain not validated",
             "CC-BY-NC-3.0 noncommercial research; human privacy not reviewed; no production acceptance"]}
     report["new_holdout"]["uncertainty"]=grouped_interval(baseline,heldout,rows)

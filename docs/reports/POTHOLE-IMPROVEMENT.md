@@ -60,4 +60,4 @@ v4 release SHA256은 `6c5618898d96dd032ae5d9579c8c79aa676a063d6557c1c2f361a37fe5
 
 `POTHOLE-IMPROVEMENT-DIAGNOSIS.json`, `POTHOLE-IMPROVEMENT-SPLIT.json`, `POTHOLE-IMPROVEMENT-CONTRACT-v4.json`, `POTHOLE-IMPROVEMENT-BATCH16-SMOKE.json`에 원인·분리·소프트웨어 검증 근거를 남겼다. 마지막 비교의 집계 결과는 `POTHOLE-IMPROVEMENT-RESULTS.json`에 저장한다. 합성 bootstrap/F2 검사는 평가 코드 계약 검사이며 정확도 증거가 아니다.
 
-실제 학습·최종 평가가 완료되기 전 수치를 채우지 않는다. 연구용 최종 가중치도 데이터의 비상업 라이선스, 작은 시험 표본, 한국 도로/실물 ZED 2i 검증 부재를 해소하지 않는다.
+실제 학습·최종 평가가 완료되기 전 수치를 채우지 않는다. 양성/음성 균형 시험은 실제 주행의 포트홀 발생 빈도를 재현하지 않으므로 precision을 현장 오탐/km 지표로 해석하지 않는다. 데이터와 학습 방법을 동시에 개선하여 개별 요소의 인과적 기여를 분리한 ablation 실험도 아니다. 연구용 최종 가중치도 데이터의 비상업 라이선스, 작은 시험 표본, 한국 도로/실물 ZED 2i 검증 부재를 해소하지 않는다.

@@ -60,7 +60,10 @@ def historical_exclusions():
 
 def freeze_history(destination):
     destination=workspace_path(destination);data=historical_exclusions()
-    if destination.exists() and json.loads(destination.read_text())!=data:raise ValueError("existing_history_snapshot_differs")
+    if destination.exists():
+        if json.loads(destination.read_text())!=data:raise ValueError("existing_history_snapshot_differs")
+        # Preserve the byte snapshot, including its line endings, on Linux too.
+        print(sha256(destination),flush=True);return
     atomic_json(destination,data);print(sha256(destination),flush=True)
 
 def prepare(output,history_snapshot):
