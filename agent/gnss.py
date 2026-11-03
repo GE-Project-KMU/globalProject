@@ -15,6 +15,7 @@ def _coordinate(raw, direction):
     if not raw or direction not in ("N", "S", "E", "W"):
         raise ValueError("invalid_coordinate")
     value = float(raw)
+    if not math.isfinite(value) or value<0: raise ValueError("invalid_coordinate_numeric_value")
     degrees = int(value // 100)
     minutes = value - degrees * 100
     if not 0 <= minutes < 60:
