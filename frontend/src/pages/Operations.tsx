@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { request } from "../api";
 import type { User } from "../types";
-import { date } from "../labels";
+import { date, analysisReasonLabel } from "../labels";
 import {
   Collection,
   JsonDetails,
@@ -354,7 +354,8 @@ function AnalysisJobs({ token, user }: { token: string; user: User }) {
               <div>
                 <h3>{names[x.status] || x.status}</h3>
                 <p>
-                  {date(x.created_at)} · {x.reason || ""}
+                  {date(x.created_at)}
+                  {x.reason ? ` · ${analysisReasonLabel(x.reason)}` : ""}
                 </p>
                 <code>{x.id}</code>
                 {x.status === "completed" && (
@@ -409,7 +410,7 @@ function AnalysisJobs({ token, user }: { token: string; user: User }) {
             <div>
               <h3>{names[selected.status] || selected.status}</h3>
               <p>
-                {selected.reason ||
+                {analysisReasonLabel(selected.reason) ||
                   "실행 상태와 로컬 검수 패키지를 확인하세요."}
               </p>
               <button

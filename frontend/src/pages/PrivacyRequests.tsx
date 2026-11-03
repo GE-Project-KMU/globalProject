@@ -7,7 +7,7 @@ import {
   JsonDetails,
   useCollection,
 } from "../components/Management";
-import { date } from "../labels";
+import { date, privacyResultLabel } from "../labels";
 const names: Record<string, string> = {
   access: "열람",
   correction: "정정",
@@ -160,7 +160,7 @@ export default function PrivacyRequests({
                   {names[x.request_type]} · {names[x.status] || x.status}
                 </h3>
                 <p>
-                  {date(x.created_at)} · {x.result_code || "결과 대기"}
+                  {date(x.created_at)} · {privacyResultLabel(x.result_code)}
                 </p>
                 <code>{x.request_id}</code>
               </div>
@@ -185,7 +185,7 @@ export default function PrivacyRequests({
           </div>
           <p>
             {names[selected.status] || selected.status} · 버전{" "}
-            {selected.version} · {selected.result_code || "대기"}
+            {selected.version} · {privacyResultLabel(selected.result_code)}
           </p>
           <p>접수 사유: {selected.reason}</p>
           <JsonDetails
