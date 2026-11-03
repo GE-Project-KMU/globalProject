@@ -1,0 +1,162 @@
+{
+  "format": "redaction-postprocess-vectorization-prototype-v1",
+  "scope": "Synthetic CPU-only feasibility prototype; application and training source unchanged",
+  "prototype_sha256": "fe4f36ae2c377663a16d7a3a7473333c88529bd13a23190348869a2fa7a28b6d",
+  "application_source_sha256": "e5e12ddfc53424b877189ff0c7ad1f09413b000baac071cf05a6d9d7b0398be1",
+  "raw_anchors": 102900,
+  "selected_candidates": 200,
+  "seed": 20261104,
+  "source_images_weights_test_accessed": false,
+  "gpu_operations": 0,
+  "app_code_modified": false,
+  "cross_version_output_equality_claimed": false,
+  "semantic_findings": [
+    "Compute objectness times selected class probability in float32, then convert product to float64 before comparing Python confidence threshold.",
+    "Replicate installed NumPy scalar geometry promotion using dtype(np.float32(1)/2): float32 on NumPy2.5.4, float64 on1.26.4.",
+    "Retain original candidate order, classwise NMS before clipping, and final degenerate-box rejection."
+  ],
+  "runs": [
+    {
+      "format": "synthetic-redaction-postprocess-prototype-v1",
+      "scope": "Synthetic tensors only; no app code change, learned weights, source images, TEST data or GPU used",
+      "python": "3.11.9",
+      "numpy": "1.26.4",
+      "opencv": "4.10.0",
+      "raw_shape": [
+        102900,
+        7
+      ],
+      "seed": 20261104,
+      "large_raw_selected_candidates": 200,
+      "final_synthetic_detections": 91,
+      "comparison_cases": 45,
+      "all_candidate_indices_labels_scores_boxes_exactly_equal": true,
+      "all_final_nms_clipped_outputs_exactly_equal": true,
+      "actual_app_fake_net_output_exactly_equal": true,
+      "scalar_half_result_dtype": "float64",
+      "scalar_score_035": 0.3499999940395355,
+      "python_threshold_035": 0.35,
+      "score_comparison_uses_float64": true,
+      "timings": {
+        "scalar_filter_geometry": {
+          "median_seconds": 0.186604200018337,
+          "min_seconds": 0.16220419999444857,
+          "max_seconds": 0.2269936999946367,
+          "repeats": 7
+        },
+        "vector_filter_geometry": {
+          "median_seconds": 0.0052629999845521525,
+          "min_seconds": 0.0038413000002037734,
+          "max_seconds": 0.007980700000189245,
+          "repeats": 20
+        },
+        "scalar_postprocess_with_nms": {
+          "median_seconds": 0.19801409999490716,
+          "min_seconds": 0.17784459999529645,
+          "max_seconds": 0.2270264000108,
+          "repeats": 5
+        },
+        "vector_postprocess_with_nms": {
+          "median_seconds": 0.0052495499985525385,
+          "min_seconds": 0.004988400003639981,
+          "max_seconds": 0.005642700009047985,
+          "repeats": 10
+        },
+        "actual_app_predict_fake_net": {
+          "median_seconds": 0.2192677000130061,
+          "min_seconds": 0.189167099975748,
+          "max_seconds": 0.2343020999978762,
+          "repeats": 3
+        }
+      },
+      "filter_geometry_median_speedup": 35.45586178340371,
+      "full_postprocess_median_speedup": 37.720204598395235,
+      "models_source_sha256": "e5e12ddfc53424b877189ff0c7ad1f09413b000baac071cf05a6d9d7b0398be1",
+      "app_source_modified": false,
+      "accuracy_evaluated": false,
+      "notes": [
+        "Host CPU is shared with ongoing work; timings are prototype medians, not a throughput guarantee.",
+        "Vector geometry reproduces installed NumPy scalar-promotion semantics; each runtime must be verified separately.",
+        "Global per-class NMS and final source clipping stay unchanged."
+      ],
+      "actual_app_adapter_cases": 7
+    },
+    {
+      "format": "synthetic-redaction-postprocess-prototype-v1",
+      "scope": "Synthetic tensors only; no app code change, learned weights, source images, TEST data or GPU used",
+      "python": "3.14.7",
+      "numpy": "2.5.4",
+      "opencv": "5.0.0",
+      "raw_shape": [
+        102900,
+        7
+      ],
+      "seed": 20261104,
+      "large_raw_selected_candidates": 200,
+      "final_synthetic_detections": 91,
+      "comparison_cases": 45,
+      "all_candidate_indices_labels_scores_boxes_exactly_equal": true,
+      "all_final_nms_clipped_outputs_exactly_equal": true,
+      "actual_app_fake_net_output_exactly_equal": true,
+      "scalar_half_result_dtype": "float32",
+      "scalar_score_035": 0.3499999940395355,
+      "python_threshold_035": 0.35,
+      "score_comparison_uses_float64": true,
+      "timings": {
+        "scalar_filter_geometry": {
+          "median_seconds": 0.18586100000538863,
+          "min_seconds": 0.17453719998593442,
+          "max_seconds": 0.23712700000032783,
+          "repeats": 7
+        },
+        "vector_filter_geometry": {
+          "median_seconds": 0.003811549991951324,
+          "min_seconds": 0.0033005999866873026,
+          "max_seconds": 0.005387300014263019,
+          "repeats": 20
+        },
+        "scalar_postprocess_with_nms": {
+          "median_seconds": 0.18315959998290055,
+          "min_seconds": 0.17212619999190792,
+          "max_seconds": 0.21052739999140613,
+          "repeats": 5
+        },
+        "vector_postprocess_with_nms": {
+          "median_seconds": 0.005810449991258793,
+          "min_seconds": 0.003882000019075349,
+          "max_seconds": 0.007696400018176064,
+          "repeats": 10
+        },
+        "actual_app_predict_fake_net": {
+          "median_seconds": 0.1914690999838058,
+          "min_seconds": 0.1901052999892272,
+          "max_seconds": 0.2732755999895744,
+          "repeats": 3
+        }
+      },
+      "filter_geometry_median_speedup": 48.762577008792434,
+      "full_postprocess_median_speedup": 31.522446670816336,
+      "models_source_sha256": "e5e12ddfc53424b877189ff0c7ad1f09413b000baac071cf05a6d9d7b0398be1",
+      "app_source_modified": false,
+      "accuracy_evaluated": false,
+      "notes": [
+        "Host CPU is shared with ongoing work; timings are prototype medians, not a throughput guarantee.",
+        "Vector geometry reproduces installed NumPy scalar-promotion semantics; each runtime must be verified separately.",
+        "Global per-class NMS and final source clipping stay unchanged."
+      ],
+      "actual_app_adapter_cases": 7
+    }
+  ],
+  "limits": [
+    "45 synthetic cases and7 actual app FakeNet comparisons per runtime are regression evidence, not proof for every possible tensor.",
+    "Measured speedup concerns filtering/geometry or postprocessing with200 candidates, not neural inference, real road performance or end-to-end FPS.",
+    "Concurrent shared-host load affects timings.",
+    "No application implementation change was made; root decides whether to proceed."
+  ],
+  "followup_integration": {
+    "report": "REDACTION-POSTPROCESS-INTEGRATION.json",
+    "status": "integrated_after_synthetic_differential_validation",
+    "performance_scope": "postprocessing only, not inference or complete pipeline FPS",
+    "prototype_records_above_preserved_as_preimplementation_evidence": true
+  }
+}

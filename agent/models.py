@@ -171,21 +171,8 @@ class OnnxModel:
             raise ModelNotReady("unexpected_yolox_output_shape")
         if self.manifest["output_layout"] == "yolox_raw_xywh":
             predictions = decode_yolox_raw(predictions, width, height, self.manifest.get("strides", [8, 16, 32]))
-        boxes, scores, labels = [], [], []
         threshold = float(self.manifest.get("confidence", .35))
-        for row in predictions:
-            label = int(np.argmax(row[5:]))
-            confidence = float(row[4] * row[5 + label])
-            if confidence < threshold:
-                continue
-            cx, cy, bw, bh = row[:4] / scale
-            if bw <= 0 or bh <= 0:
-                continue
-            # Match native YOLOX: NMS uses the decoded box, including parts
-            # outside the source image. Clipping first changes pairwise IoU.
-            boxes.append([float(cx - bw / 2), float(cy - bh / 2), float(bw), float(bh)])
-            scores.append(confidence)
-            labels.append(label)
+        boxes, scores, labels = detection_candidates(predictions, scale, threshold)
         results = []
         for label in set(labels):
             candidates = [i for i, value in enumerate(labels) if value == label]
@@ -201,6 +188,27 @@ class OnnxModel:
                 results.append({"bbox_xywh_px": [left, top, right - left, bottom - top], "confidence": scores[index],
                                 "class": self.manifest["classes"][label]})
         return results
+
+
+def detection_candidates(predictions, scale, threshold):
+    """Vectorize selection while retaining the former scalar numeric contract."""
+    labels = np.argmax(predictions[:, 5:], axis=1)
+    # The old loop multiplied decoded scalars, converted the product to Python
+    # float, then compared it to the Python threshold. Comparing float32 arrays
+    # directly would round e.g. .35 to float32 and change tie selection.
+    scores = (predictions[:, 4] * predictions[np.arange(len(predictions)), 5 + labels]).astype(np.float64)
+    indices = np.flatnonzero(scores >= threshold)
+    coordinates = predictions[indices, :4] / scale
+    positive = (coordinates[:, 2] > 0) & (coordinates[:, 3] > 0)
+    indices, coordinates = indices[positive], coordinates[positive]
+    # NumPy1.x promotes float16/32 scalar / Python2 to float64; NumPy2 keeps
+    # the scalar dtype. Array arithmetic alone has different promotion on1.x.
+    geometry_dtype = np.asarray(coordinates.dtype.type(1) / 2).dtype
+    geometry = coordinates.astype(geometry_dtype)
+    xy = geometry[:, :2] - geometry[:, 2:4] / 2
+    # Keep original row order and unclipped boxes for unchanged classwise NMS.
+    boxes = np.concatenate((xy, geometry[:, 2:4]), axis=1).tolist()
+    return boxes, scores[indices].tolist(), labels[indices].tolist()
 
 
 def decode_yolox_raw(predictions, width, height, strides=(8, 16, 32)):

@@ -1,0 +1,92 @@
+{
+  "format": "redaction-postprocess-vectorization-integration-v1",
+  "implementation": "agent.models.detection_candidates",
+  "source_sha256": "bb5e3590e6d299b494fd9ebfbdd3d3374fdfa7f9b1284180ceaa5f3d3dadba74",
+  "scope": "Actual integrated candidate selection plus unchanged classwise NMS and source clipping; synthetic raw only",
+  "frozen_old_scalar_differential_exact": true,
+  "primary_runtime_regression": {
+    "tests_passed": 101,
+    "subtests_passed": 189,
+    "failed": 0
+  },
+  "numpy126_standalone_regression": {
+    "tests_passed": 6,
+    "differential_subcases": 189,
+    "failed": 0
+  },
+  "decoded_dtypes_checked": [
+    "float16",
+    "float32",
+    "float64"
+  ],
+  "score_python_threshold_promotion_preserved": true,
+  "scalar_half_geometry_promotion_preserved": true,
+  "candidate_order_classwise_nms_then_clip_preserved": true,
+  "real_weights_or_test_images_accessed": false,
+  "gpu_operations": 0,
+  "training_or_factory_files_changed": false,
+  "runs": [
+    {
+      "python": "3.11.9",
+      "numpy": "1.26.4",
+      "opencv": "4.10.0",
+      "synthetic_raw_shape": [
+        102900,
+        7
+      ],
+      "selected_candidates": 200,
+      "actual_integrated_candidate_function": true,
+      "frozen_scalar_full_postprocess_exact_match": true,
+      "scalar_postprocess_with_nms": {
+        "median_seconds": 0.20343789999606088,
+        "min_seconds": 0.16642930000671186,
+        "max_seconds": 0.24036939998040907,
+        "repeats": 7
+      },
+      "integrated_vector_postprocess_with_nms": {
+        "median_seconds": 0.004704999999376014,
+        "min_seconds": 0.00398999999742955,
+        "max_seconds": 0.006952900002943352,
+        "repeats": 15
+      },
+      "median_speedup": 43.23866100383447,
+      "app_source_sha256": "bb5e3590e6d299b494fd9ebfbdd3d3374fdfa7f9b1284180ceaa5f3d3dadba74",
+      "accuracy_or_inference_fps_claimed": false,
+      "weights_test_images_gpu_accessed": false
+    },
+    {
+      "python": "3.14.7",
+      "numpy": "2.5.4",
+      "opencv": "5.0.0",
+      "synthetic_raw_shape": [
+        102900,
+        7
+      ],
+      "selected_candidates": 200,
+      "actual_integrated_candidate_function": true,
+      "frozen_scalar_full_postprocess_exact_match": true,
+      "scalar_postprocess_with_nms": {
+        "median_seconds": 0.1946241999976337,
+        "min_seconds": 0.18079509999370202,
+        "max_seconds": 0.20871020000777207,
+        "repeats": 7
+      },
+      "integrated_vector_postprocess_with_nms": {
+        "median_seconds": 0.003884399979142472,
+        "min_seconds": 0.0036791000165976584,
+        "max_seconds": 0.0059946000110358,
+        "repeats": 15
+      },
+      "median_speedup": 50.10405752308734,
+      "app_source_sha256": "bb5e3590e6d299b494fd9ebfbdd3d3374fdfa7f9b1284180ceaa5f3d3dadba74",
+      "accuracy_or_inference_fps_claimed": false,
+      "weights_test_images_gpu_accessed": false
+    }
+  ],
+  "limits": [
+    "Exact differential equality is tested for these synthetic cases, not mathematically proven for every possible tensor.",
+    "Timings measure postprocessing only with102900 anchors and200 candidates. No claim about ONNX inference, model accuracy or end-to-end FPS.",
+    "Shared host CPU load affects timings.",
+    "Each NumPy runtime matches its original scalar semantics; cross-version bitwise output equality is not claimed."
+  ]
+}
