@@ -80,6 +80,14 @@ def request_health(port: int) -> dict | None:
         return None
 
 
+def web_ready(port: int) -> bool:
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=2) as response:
+            return response.status == 200
+    except (OSError, urllib.error.URLError):
+        return False
+
+
 def stop() -> None:
     import psutil
     state = read_state()
@@ -127,6 +135,8 @@ def start(frontend: bool, timeout: float) -> None:
     for name, port in SERVICES.items():
         if request_health(port) is not None:
             raise SystemExit(f"Port {port} already serves {name}; refusing to take over an unowned process.")
+    if frontend and web_ready(5173):
+        raise SystemExit("Port 5173 is already serving an unowned frontend. Start backend only, or stop that frontend first.")
     env = load_env()
     DATA.mkdir(parents=True, exist_ok=True)
     python = ROOT / (".venv/Scripts/python.exe" if os.name == "nt" else ".venv/bin/python")
@@ -154,6 +164,13 @@ def start(frontend: bool, timeout: float) -> None:
             command = (["cmd.exe", "/d", "/c", "npm.cmd", "--prefix", "frontend", "run", "dev", "--", "--port", "5173", "--strictPort"]
                        if os.name == "nt" else ["npm", "--prefix", "frontend", "run", "dev", "--", "--port", "5173", "--strictPort"])
             spawn("frontend", command, env, state)
+            deadline = time.monotonic() + min(timeout, 30)
+            while not web_ready(5173) and time.monotonic() < deadline:
+                if not owned(state["frontend"]):
+                    raise RuntimeError("Frontend exited. Inspect data/logs/frontend.log")
+                time.sleep(0.3)
+            if not web_ready(5173):
+                raise RuntimeError("Frontend readiness timeout. Inspect data/logs/frontend.log")
         print("Gateway: http://127.0.0.1:8000")
         if frontend:
             print("Web: http://127.0.0.1:5173")
@@ -172,9 +189,52 @@ def status() -> None:
         print(f"frontend     port=5173 owned={owned(state['frontend'])}")
 
 
+def restart(name: str, timeout: float) -> None:
+    import psutil
+    if name not in SERVICES:
+        raise SystemExit("Choose a backend service from: " + ", ".join(SERVICES))
+    state = read_state()
+    record = state.get(name)
+    if not record or not owned(record):
+        raise SystemExit("Refusing to restart a service not owned by this project manager.")
+    process = psutil.Process(record["pid"])
+    tree = process.children(recursive=True) + [process]
+    for child in tree:
+        try:
+            child.terminate()
+        except psutil.NoSuchProcess:
+            pass
+    _, alive = psutil.wait_procs(tree, timeout=8)
+    for child in alive:
+        try:
+            child.kill()
+        except psutil.NoSuchProcess:
+            pass
+    psutil.wait_procs(alive, timeout=5)
+    env = load_env()
+    python = ROOT / (".venv/Scripts/python.exe" if os.name == "nt" else ".venv/bin/python")
+    spawn(name, [str(python), "-m", "uvicorn", f"services.{name}.app:app", "--host", "127.0.0.1", "--port", str(SERVICES[name]), "--log-level", "info"], env, state)
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if not owned(state[name]):
+            raise SystemExit(f"{name} exited; inspect data/logs/{name}.log")
+        health = request_health(SERVICES[name])
+        owned_tree = {state[name]["pid"]}
+        try:
+            owned_tree.update(child.pid for child in psutil.Process(state[name]["pid"]).children(recursive=True))
+        except psutil.NoSuchProcess:
+            pass
+        if health and health.get("pid") in owned_tree:
+            print(f"Restarted owned {name}; healthy on {SERVICES[name]}")
+            return
+        time.sleep(0.3)
+    raise SystemExit(f"{name} did not become ready; inspect logs.")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=["start", "stop", "status", "env"])
+    parser.add_argument("action", choices=["start", "stop", "status", "env", "restart"])
+    parser.add_argument("--service", choices=list(SERVICES))
     parser.add_argument("--frontend", action="store_true")
     parser.add_argument("--timeout", type=float, default=60)
     args = parser.parse_args()
@@ -184,6 +244,10 @@ if __name__ == "__main__":
         stop()
     elif args.action == "status":
         status()
+    elif args.action == "restart":
+        if not args.service:
+            parser.error("restart requires --service")
+        restart(args.service, args.timeout)
     else:
         load_env()
         print("Project .env is ready; values are not printed.")

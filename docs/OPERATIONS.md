@@ -29,6 +29,7 @@ $env:npm_config_cache = "$PWD\.cache\npm"
 $env:PLAYWRIGHT_BROWSERS_PATH = "$PWD\.cache\playwright"
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements-vision.txt
 npm.cmd --prefix frontend ci
 .\.venv\Scripts\python.exe scripts\manage.py start --frontend
 ```
@@ -38,6 +39,7 @@ npm.cmd --prefix frontend ci
 ```powershell
 .\.venv\Scripts\python.exe scripts\manage.py status
 .\.venv\Scripts\python.exe scripts\manage.py stop
+.\.venv\Scripts\python.exe scripts\manage.py restart --service analysis
 ```
 
 게이트웨이: `http://127.0.0.1:8000`, 개발 UI: `http://127.0.0.1:5173`. 최초 기관 코드는 `demo`, 로그인은 `admin@road.local`이다. 암호는 프로젝트 `.env`의 `ROAD_BOOTSTRAP_PASSWORD`에 자동 생성한다. 매니저는 암호·토큰을 콘솔에 출력하지 않는다. `.env`는 외부 공유하지 않는다.
@@ -51,6 +53,7 @@ npm.cmd --prefix frontend ci
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pip install -r requirements-vision.txt
 npm --prefix frontend ci
 .venv/bin/python scripts/manage.py start --frontend
 .venv/bin/python scripts/manage.py status
