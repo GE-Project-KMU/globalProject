@@ -6,7 +6,35 @@ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT));sys.path.i
 import improve_pothole_train as trainer
 from agent.paths import atomic_json,sha256
 
-def check(source):
+def history_evidence(paths=None,snapshot_path=None):
+    """Never shrink the frozen exclusion scope when original metadata is absent."""
+    from improve_pothole_data import historical_exclusions,HISTORY_SHA,group
+    from urllib.parse import urlsplit
+    snapshot=ROOT/"docs/reports/POTHOLE-HISTORY-EXCLUSIONS.json" if snapshot_path is None else trainer.workspace_path(snapshot_path,exists=True)
+    if sha256(snapshot)!=HISTORY_SHA:raise ValueError("historical_exclusion_snapshot_hash_mismatch")
+    frozen=json.loads(snapshot.read_text(encoding="utf-8"))
+    defaults=[ROOT/"data/training/research-pothole-rdd2020/release.json",ROOT/"data/training/research-pothole/release.json",
+              ROOT/"data/training/research-pothole-rdd2020-v2/release.json"]
+    paths=defaults if paths is None else paths
+    available=[p for p in paths if p.is_file()]
+    # Available identities must be covered even in a partial clean-clone audit.
+    known_hash=set(frozen["sha256"]);known_visual=set(frozen["dhash64"]);known_groups=set(frozen["filename20_blocks"])
+    for path in available:
+        for row in json.loads(path.read_text(encoding="utf-8")):
+            if path.parent.name=="research-pothole-rdd2020-v2" and row["split"]=="test":continue
+            name=row.get("original_member")
+            if not name and row.get("country") in ("India","Japan","Czech"):
+                name="train/"+row["country"]+"/images/"+Path(urlsplit(row["source_url"]).path).name
+            if row["sha256"] not in known_hash or row["perceptual_dhash"] not in known_visual or (name and group(name) not in known_groups):
+                raise ValueError("available_historical_identity_not_covered_by_frozen_snapshot")
+    complete=paths==defaults and len(available)==len(defaults)
+    if complete and historical_exclusions()!=frozen:raise ValueError("historical_original_metadata_snapshot_mismatch")
+    return frozen,{"performed":complete,"status":"direct_original_metadata_audit_performed" if complete else "not_performed_fixed_snapshot_substitute",
+        "available_original_metadata_files":len(available),"required_original_metadata_files":len(defaults),
+        "available_identity_subset_verified":True,"frozen_snapshot_sha256":HISTORY_SHA,
+        "exclusion_scope_reduced":False}
+
+def check(source,output):
     source=trainer.workspace_path(source,exists=True)
     rows=json.loads(source.read_text());previous=json.loads((ROOT/"data/training/research-pothole-rdd2020/release.json").read_text())
     oldtest=[r for r in previous if r["split"]=="test"];oldallhash={r["sha256"] for r in previous}
@@ -15,25 +43,16 @@ def check(source):
     checks["old_test_sha_not_in_any_new_split"]=not any(r["sha256"] in oldtesthash for r in rows)
     checks["old_test_dhash_le3_not_in_new_train"]=not any((int(r["perceptual_dhash"],16)^v).bit_count()<=3 for r in rows if r["split"]=="train" for v in oldtestvisual)
     checks["fresh_test_no_prior_image_sha"]=not any(r["sha256"] in oldallhash for r in rows if r["split"]=="test")
-    history_paths=[ROOT/"data/training/research-pothole/release.json",ROOT/"data/training/research-pothole-rdd2020-v2/release.json"]
-    historical=previous+[r for p in history_paths for r in json.loads(p.read_text()) if p!=history_paths[-1] or r["split"]!="test"]
-    from improve_pothole_data import group
-    from improve_pothole_data import historical_exclusions,HISTORY_SHA
-    snapshot=ROOT/"docs/reports/POTHOLE-HISTORY-EXCLUSIONS.json"
-    checks["frozen_history_snapshot_matches_all_used_identities"]=sha256(snapshot)==HISTORY_SHA and json.loads(snapshot.read_text())==historical_exclusions()
-    from urllib.parse import urlsplit
-    old_groups=set()
-    for row in historical:
-        name=row.get("original_member")
-        if not name and row.get("country") in ("India","Japan","Czech"):
-            name="train/"+row["country"]+"/images/"+Path(urlsplit(row["source_url"]).path).name
-        if name:old_groups.add(group(name))
-    history_hash={r["sha256"] for r in historical};history_visual=[int(r["perceptual_dhash"],16) for r in historical]
+    frozen,audit=history_evidence()
+    checks["frozen_history_snapshot_hash_verified"]=audit["frozen_snapshot_sha256"]==sha256(ROOT/"docs/reports/POTHOLE-HISTORY-EXCLUSIONS.json")
+    old_groups=set(frozen["filename20_blocks"])
+    history_hash=set(frozen["sha256"]);history_visual=[int(v,16) for v in frozen["dhash64"]]
     checks["fresh_test_no_historical_used_block_including_quarantine_aborted"]=not any(r["leakage_group_id"] in old_groups for r in rows if r["split"]=="test")
     checks["fresh_test_no_historical_used_SHA_dhash_including_quarantine_aborted"]=not any(r["sha256"] in history_hash or any((int(r["perceptual_dhash"],16)^v).bit_count()<=3 for v in history_visual) for r in rows if r["split"]=="test")
     token={split:{r["leakage_group_id"] for r in rows if r["split"]==split} for split in ("train","validation","test")}
     checks["filename_blocks_disjoint"]=not(token["train"]&token["validation"] or token["train"]&token["test"] or token["validation"]&token["test"])
-    checks["TTL_never_extended"]=all(r["expires_at"]=="2026-11-10T17:14:46.862846+00:00" for r in rows)
+    source_expiry=json.loads((ROOT/"data/research/rdd2020/source.json").read_text())["expires_at"]
+    checks["TTL_inherited_from_source_without_extension"]=all(r["expires_at"]==r["source_expires_at"]==source_expiry for r in rows)
     trainer.seed_all(20261104)
     training=[r for r in rows if r["split"]=="train"]
     cached=trainer.OriginalSamples(training[:2],640,cache_gib=.1);uncached=trainer.OriginalSamples(training[:2],640)
@@ -75,11 +94,15 @@ def check(source):
     scheduler=trainer.LRScheduler("yoloxwarmcos",.0025,100,60,warmup_epochs=3,warmup_lr_start=0.,no_aug_epochs=10,min_lr_ratio=.05)
     checks["native_warmup_and_final_LR_contract"]=abs(scheduler.update_lr(300)-.0025)<1e-12 and abs(scheduler.update_lr(6000)-.000125)<1e-12
     report={"checks":checks,"passed":all(checks.values()),"accuracy_evidence":False,
-        "release_sha256":sha256(source),"trainer_sha256":sha256(ROOT/"scripts/improve_pothole_train.py"),
-        "old_source_expiry_unchanged":True,"training_code_changed":False}
-    atomic_json(ROOT/"docs/reports/POTHOLE-IMPROVEMENT-CONTRACT-v4.json",report)
+        "release_sha256":sha256(source),"current_future_CLI_sha256":sha256(ROOT/"scripts/improve_pothole_train.py"),
+        "historical_originals_audit":audit,"old_source_expiry_unchanged":True,
+        "purpose":"post-experiment future CLI checks; original executed 35-check evidence preserved separately",
+        "existing_weights_or_threshold_changed":False}
+    atomic_json(output,report)
     print(json.dumps(report),flush=True)
     if not report["passed"]:raise ValueError("contract_failed")
 
 if __name__=="__main__":
-    parser=argparse.ArgumentParser();parser.add_argument("release");check(parser.parse_args().release)
+    parser=argparse.ArgumentParser();parser.add_argument("release")
+    parser.add_argument("--output",default="docs/reports/POTHOLE-IMPROVEMENT-CONTRACT-FUTURE.json")
+    args=parser.parse_args();check(args.release,args.output)

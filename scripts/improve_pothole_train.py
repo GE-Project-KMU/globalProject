@@ -5,7 +5,7 @@ The new frozen final holdout and OLD Czech regression run only after selection.
 """
 import argparse
 from datetime import datetime,timezone
-import json
+import json,re
 from pathlib import Path
 import sys
 import time
@@ -23,6 +23,52 @@ from yolox.data.datasets.datasets_wrapper import Dataset
 from yolox.data.datasets.mosaicdetection import MosaicDetection
 from yolox.data.data_augment import TrainTransform
 from yolox.utils import ModelEMA,LRScheduler
+
+def validate_original_release(release):
+    """Post-experiment future CLI preflight; never silently relabel a source.
+
+    This input guard was added AFTER the completed v4 experiment. Its executed
+    source bytes remain separately preserved; this does not amend its weights.
+    """
+    from improve_pothole_data import HISTORY_SHA,group
+    release=workspace_path(release,exists=True)
+    if release.with_suffix(".quarantine.json").exists():raise ValueError("source_release_quarantined")
+    rows=json.loads(release.read_text(encoding="utf-8"))
+    if not isinstance(rows,list) or not rows:raise ValueError("nonempty_original_D40_release_required")
+    for row in rows:
+        if not isinstance(row,dict) or row.get("annotation_version")!="RDD2020-original-VOC-literal-D40-v2":
+            raise ValueError("canonical_original_D40_annotation_version_required")
+        if row.get("country") not in ("India","Japan"):raise ValueError("only_India_Japan_development_originals_allowed")
+        if row.get("source_url")!="https://data.mendeley.com/datasets/5ty2wb6gvg/1":raise ValueError("canonical_RDD2020_source_required")
+        if not isinstance(row.get("objects"),list) or any(obj.get("class")!="pothole" for obj in row["objects"]):
+            raise ValueError("literal_D40_pothole_objects_only")
+        member=row.get("original_member","")
+        if not member.startswith("train/"+row["country"]+"/images/") or not re.fullmatch(row["country"]+r"_\d+\.jpg",Path(member).name):
+            raise ValueError("canonical_original_image_member_required")
+        if row.get("leakage_group_id")!=group(member):raise ValueError("original_filename_block_identity_mismatch")
+        if not re.fullmatch("[a-f0-9]{16}",str(row.get("perceptual_dhash",""))):raise ValueError("original_dhash_required")
+    if any(sum(r.get("split")==split for r in rows)<2 for split in ("train","validation","test")):
+        raise ValueError("three_nonempty_original_splits_required")
+    groups={split:{r["leakage_group_id"] for r in rows if r["split"]==split} for split in ("train","validation","test")}
+    if groups["train"]&groups["validation"] or groups["train"]&groups["test"] or groups["validation"]&groups["test"]:
+        raise ValueError("original_filename_blocks_must_be_disjoint")
+    snapshot=ROOT/"docs/reports/POTHOLE-HISTORY-EXCLUSIONS.json"
+    if sha256(snapshot)!=HISTORY_SHA:raise ValueError("historical_exclusion_snapshot_hash_mismatch")
+    history=json.loads(snapshot.read_text(encoding="utf-8"));known_hash=set(history["sha256"])
+    known_groups=set(history["filename20_blocks"]);known_visual=[int(v,16) for v in history["dhash64"]]
+    for row in rows:
+        if row["split"]=="test" and (row["sha256"] in known_hash or row["leakage_group_id"] in known_groups
+             or any((int(row["perceptual_dhash"],16)^v).bit_count()<=3 for v in known_visual)):
+            raise ValueError("fresh_test_overlaps_historical_used_image_or_block")
+    reference=ROOT/"data/training/research-pothole-rdd2020/release.json"
+    if not reference.is_file():raise ValueError("prepare_original_RDD2020_reference_release_first")
+    old_test=[r for r in json.loads(reference.read_text(encoding="utf-8")) if r["split"]=="test"]
+    old_hash={r["sha256"] for r in old_test};old_visual=[int(r["perceptual_dhash"],16) for r in old_test]
+    if any(r["sha256"] in old_hash or (r["split"]=="train" and any((int(r["perceptual_dhash"],16)^v).bit_count()<=3 for v in old_visual)) for r in rows):
+        raise ValueError("old_Czech_test_must_never_enter_training_or_new_splits")
+    checked=validate_research_release(rows)
+    if not checked["valid"]:raise ValueError(str(checked["errors"][:10]))
+    return rows
 
 class OriginalSamples(Dataset):
     def __init__(self,rows,size,cache_gib=0):
@@ -60,8 +106,7 @@ def train(args):
     cv2.setNumThreads(1)
     release=workspace_path(args.release,exists=True);output=workspace_path(args.output)
     if output.exists():raise ValueError("fresh_run_directory_required")
-    rows=json.loads(release.read_text());check=validate_research_release(rows)
-    if not check["valid"]:raise ValueError(str(check["errors"][:10]))
+    rows=validate_original_release(release)
     if not torch.cuda.is_available():raise RuntimeError("CUDA_required")
     if any(r["country"]=="Czech" for r in rows):raise ValueError("old_test_country_must_not_enter_new_release")
     groups={split:{r["leakage_group_id"] for r in rows if r["split"]==split} for split in ("train","validation","test")}

@@ -1,0 +1,42 @@
+{
+  "checks": {
+    "canonical_v4_accepted": true,
+    "unsupported_annotation_rejected": true,
+    "old_test_country_rejected": true,
+    "wrong_source_rejected": true,
+    "non_D40_class_rejected": true,
+    "empty_release_rejected": true,
+    "quarantine_sidecar_rejected": true,
+    "aborted_v2_history_overlap_rejected": true,
+    "direct_original_metadata_audit_performed": true,
+    "clean_clone_uses_identical_full_exclusion_scope": true,
+    "clean_clone_does_not_claim_original_audit": true,
+    "reduced_or_changed_snapshot_rejected": true,
+    "clean_clone_freshness_contract_equivalent": true
+  },
+  "passed": true,
+  "accuracy_evidence": false,
+  "executed_trainer_sha256": "88cd0e6ffd80e1f3d3268537cf1daf5167817fab9d46e9657a860f4ee9a122c0",
+  "current_future_CLI_sha256": "337be3debe9423677151ec72a20b68b123163c7de0f967b1f3dd5db1e5b7b4a4",
+  "initial_35_contract_sha256": "7a77c92dab538bf54a8aeac5e4cac3a4f09553902bc7ebc1b252a80ccb6266aa",
+  "postrun_change": "input guards and optional direct-original audit only; frozen snapshot scope never reduced",
+  "weights_or_operating_threshold_changed": false,
+  "direct_original_audit": {
+    "performed": true,
+    "status": "direct_original_metadata_audit_performed",
+    "available_original_metadata_files": 3,
+    "required_original_metadata_files": 3,
+    "available_identity_subset_verified": true,
+    "frozen_snapshot_sha256": "3fc9525e28585b194574103f7b3d6d57b18ad42df17bdee3e5fbec0962348b3d",
+    "exclusion_scope_reduced": false
+  },
+  "clean_clone_simulation_audit": {
+    "performed": false,
+    "status": "not_performed_fixed_snapshot_substitute",
+    "available_original_metadata_files": 0,
+    "required_original_metadata_files": 3,
+    "available_identity_subset_verified": true,
+    "frozen_snapshot_sha256": "3fc9525e28585b194574103f7b3d6d57b18ad42df17bdee3e5fbec0962348b3d",
+    "exclusion_scope_reduced": false
+  }
+}
