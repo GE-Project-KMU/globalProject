@@ -125,3 +125,183 @@ test("live gateway: login, inspection review, reports, service health and respon
   expect(failedRequests).toEqual([]);
   expect(httpErrors).toEqual([]);
 });
+
+test("live management operations and privacy access use real services", async ({
+  page,
+  request,
+}, info) => {
+  test.setTimeout(60000);
+  test.skip(!password, "Project bootstrap password required");
+  const errors: string[] = [];
+  page.on("console", (m) => {
+    if (m.type() === "error") errors.push(m.text());
+  });
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("requestfailed", (r) => {
+    if (!r.failure()?.errorText.includes("ERR_ABORTED"))
+      errors.push(r.failure()?.errorText || "requestfailed");
+  });
+  page.on("response", (r) => {
+    if (r.url().includes("/api/") && r.status() >= 400)
+      errors.push(`${r.status()} ${new URL(r.url()).pathname}`);
+  });
+  const auth = await request.post("http://127.0.0.1:8000/api/v1/auth/login", {
+    data: {
+      org_code: settings.ROAD_BOOTSTRAP_ORG || "demo",
+      login: settings.ROAD_BOOTSTRAP_LOGIN || "admin@road.local",
+      password,
+    },
+  });
+  expect(auth.ok()).toBeTruthy();
+  const token = (await auth.json()).data.access_token;
+  const headers = { Authorization: `Bearer ${token}` };
+  const observations = (
+    await (
+      await request.get("http://127.0.0.1:8000/api/v1/observations?limit=200", {
+        headers,
+      })
+    ).json()
+  ).data.items;
+  const demo = observations.find((x: any) => x.demo);
+  expect(demo).toBeTruthy();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  await page.getByLabel("비밀번호", { exact: true }).fill(password!);
+  await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "점검 개요", level: 1 }),
+  ).toBeVisible();
+  const nav = async (name: string) => {
+    await page
+      .getByRole("navigation")
+      .getByRole("button", { name, exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", { name, level: 1, exact: true }),
+    ).toBeVisible();
+  };
+  const unique = Date.now();
+  await nav("계정 관리");
+  await page
+    .getByLabel("로그인 식별자")
+    .fill(`browser-${unique}@synthetic.test`);
+  await page.getByLabel("초기 비밀번호").fill(`synthetic-browser-${unique}`);
+  await page.getByRole("button", { name: "계정 저장" }).click();
+  const user = page
+    .locator("article")
+    .filter({
+      has: page.getByRole("heading", {
+        name: `browser-${unique}@synthetic.test`,
+        exact: true,
+      }),
+    });
+  await expect(user).toBeVisible();
+  await user.getByRole("button", { name: "계정 편집" }).click();
+  await page.getByLabel("계정 활성", { exact: true }).uncheck();
+  await page.getByRole("button", { name: "계정 저장" }).click();
+  await expect(user).toContainText("비활성");
+  await nav("수집 기기");
+  await page.getByLabel("기기 이름").fill(`가상 브라우저 시험 ${unique}`);
+  await page.getByRole("button", { name: "기기 저장" }).click();
+  await expect(page.getByText("기기 토큰 · 이번에만 표시됩니다")).toBeVisible();
+  await page.getByRole("button", { name: "토큰 화면에서 지우기" }).click();
+  const device = page
+    .locator("article")
+    .filter({
+      has: page.getByRole("heading", {
+        name: `가상 브라우저 시험 ${unique}`,
+        exact: true,
+      }),
+    });
+  await device.getByRole("button", { name: "기기 편집" }).click();
+  await page.getByLabel("교체 사유").fill("가상 브라우저 통합 시험");
+  await page.getByRole("button", { name: "새 토큰 발급" }).click();
+  await expect(page.getByText("기기 토큰 · 이번에만 표시됩니다")).toBeVisible();
+  await page.getByRole("button", { name: "토큰 화면에서 지우기" }).click();
+  await device.getByRole("button", { name: "기기 편집" }).click();
+  await page.getByLabel("기기 활성").uncheck();
+  await page.getByRole("button", { name: "기기 저장" }).click();
+  await expect(device).toContainText("비활성");
+  for (const name of [
+    "장착 프로파일",
+    "모델 버전",
+    "분석 운영",
+    "감사기록",
+    "주행 기록",
+  ]) {
+    await nav(name);
+    await expect(page.getByRole("alert")).toHaveCount(0);
+  }
+  const runButton = page
+    .getByRole("button", { name: "주행 상세", exact: true })
+    .first();
+  if (await runButton.count()) {
+    await runButton.click();
+    await expect(
+      page.getByRole("heading", { name: "주행 상세", exact: true }),
+    ).toBeVisible();
+  }
+  await nav("개인정보 요청");
+  await page.getByLabel("대상 UUID").fill(demo.observation_id);
+  await page.getByLabel("요청 사유").fill(`가상 자료 열람 시험 ${unique}`);
+  await page.getByRole("checkbox").nth(0).check();
+  await page.getByRole("checkbox").nth(1).check();
+  await page.getByRole("button", { name: "요청 접수", exact: true }).click();
+  await expect(
+    page.getByText("요청을 접수했습니다.", { exact: false }),
+  ).toBeVisible();
+  const rows = (
+    await (
+      await request.get("http://127.0.0.1:8000/api/v1/privacy-requests", {
+        headers,
+      })
+    ).json()
+  ).data.items;
+  const own = rows.find(
+    (x: any) => x.reason === `가상 자료 열람 시험 ${unique}`,
+  );
+  expect(own).toBeTruthy();
+  const row = page
+    .locator("article")
+    .filter({ has: page.getByText(own.request_id, { exact: true }) });
+  await expect
+    .poll(
+      async () =>
+        (
+          await (
+            await request.get(
+              "http://127.0.0.1:8000/api/v1/privacy-requests/" + own.request_id,
+              { headers },
+            )
+          ).json()
+        ).data.status,
+    )
+    .toBe("in_progress");
+  await row.getByRole("button", { name: "처리 내역" }).click();
+  await page.getByLabel("처리 근거").fill("가상 자료 대상 및 권한 확인");
+  await page.getByRole("button", { name: "처리 기록 저장" }).click();
+  await expect(
+    page.getByRole("button", { name: "승인된 열람 자료 다운로드" }),
+  ).toBeVisible();
+  const downloadEvent = page.waitForEvent("download");
+  await page.getByRole("button", { name: "승인된 열람 자료 다운로드" }).click();
+  await downloadEvent;
+  await page.screenshot({
+    path: info.outputPath("live-management-desktop.png"),
+    fullPage: true,
+    animations: "disabled",
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+  await page.screenshot({
+    path: info.outputPath("live-management-mobile.png"),
+    fullPage: true,
+    animations: "disabled",
+  });
+  expect(errors).toEqual([]);
+  await request.post("http://127.0.0.1:8000/api/v1/auth/logout", { headers });
+});
