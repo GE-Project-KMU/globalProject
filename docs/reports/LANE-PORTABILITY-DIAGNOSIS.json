@@ -1,0 +1,76 @@
+{
+  "format": "lane-portability-diagnosis-v1",
+  "scope": "predeclared validation only; no TEST accuracy measurement",
+  "training_epochs": 53,
+  "native_best_validation_paint_iou": 0.6637033533479918,
+  "original_validation_calibration_paint_iou": 0.663703990171921,
+  "portable_validation_calibration_paint_iou": 0.6637026744924714,
+  "fixed_paint_threshold": 0.4,
+  "rtol": 0.001,
+  "atol": 0.0001,
+  "original_artifact": {
+    "model_manifest_sha256": "b1298d8da91c5ea97e91b2c2c709845ae7669771c1c9f7f6bbbd6f15c82628fa",
+    "onnx_sha256": "2fc32b48a50da23ad29f338a562d6c6f652bccdf915d2b37d1a552312934d614",
+    "raw_verification_sha256": "c992fdaa4b7c3401c3b9c27aecf88549802161f90ddf38aaab4f59bad370c67f",
+    "numerical_parity_passed": false,
+    "app_vs_torch_max_abs_error": 0.08709716796875,
+    "original_artifact_and_failure_unchanged": true
+  },
+  "portable_artifact": {
+    "model_manifest_sha256": "f945a5f5eb6f56f10f2477ad4858ae0cc4c09e8554e6e7ae4d2367fc33e00863",
+    "onnx_sha256": "c835c2b8f00aff5f0d6e79112269f95387775b41fead3b2d0eed96d9ff969267",
+    "checkpoint_sha256": "84b680b3f0c2d6c99d7abd9bf61a2e504ddd3c77095bc245e12a2627d3e4e801",
+    "global1_pool_to_reduce_mean_count": 9,
+    "checkpoint_learned_state_unchanged": true,
+    "numerical_parity_passed": false,
+    "artifact_contract_verified": false,
+    "deployment_blocked_reasons": [
+      "checkpoint_raw_tensor_parity_unresolved"
+    ],
+    "no_new_gradient_steps": true
+  },
+  "predeclared_positive_validation_suite": {
+    "case_count": 3,
+    "app_vs_independent_ort_strict_pass_count": 3,
+    "app_vs_native_torch_raw_strict_pass_count": 0,
+    "all_three_engines_exact_mask_case_count": 3,
+    "all_cases_have_positive_predicted_paint": true,
+    "app_vs_torch_max_abs_error_range": [
+      0.008056640625,
+      0.0113525390625
+    ],
+    "all_image_and_checkpoint_hashes_match_private_predeclaration": true,
+    "all_failed_and_passed_reports_preserved": true
+  },
+  "same_fixed_case_operator_ablation": {
+    "native_mkldnn_on_off_raw_strict_passed": false,
+    "checkpoint_derived_bn_fold_count": 53,
+    "bn_folding_alone_raw_strict_passed": false,
+    "activation_expression_only_resolved_mismatch": false,
+    "explicit_global_mean_torch_copy_bit_identical": true,
+    "original_app_raw_mismatch_elements": 1938,
+    "mean_only_app_raw_mismatch_elements": 5,
+    "raw_tensor_elements": 2097152,
+    "remaining_raw_strict_mismatch_not_waived": true
+  },
+  "test_or_regression_images_accessed": false,
+  "canonical_benchmark_gate_relaxed": false,
+  "diagnostic_accuracy_gate_review_pending": true,
+  "production_approved": false,
+  "project_acceptance_passed": false,
+  "source_expiries_extended": false,
+  "gpu_operations": 0,
+  "notes": [
+    "Different CPU pooling reduction order contributes materially; this does not prove it explains every residual FP32 difference.",
+    "Mask agreement does not replace failed strict raw-tensor parity.",
+    "No image hashes, IDs, pixel coordinates, source filenames, paths or individual predictions are published here."
+  ],
+  "followup": {
+    "report": "LANE-IMPROVEMENT-RESULTS.json",
+    "scope": "separately predeclared diagnostic accuracy; original numeric failure preserved",
+    "prebenchmark_diagnosis_records_above_preserved": true,
+    "diagnostic_accuracy_gate_review_completed": true,
+    "fresh_and_regression_comparisons_completed": true
+  },
+  "stage": "prebenchmark_validation_diagnosis_snapshot"
+}

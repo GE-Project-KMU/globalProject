@@ -1,0 +1,209 @@
+{
+  "format": "lane-improvement-results-v1",
+  "scope": "diagnostic_actual_application_accuracy_only",
+  "evaluated_at": "2026-11-03T20:07:23.542265+00:00",
+  "canonical_raw_tensor_parity_passed": false,
+  "diagnostic_accuracy_only": true,
+  "production_approved": false,
+  "project_acceptance_passed": false,
+  "deployment_blocked_reasons": [
+    "checkpoint_raw_tensor_parity_unresolved"
+  ],
+  "dataset": {
+    "source": "A2D2 publisher solid/dashed paint proxy",
+    "source_license": "CC BY-ND 4.0",
+    "training_samples": 799,
+    "validation_samples": 100,
+    "fresh_test_samples": 100,
+    "fresh_recording_groups": 2,
+    "previously_examined_regression_samples": 100,
+    "old_test_used_for_training": false,
+    "fresh_source_disjoint_sha_phash_and_recording_verified": true,
+    "physical_route_independence_verified": false,
+    "human_privacy_reviewed": false,
+    "source_expiries_extended": false
+  },
+  "selection": {
+    "candidate_training_recipes": 1,
+    "training_epochs_completed": 53,
+    "best_native_validation_epoch": 41,
+    "best_native_validation_paint_iou": 0.6637033533479918,
+    "portable_validation_paint_iou": 0.6637026744924714,
+    "candidate_threshold": 0.4,
+    "baseline_threshold": 0.5,
+    "threshold_selected_on": "same fixed validation-only100 and14predeclared thresholds before TEST",
+    "model_or_threshold_reselected_after_test": false,
+    "fresh_plan_committed_before_inference": true,
+    "fresh_comparison_executions": 1,
+    "regression_comparison_executions": 1
+  },
+  "new_recording_holdout": {
+    "samples": 100,
+    "results": {
+      "baseline": {
+        "paint_threshold": 0.5,
+        "input_size": [
+          512,
+          512
+        ],
+        "confusion": {
+          "tp": 1131797,
+          "fp": 1428936,
+          "fn": 1421501,
+          "tn": 227953766,
+          "ignored": 0
+        },
+        "paint_iou": 0.2842115757135317,
+        "paint_precision": 0.4419816513474853,
+        "paint_recall": 0.4432686666421232,
+        "paint_dice": 0.44262422343548563,
+        "latency_seconds": {
+          "median": 0.09737800000584684,
+          "p95": 0.12052828499290626
+        }
+      },
+      "candidate": {
+        "paint_threshold": 0.4,
+        "input_size": [
+          1024,
+          1024
+        ],
+        "confusion": {
+          "tp": 1651813,
+          "fp": 835349,
+          "fn": 901485,
+          "tn": 228547353,
+          "ignored": 0
+        },
+        "paint_iou": 0.4874550226093187,
+        "paint_precision": 0.6641356694899648,
+        "paint_recall": 0.6469331037740209,
+        "paint_dice": 0.6554215289874337,
+        "latency_seconds": {
+          "median": 0.5353791499946965,
+          "p95": 0.6032175149885006
+        }
+      }
+    },
+    "paint_iou_change": 0.20324344689578705,
+    "paint_iou_change_percentage_points": 20.324344689578705,
+    "all_recording_groups_improved": true,
+    "target_paint_iou": 0.75,
+    "target_met": false
+  },
+  "previously_examined_regression": {
+    "samples": 100,
+    "role": "regression only, not a fresh final test",
+    "results": {
+      "baseline": {
+        "paint_threshold": 0.5,
+        "input_size": [
+          512,
+          512
+        ],
+        "confusion": {
+          "tp": 2148776,
+          "fp": 1696459,
+          "fn": 1602814,
+          "tn": 226487951,
+          "ignored": 0
+        },
+        "paint_iou": 0.394412017953583,
+        "paint_precision": 0.5588152609658448,
+        "paint_recall": 0.5727640813628355,
+        "paint_dice": 0.5657036985846061,
+        "latency_seconds": {
+          "median": 0.09334555000532418,
+          "p95": 0.11494904501741984
+        }
+      },
+      "candidate": {
+        "paint_threshold": 0.4,
+        "input_size": [
+          1024,
+          1024
+        ],
+        "confusion": {
+          "tp": 2650956,
+          "fp": 762952,
+          "fn": 1100634,
+          "tn": 227421458,
+          "ignored": 0
+        },
+        "paint_iou": 0.587203751787003,
+        "paint_precision": 0.7765165317870312,
+        "paint_recall": 0.7066219922752753,
+        "paint_dice": 0.7399223333814342,
+        "latency_seconds": {
+          "median": 0.5240768999938155,
+          "p95": 0.5645959450106602
+        }
+      }
+    },
+    "paint_iou_change": 0.19279173383342002,
+    "paint_iou_change_percentage_points": 19.279173383342002,
+    "target_paint_iou": 0.75,
+    "target_met": false
+  },
+  "portable_export_validation": {
+    "original_torch_raw_failure_preserved": true,
+    "minimum_supported_export_change": "nine global1 pooling operations represented as ReduceMean; learned state unchanged",
+    "original_failure_numeric_parity_passed": false,
+    "portable_raw_strict_pass_cases": 0,
+    "predeclared_positive_validation_cases": 3,
+    "app_vs_independent_ort_strict_pass_cases": 3,
+    "three_engine_exact_final_mask_cases": 3,
+    "rtol": 0.001,
+    "atol": 0.0001,
+    "canonical_gate_still_rejects_candidate": true,
+    "diagnostic_gate_separately_predeclared_and_root_preflight_passed": true,
+    "no_onnx_initializers_injected_into_torch": true
+  },
+  "artifact_hashes": {
+    "baseline_manifest_sha256": "1240a6d4c44635d4764f8e80ea645e91bbde5bc9747ca4f1f0c9612b5f3e78d2",
+    "baseline_onnx_sha256": "57650dbf7e037fa5f6cc995f4e8d3edf6400c5690fedb58c48cda84da85ca0b4",
+    "original_candidate_manifest_sha256": "b1298d8da91c5ea97e91b2c2c709845ae7669771c1c9f7f6bbbd6f15c82628fa",
+    "original_candidate_onnx_sha256": "2fc32b48a50da23ad29f338a562d6c6f652bccdf915d2b37d1a552312934d614",
+    "original_failure_report_sha256": "c992fdaa4b7c3401c3b9c27aecf88549802161f90ddf38aaab4f59bad370c67f",
+    "portable_manifest_sha256": "f945a5f5eb6f56f10f2477ad4858ae0cc4c09e8554e6e7ae4d2367fc33e00863",
+    "portable_onnx_sha256": "c835c2b8f00aff5f0d6e79112269f95387775b41fead3b2d0eed96d9ff969267",
+    "trained_checkpoint_sha256": "84b680b3f0c2d6c99d7abd9bf61a2e504ddd3c77095bc245e12a2627d3e4e801",
+    "development_manifest_sha256": "14c109f224b600c2b36398ca36e4b6eb9bb65410aaa0a03ac6b3dbe7b4c16f6e",
+    "full_release_sha256": "ee5d8cb5e4a34870e190eda80cda72890fa29510cc650b5fce516ba560c46a8d",
+    "fresh_benchmark_sha256": "291981793df0f2a8ece9c2717e475054078ea1ad661c66050706f2b588992555",
+    "regression_benchmark_sha256": "d5ea8f7c66f1b66ee5935f86db816309c01379458ae117f6ee69e17ccc801595",
+    "fresh_plan_sha256": "3f82ba978d611af717ec8021a821d20b1f6c38a1ec767f45bd7ca3615ae7f077",
+    "regression_plan_sha256": "2d799acde065860ddb0b73b70d401d18854dcd88bb97d6514299aa152c786d9c",
+    "fresh_comparison_sha256": "3884c871d4a4a17ea5231a0df72f286e65c41c9eca5143ce889e52c51a7c41ca",
+    "regression_comparison_sha256": "4503e397625c3d2ac0fd52fa193344ae82f518a00b42945bcac7361a06d16da6"
+  },
+  "code_hashes": {
+    "frozen_trainer_sha256": "6e15f29a5a98156d531711b232d9e791f96ddd799d5ac98d388a3023ed8cf377",
+    "lane_factory_sha256": "648961d31d6b6bd77f6f5b54f447e5f08a6d7c3928d133b15ed246ca1fd07f72",
+    "lane_metrics_sha256": "76e08ebcb35fd3bec34e81f1d1de9799e888344fc384769c71e3294a869a305c",
+    "portable_export_helper_sha256": "6f4f8a6664ad4933d6680112bbb5439979a44c62343f0c5c4b71a9f8545ee6d8",
+    "strict_verifier_sha256": "3e42b4eda3275ccf09a6ed07844ff5cdbde163f06f967e61df765852fd030bd3",
+    "comparison_helper_sha256": "3b879336dbe5b84925507a593f0f54f3bee6191fec25dce0ce32907576da3748"
+  },
+  "reproduction_evidence": {
+    "development_validation_mask_hashes_prechecked": 100,
+    "portable_export_synthetic_policy_tests_passed": 7,
+    "actual_checkpoint_strict_load_and_state_equality_checked": true,
+    "actual_reduce_mean_operators": 9,
+    "actual_global_average_pool_operators": 0,
+    "gpu_operations_during_export_verification_and_comparison": 0,
+    "original_baseline_and_candidate_artifacts_unchanged": true,
+    "individual_records_kept_private": true
+  },
+  "retention_mae_pp": null,
+  "remaining_limits": [
+    "Both new holdout and old regression paint IoU remain below0.75.",
+    "Checkpoint raw tensor parity remains unresolved despite exact final-mask agreement on three positive VAL probes.",
+    "All accuracy numbers are diagnostic actual-application research measurements; they are not a conversion certificate or deployment approval.",
+    "No independent ZED2i/vehicle/road acceptance or independently labelled outline-gap-valid wear-ratio MAE.",
+    "Recording/date and near-duplicate separation do not prove physically independent roads.",
+    "Latency is CPU predict time under shared host load, not capture-to-report pipeline FPS.",
+    "Source expiry/revocation and artifact redistribution restrictions remain; no automatic deployment or external weight publication.",
+    "Data, input resolution and training recipe changed together; this is not a controlled attribution study."
+  ]
+}
