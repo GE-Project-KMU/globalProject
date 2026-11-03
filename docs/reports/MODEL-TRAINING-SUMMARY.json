@@ -1,0 +1,637 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-03T17:50:52.191241+00:00",
+  "scope": "private_offline_public_data_research",
+  "actual_gradient_training": true,
+  "app_backend": "ONNX Runtime CPU",
+  "external_weights_published": false,
+  "project_acceptance_passed": false,
+  "models": [
+    {
+      "manifest": "data/training/lane-rtk-v1/lane-ort.json",
+      "manifest_sha256": "9497fe80c16e20560beacfbdb7feb8307b6d429893dec36b1bdaed613623bdc9",
+      "weights": "data/training/lane-rtk-v1/lane.onnx",
+      "weights_sha256": "b8c7ba27f7227b57685502b5efe8936fc16708fa7952bb97728763c234a93984",
+      "release_sha256": "126b78c2da0f1c62140a9e74ac7447a611c5b36cd5fe7c5087e721492bbe51b4",
+      "split_counts": {
+        "validation": 70,
+        "train": 422,
+        "test": 71
+      },
+      "classes": [
+        "background",
+        "paint"
+      ],
+      "input_size": [
+        512,
+        512
+      ],
+      "source_licenses": [
+        "CC BY 4.0 offline model research; no privacy acceptance"
+      ],
+      "research_only": true,
+      "production_approved": false,
+      "independent_route_verified": false,
+      "earliest_source_expiry": "2027-02-01T16:51:19.893991+00:00",
+      "verification_report_sha256": "293bf66c73206294112b0c32e9453edf10aa213fe6ea7ae283c8ee3773c7efef",
+      "verification": {
+        "status": "numerical_mismatch",
+        "numerical_parity_passed": false,
+        "app_backend": "onnxruntime-cpu",
+        "app_backend_version": "1.31.1",
+        "app_vs_ort": {
+          "passed": true,
+          "max_abs_error": 3.3915042877197266e-05,
+          "mean_abs_error": 2.4759549432928907e-06,
+          "p99_abs_error": 1.1920928955078125e-05,
+          "rmse": 3.5265668938946797e-06,
+          "cosine_similarity": 0.9999999999996237,
+          "relative_l2_error": 9.243577303425341e-07,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "app_vs_torch": {
+          "passed": false,
+          "max_abs_error": 0.00014525651931762695,
+          "mean_abs_error": 1.711607546894811e-05,
+          "p99_abs_error": 7.176399230957031e-05,
+          "rmse": 2.2790756252469163e-05,
+          "cosine_similarity": 0.9999999999842861,
+          "relative_l2_error": 5.973734675754335e-06,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "ort_vs_torch": {
+          "passed": false,
+          "max_abs_error": 0.0001417696475982666,
+          "mean_abs_error": 1.625500590307638e-05,
+          "p99_abs_error": 6.866455078125e-05,
+          "rmse": 2.175562646136669e-05,
+          "cosine_similarity": 0.9999999999852663,
+          "relative_l2_error": 5.702414555504038e-06,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "mask_agreement": {
+          "app": {
+            "pixel_agreement": 1.0,
+            "paint_pixels": 57724,
+            "paint_iou_against_app": 1.0
+          },
+          "ort": {
+            "pixel_agreement": 1.0,
+            "paint_pixels": 57724,
+            "paint_iou_against_app": 1.0
+          },
+          "torch": {
+            "pixel_agreement": 1.0,
+            "paint_pixels": 57724,
+            "paint_iou_against_app": 1.0
+          }
+        }
+      },
+      "task": "lane",
+      "epochs_completed": 60,
+      "best_validation_training_iou": 0.2570811074075765,
+      "paint_threshold": 0.5,
+      "test_metrics": {
+        "paint_iou": 0.48646432770249365,
+        "paint_precision": 0.5715661862265763,
+        "paint_recall": 0.7656554343591742,
+        "paint_dice": 0.6545253978000021
+      },
+      "test_confusion": {
+        "tp": 31447,
+        "fp": 23572,
+        "fn": 9625,
+        "tn": 2577485,
+        "ignored": 4555567
+      },
+      "research_target_passed": false,
+      "project_acceptance_passed": false,
+      "retention_mae_pp": null,
+      "test_report_sha256": "0c20d860a55985b8e0bbc8608185ea63d86f516feb2166fb46df12d92e23292f",
+      "training_code_sha256": null,
+      "training_code_commit": "47b950d"
+    },
+    {
+      "manifest": "data/training/lane-a2d2-v1/lane.json",
+      "manifest_sha256": "1240a6d4c44635d4764f8e80ea645e91bbde5bc9747ca4f1f0c9612b5f3e78d2",
+      "weights": "data/training/lane-a2d2-v1/lane.onnx",
+      "weights_sha256": "57650dbf7e037fa5f6cc995f4e8d3edf6400c5690fedb58c48cda84da85ca0b4",
+      "release_sha256": "cf74bc4bd1e627b3b5df39793830c26bd66d26c3dbcea2676e363c42a34b37f3",
+      "split_counts": {
+        "train": 400,
+        "validation": 100,
+        "test": 100
+      },
+      "classes": [
+        "background",
+        "paint"
+      ],
+      "input_size": [
+        512,
+        512
+      ],
+      "source_licenses": [
+        "CC BY-ND 4.0 private offline model research; no derived image/mask or learned artifact redistribution approval; no human privacy acceptance"
+      ],
+      "research_only": true,
+      "production_approved": false,
+      "independent_route_verified": false,
+      "earliest_source_expiry": "2026-11-10T17:07:26.069653+00:00",
+      "verification_report_sha256": "8382eb73abf5eef5c31d9ae3a403ce81a719c5cc4c09952402b70edff42f4bad",
+      "verification": {
+        "status": "artifact_verified",
+        "numerical_parity_passed": true,
+        "app_backend": "onnxruntime-cpu",
+        "app_backend_version": "1.31.1",
+        "app_vs_ort": {
+          "passed": true,
+          "max_abs_error": 3.4332275390625e-05,
+          "mean_abs_error": 1.353096649836516e-06,
+          "p99_abs_error": 1.049041748046875e-05,
+          "rmse": 2.432234901333528e-06,
+          "cosine_similarity": 0.999999999999901,
+          "relative_l2_error": 4.580361643154147e-07,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "app_vs_torch": {
+          "passed": true,
+          "max_abs_error": 0.0006866455078125,
+          "mean_abs_error": 2.9065988201182336e-05,
+          "p99_abs_error": 0.000232696533203125,
+          "rmse": 5.1482339768642094e-05,
+          "cosine_similarity": 0.9999999999553818,
+          "relative_l2_error": 9.695127476022057e-06,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "ort_vs_torch": {
+          "passed": true,
+          "max_abs_error": 0.000690460205078125,
+          "mean_abs_error": 2.91360956907738e-05,
+          "p99_abs_error": 0.000232696533203125,
+          "rmse": 5.165873063170589e-05,
+          "cosine_similarity": 0.9999999999553015,
+          "relative_l2_error": 9.728345311705015e-06,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "mask_agreement": {
+          "app": {
+            "pixel_agreement": 1.0,
+            "paint_pixels": 23601,
+            "paint_iou_against_app": 1.0
+          },
+          "ort": {
+            "pixel_agreement": 1.0,
+            "paint_pixels": 23601,
+            "paint_iou_against_app": 1.0
+          },
+          "torch": {
+            "pixel_agreement": 1.0,
+            "paint_pixels": 23601,
+            "paint_iou_against_app": 1.0
+          }
+        }
+      },
+      "task": "lane",
+      "epochs_completed": 50,
+      "best_validation_training_iou": 0.4808665266656423,
+      "paint_threshold": 0.5,
+      "test_metrics": {
+        "paint_iou": 0.394412017953583,
+        "paint_precision": 0.5588152609658448,
+        "paint_recall": 0.5727640813628355,
+        "paint_dice": 0.5657036985846061
+      },
+      "test_confusion": {
+        "tp": 2148776,
+        "fp": 1696459,
+        "fn": 1602814,
+        "tn": 226487951,
+        "ignored": 0
+      },
+      "research_target_passed": false,
+      "project_acceptance_passed": false,
+      "retention_mae_pp": null,
+      "test_report_sha256": "d8729d31489643414267c99e3885de5ee1b30b2ad3eac52e3ecbd41ef207b49f",
+      "training_code_sha256": "654c2d14548485a0e8bbb2888dcee513be171996cae9bd05a09e336579efed68",
+      "training_code_commit": "70bcf06"
+    },
+    {
+      "manifest": "data/training/pothole-nano-rdd2020-v1/model.json",
+      "manifest_sha256": "dfcd545e3daccb0978b8c9d5daee66ba0e3a0dfe4b810000908466fa26505ed4",
+      "weights": "data/training/pothole-nano-rdd2020-v1/model.onnx",
+      "weights_sha256": "dd57f6e50b5ae5b66ebafdec147aee4547622f94f8a5f386a67332646bcfef5f",
+      "release_sha256": "eb861554f43d7fa038ff34023a586eddfb8c090fee8480bf8254114b0f4499ac",
+      "split_counts": {
+        "test": 231,
+        "train": 1800,
+        "validation": 375
+      },
+      "classes": [
+        "pothole"
+      ],
+      "input_size": [
+        640,
+        640
+      ],
+      "source_licenses": [
+        "CC-BY-NC-3.0"
+      ],
+      "research_only": true,
+      "production_approved": false,
+      "independent_route_verified": false,
+      "earliest_source_expiry": "2026-11-10T17:14:46.862846+00:00",
+      "verification_report_sha256": "f78594cf3e4becbb5900d58c6a723b198f945ee302f0a402a320538f8f3f2faf",
+      "verification": {
+        "status": "artifact_verified",
+        "numerical_parity_passed": true,
+        "app_backend": "onnxruntime-cpu",
+        "app_backend_version": "1.31.1",
+        "app_vs_ort": {
+          "passed": true,
+          "max_abs_error": 0.0,
+          "mean_abs_error": 0.0,
+          "p99_abs_error": 0.0,
+          "rmse": 0.0,
+          "cosine_similarity": 1.0,
+          "relative_l2_error": 0.0,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "app_vs_torch": {
+          "passed": true,
+          "max_abs_error": 0.002532958984375,
+          "mean_abs_error": 1.954066101461649e-05,
+          "p99_abs_error": 0.00018310546875,
+          "rmse": 5.154646426035102e-05,
+          "cosine_similarity": 0.9999999999999721,
+          "relative_l2_error": 2.366533400359895e-07,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "ort_vs_torch": {
+          "passed": true,
+          "max_abs_error": 0.002532958984375,
+          "mean_abs_error": 1.954066101461649e-05,
+          "p99_abs_error": 0.00018310546875,
+          "rmse": 5.154646426035102e-05,
+          "cosine_similarity": 0.9999999999999721,
+          "relative_l2_error": 2.366533400359895e-07,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "detection_postprocess_parity": {
+          "ort": {
+            "passed": true,
+            "application_count": 4,
+            "reference_count": 4,
+            "application_class_counts": {
+              "pothole": 4
+            },
+            "reference_class_counts": {
+              "pothole": 4
+            },
+            "matched_count": 4,
+            "unmatched_application": 0,
+            "unmatched_reference": 0,
+            "min_matched_iou": 1.0,
+            "max_abs_bbox_error_px": 0.0,
+            "max_abs_confidence_error": 0.0,
+            "bbox_atol_px": 0.05,
+            "confidence_atol": 0.0001,
+            "no_positive_predictions": false
+          },
+          "torch": {
+            "passed": true,
+            "application_count": 4,
+            "reference_count": 4,
+            "application_class_counts": {
+              "pothole": 4
+            },
+            "reference_class_counts": {
+              "pothole": 4
+            },
+            "matched_count": 4,
+            "unmatched_application": 0,
+            "unmatched_reference": 0,
+            "min_matched_iou": 0.9999984107676761,
+            "max_abs_bbox_error_px": 3.814697265625e-05,
+            "max_abs_confidence_error": 2.0563602447509766e-06,
+            "bbox_atol_px": 0.05,
+            "confidence_atol": 0.0001,
+            "no_positive_predictions": false
+          }
+        }
+      },
+      "task": "pothole",
+      "epochs_completed": 30,
+      "best_epoch": 7,
+      "best_validation_map50": 0.0798280465956093,
+      "native_gpu_test_metrics": {
+        "classes": {
+          "pothole": {
+            "ap50": 0.13111851626246968,
+            "gt_count": 197,
+            "prediction_count": 1387,
+            "tp": 97,
+            "fp": 1290,
+            "fn": 100
+          }
+        },
+        "map50": 0.13111851626246968,
+        "matching": "one_to_one_IoU0.5_AP101"
+      },
+      "test_metrics": {
+        "classes": {
+          "pothole": {
+            "gt_count": 197,
+            "prediction_count": 1387,
+            "tp": 97,
+            "fp": 1290,
+            "fn": 100,
+            "ap50": 0.13111851626246968,
+            "recall": 0.49238578680203043
+          }
+        },
+        "map50": 0.13111851626246968,
+        "matching": "one_to_one_IoU0.5_AP101"
+      },
+      "operating_metrics": {
+        "classes": {
+          "pothole": {
+            "gt_count": 197,
+            "prediction_count": 72,
+            "tp": 23,
+            "fp": 49,
+            "fn": 174,
+            "ap50": 0.05655751942752514,
+            "recall": 0.116751269035533,
+            "precision": 0.3194444444444444
+          }
+        },
+        "map50": 0.05655751942752514,
+        "matching": "one_to_one_IoU0.5_AP101"
+      },
+      "application_evaluation_sha256": "dcc1ebc1a79080e8981a9a98c454ed18ffc6d7878f2caf7a64e55086866d3994",
+      "confidence": 0.35,
+      "known_class_conditional_evaluation": false,
+      "project_acceptance_passed": false,
+      "summary_sha256": "98bbc63b4406f0cb7b3ca7d12891b0f0f77739746234c8ab8fc12d9fc57460b5",
+      "training_code_commit": "d3c040b",
+      "training_code_sha256": "12bc7d58dc4ffb5d75023bbcd1ed833c5340d6f5ff13adb5b98a282956eb03d8",
+      "metadata_only_revision": {
+        "at": "2026-11-03T17:47:07.809203+00:00",
+        "operation": "metadata_only_test_usage_scope_clarification",
+        "manifest_before_sha256": "6776077d8461641b7e153da7bd971b0c8434be4184730e0f613835c8a6ad6d58",
+        "manifest_after_sha256": "dfcd545e3daccb0978b8c9d5daee66ba0e3a0dfe4b810000908466fa26505ed4",
+        "changed_fields": {
+          "test_split_used": false,
+          "test_evaluated": true,
+          "test_split_used_scope": "training_and_selection"
+        },
+        "weights_sha256_unchanged": "dd57f6e50b5ae5b66ebafdec147aee4547622f94f8a5f386a67332646bcfef5f",
+        "confidence_unchanged": 0.35,
+        "nms_iou_unchanged": 0.5,
+        "verified_train_validation_assets": 2175,
+        "test_assets_used_for_training_or_selection": 0,
+        "release_sha256": "eb861554f43d7fa038ff34023a586eddfb8c090fee8480bf8254114b0f4499ac",
+        "source_repo_commit": "d3c040b",
+        "executed_training_script_sha256": "12bc7d58dc4ffb5d75023bbcd1ed833c5340d6f5ff13adb5b98a282956eb03d8",
+        "evidence": "Original fixed script, test_used_for_selection:false config, test_split_exported:false provenance, train/validation-only asset membership, completed post-freeze heldout artifact."
+      },
+      "research_target_passed": false
+    },
+    {
+      "manifest": "data/training/redaction-nano-v3/model.json",
+      "manifest_sha256": "88b1b8e86e3b8aec33a816aca082e1f81da20ba29c33c144e36be02a02693dee",
+      "weights": "data/training/redaction-nano-v3/model.onnx",
+      "weights_sha256": "2dda80561442c5b2d6a244003014916115844f508aa9d6c1c41c917f2b94d849",
+      "release_sha256": "f749f7e34b2af4256a9015b95b605ef7906197f3b6271690484f0aabd6c65b42",
+      "split_counts": {
+        "train": 1583,
+        "validation": 304,
+        "test": 400
+      },
+      "classes": [
+        "face",
+        "license_plate"
+      ],
+      "input_size": [
+        640,
+        640
+      ],
+      "source_licenses": [
+        "CC-BY-NC-ND-4.0",
+        "MIT"
+      ],
+      "research_only": true,
+      "production_approved": false,
+      "independent_route_verified": false,
+      "earliest_source_expiry": "2026-11-10T16:55:19.285523+00:00",
+      "verification_report_sha256": "6bf3324f7078b6f56dc504a58d0fce9caf02cbe9b86da5255a71d683b036bab6",
+      "verification": {
+        "status": "artifact_verified",
+        "numerical_parity_passed": true,
+        "app_backend": "onnxruntime-cpu",
+        "app_backend_version": "1.31.1",
+        "app_vs_ort": {
+          "passed": true,
+          "max_abs_error": 0.0,
+          "mean_abs_error": 0.0,
+          "p99_abs_error": 0.0,
+          "rmse": 0.0,
+          "cosine_similarity": 1.0,
+          "relative_l2_error": 0.0,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "app_vs_torch": {
+          "passed": true,
+          "max_abs_error": 0.003570556640625,
+          "mean_abs_error": 4.5001215767115355e-05,
+          "p99_abs_error": 0.00067138671875,
+          "rmse": 0.00015184868827712683,
+          "cosine_similarity": 0.9999999999997187,
+          "relative_l2_error": 7.502502544767853e-07,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "ort_vs_torch": {
+          "passed": true,
+          "max_abs_error": 0.003570556640625,
+          "mean_abs_error": 4.5001215767115355e-05,
+          "p99_abs_error": 0.00067138671875,
+          "rmse": 0.00015184868827712683,
+          "cosine_similarity": 0.9999999999997187,
+          "relative_l2_error": 7.502502544767853e-07,
+          "rtol": 0.001,
+          "atol": 0.0001
+        },
+        "detection_postprocess_parity": {
+          "ort": {
+            "passed": true,
+            "application_count": 2,
+            "reference_count": 2,
+            "application_class_counts": {
+              "face": 2
+            },
+            "reference_class_counts": {
+              "face": 2
+            },
+            "matched_count": 2,
+            "unmatched_application": 0,
+            "unmatched_reference": 0,
+            "min_matched_iou": 1.0,
+            "max_abs_bbox_error_px": 0.0,
+            "max_abs_confidence_error": 0.0,
+            "bbox_atol_px": 0.05,
+            "confidence_atol": 0.0001,
+            "no_positive_predictions": false
+          },
+          "torch": {
+            "passed": true,
+            "application_count": 2,
+            "reference_count": 2,
+            "application_class_counts": {
+              "face": 2
+            },
+            "reference_class_counts": {
+              "face": 2
+            },
+            "matched_count": 2,
+            "unmatched_application": 0,
+            "unmatched_reference": 0,
+            "min_matched_iou": 0.999998291809309,
+            "max_abs_bbox_error_px": 7.62939453125e-05,
+            "max_abs_confidence_error": 2.682209014892578e-07,
+            "bbox_atol_px": 0.05,
+            "confidence_atol": 0.0001,
+            "no_positive_predictions": false
+          }
+        }
+      },
+      "task": "redaction",
+      "epochs_completed": 30,
+      "best_epoch": 18,
+      "best_validation_map50": 0.8139662065225136,
+      "native_gpu_test_metrics": {
+        "classes": {
+          "face": {
+            "ap50": 0.5007295592809347,
+            "gt_count": 1877,
+            "prediction_count": 6693,
+            "tp": 1104,
+            "fp": 5589,
+            "fn": 773
+          },
+          "license_plate": {
+            "ap50": 0.9702970297029703,
+            "gt_count": 200,
+            "prediction_count": 202,
+            "tp": 195,
+            "fp": 7,
+            "fn": 5
+          }
+        },
+        "map50": 0.7355132944919525,
+        "matching": "one_to_one_IoU0.5_AP101"
+      },
+      "test_metrics": {
+        "classes": {
+          "face": {
+            "gt_count": 1877,
+            "prediction_count": 6693,
+            "tp": 1104,
+            "fp": 5589,
+            "fn": 773,
+            "ap50": 0.5007295592809347,
+            "recall": 0.5881726158763985
+          },
+          "license_plate": {
+            "gt_count": 200,
+            "prediction_count": 202,
+            "tp": 195,
+            "fp": 7,
+            "fn": 5,
+            "ap50": 0.9702970297029703,
+            "recall": 0.975
+          }
+        },
+        "map50": 0.7355132944919525,
+        "matching": "one_to_one_IoU0.5_AP101"
+      },
+      "operating_metrics": {
+        "classes": {
+          "face": {
+            "gt_count": 1877,
+            "prediction_count": 6693,
+            "tp": 1104,
+            "fp": 5589,
+            "fn": 773,
+            "ap50": 0.5007295592809347,
+            "recall": 0.5881726158763985,
+            "precision": 0.16494845360824742
+          },
+          "license_plate": {
+            "gt_count": 200,
+            "prediction_count": 202,
+            "tp": 195,
+            "fp": 7,
+            "fn": 5,
+            "ap50": 0.9702970297029703,
+            "recall": 0.975,
+            "precision": 0.9653465346534653
+          }
+        },
+        "map50": 0.7355132944919525,
+        "matching": "one_to_one_IoU0.5_AP101"
+      },
+      "application_evaluation_sha256": "f4267c2e82a9e7f28d7c74d2189663371af613f2a166785118facbc280805df0",
+      "confidence": 0.01,
+      "known_class_conditional_evaluation": true,
+      "project_acceptance_passed": false,
+      "summary_sha256": "a21120efa88f00acedbd0c06971a3020da692996c553c13c1c2441b3aacce70d",
+      "training_code_commit": "d3c040b",
+      "training_code_sha256": "12bc7d58dc4ffb5d75023bbcd1ed833c5340d6f5ff13adb5b98a282956eb03d8",
+      "metadata_only_revision": {
+        "at": "2026-11-03T17:47:07.933259+00:00",
+        "operation": "metadata_only_test_usage_scope_clarification",
+        "manifest_before_sha256": "63f3e5c0efe50d37537f39bc31d165814ad4f2cf6ef1ee68fcaf00a798cb21ce",
+        "manifest_after_sha256": "88b1b8e86e3b8aec33a816aca082e1f81da20ba29c33c144e36be02a02693dee",
+        "changed_fields": {
+          "test_split_used": false,
+          "test_evaluated": true,
+          "test_split_used_scope": "training_and_selection"
+        },
+        "weights_sha256_unchanged": "2dda80561442c5b2d6a244003014916115844f508aa9d6c1c41c917f2b94d849",
+        "confidence_unchanged": 0.01,
+        "nms_iou_unchanged": 0.5,
+        "verified_train_validation_assets": 1887,
+        "test_assets_used_for_training_or_selection": 0,
+        "release_sha256": "f749f7e34b2af4256a9015b95b605ef7906197f3b6271690484f0aabd6c65b42",
+        "source_repo_commit": "d3c040b",
+        "executed_training_script_sha256": "12bc7d58dc4ffb5d75023bbcd1ed833c5340d6f5ff13adb5b98a282956eb03d8",
+        "evidence": "Original fixed script, test_used_for_selection:false config, test_split_exported:false provenance, train/validation-only asset membership, completed post-freeze heldout artifact."
+      },
+      "research_target_passed": false
+    }
+  ],
+  "preserved_failures": [
+    "RDD2022 third-party converted labels: semantic mismatch; run stopped and quarantined, not final weights",
+    "OpenCV5 default DNN engine: RTK logits overflow; earlier zero-IoU invalidated, same weights reevaluated with ORT",
+    "Redaction v2 cropped test failed original full-scene challenge; v3 uses original frames and newly frozen unseen source test",
+    "Strict numerical verification failures remain recorded; raw allclose and postprocess agreement are distinct"
+  ],
+  "limits": [
+    "No independent ZED 2i road/vehicle acceptance",
+    "No expected-outline/gap/valid GT for wear-ratio MAE",
+    "Face/plate metrics conditional on known class; other-class annotation incomplete",
+    "No fabricated human privacy review, commercial-use clearance or external redistribution permission",
+    "Source expiry/revocation still blocks model reuse; no automatic expiry extension"
+  ]
+}

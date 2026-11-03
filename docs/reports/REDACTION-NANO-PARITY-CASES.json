@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "purpose": "Positive-class coverage for strict numerical and real application postprocess parity; not detection accuracy or project acceptance",
+  "face_selection": "First sample_id lexicographically among frozen validation face-positive GT with an existing selected-validation face prediction >= frozen confidence .01; no test selection or model/threshold tuning",
+  "model_manifest_sha256": "88b1b8e86e3b8aec33a816aca082e1f81da20ba29c33c144e36be02a02693dee",
+  "weights_sha256": "2dda80561442c5b2d6a244003014916115844f508aa9d6c1c41c917f2b94d849",
+  "confidence": 0.01,
+  "protected_input_hashes_unchanged": true,
+  "production_approved": false,
+  "accuracy_evaluation_performed": false,
+  "cases": [
+    {
+      "known_class": "face",
+      "source_image_sha256": "ca30e1c03a4434b94c2a77fe8d2136825f68b659b0921d6ef68bf5aded9b2f8c",
+      "known_class_gt_count": 1,
+      "postprocess_prediction_count": 2,
+      "verification_report": "docs/reports/REDACTION-NANO-VERIFICATION.json",
+      "verification_report_sha256": "6bf3324f7078b6f56dc504a58d0fce9caf02cbe9b86da5255a71d683b036bab6",
+      "strict_raw_parity_passed": true,
+      "actual_postprocess_parity_passed": true
+    },
+    {
+      "known_class": "license_plate",
+      "source_image_sha256": "92c26523691695522d3a4817a17d9c42a7d159e9935af4eb127fcfe84f359fb9",
+      "known_class_gt_count": 1,
+      "postprocess_prediction_count": 1,
+      "verification_report": "docs/reports/REDACTION-NANO-PLATE-VERIFICATION.json",
+      "verification_report_sha256": "e12a927a5e636de33314cf2c54c9cbf9839dd075ca64c7613ef5944c347fb77e",
+      "strict_raw_parity_passed": true,
+      "actual_postprocess_parity_passed": true
+    }
+  ]
+}

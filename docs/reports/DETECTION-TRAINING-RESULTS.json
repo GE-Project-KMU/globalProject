@@ -1,0 +1,262 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-11-03T17:48:16.749391+00:00",
+  "source_repo_commit": "d3c040b",
+  "executed_trainer_script_sha256": "12bc7d58dc4ffb5d75023bbcd1ed833c5340d6f5ff13adb5b98a282956eb03d8",
+  "current_trainer_script_sha256": "ff33c7cfcec15c4038f476127354f6e35a4052e8c03f4e4ec91a33c792572242",
+  "post_run_trainer_change": "Add automatic executed code/argv and explicit training-selection test usage metadata; no algorithm/weights/threshold changes to completed experiments.",
+  "source_preparation_script_sha256": "ad6d3880ef2fcf20824916fea58916932dbd4951ce4f7fd9a4c9014ed0e1a4eb",
+  "runs": {
+    "pothole": {
+      "architecture": "YOLOX-Nano",
+      "task": "pothole",
+      "input_size": [
+        640,
+        640
+      ],
+      "classes": [
+        "pothole"
+      ],
+      "model_path": "data/training/pothole-nano-rdd2020-v1/model.onnx",
+      "model_sha256": "dd57f6e50b5ae5b66ebafdec147aee4547622f94f8a5f386a67332646bcfef5f",
+      "model_manifest_sha256": "dfcd545e3daccb0978b8c9d5daee66ba0e3a0dfe4b810000908466fa26505ed4",
+      "metadata_amendment_audit": {
+        "at": "2026-11-03T17:47:07.809203+00:00",
+        "operation": "metadata_only_test_usage_scope_clarification",
+        "manifest_before_sha256": "6776077d8461641b7e153da7bd971b0c8434be4184730e0f613835c8a6ad6d58",
+        "manifest_after_sha256": "dfcd545e3daccb0978b8c9d5daee66ba0e3a0dfe4b810000908466fa26505ed4",
+        "changed_fields": {
+          "test_split_used": false,
+          "test_evaluated": true,
+          "test_split_used_scope": "training_and_selection"
+        },
+        "weights_sha256_unchanged": "dd57f6e50b5ae5b66ebafdec147aee4547622f94f8a5f386a67332646bcfef5f",
+        "confidence_unchanged": 0.35,
+        "nms_iou_unchanged": 0.5,
+        "verified_train_validation_assets": 2175,
+        "test_assets_used_for_training_or_selection": 0,
+        "release_sha256": "eb861554f43d7fa038ff34023a586eddfb8c090fee8480bf8254114b0f4499ac",
+        "source_repo_commit": "d3c040b",
+        "executed_training_script_sha256": "12bc7d58dc4ffb5d75023bbcd1ed833c5340d6f5ff13adb5b98a282956eb03d8",
+        "evidence": "Original fixed script, test_used_for_selection:false config, test_split_exported:false provenance, train/validation-only asset membership, completed post-freeze heldout artifact."
+      },
+      "test_split_used": false,
+      "test_evaluated": true,
+      "test_split_used_scope": "training_and_selection",
+      "source_release_sha256": "eb861554f43d7fa038ff34023a586eddfb8c090fee8480bf8254114b0f4499ac",
+      "source_licenses": [
+        "CC-BY-NC-3.0"
+      ],
+      "command": "python scripts/setup_training.py run scripts/train_yolox_research.py data/training/research-pothole-rdd2020/release.json data/training/pothole-nano-rdd2020-v1 --task pothole --epochs 30 --batch-size 8 --learning-rate 0.0005 --input-size 640",
+      "epochs_requested": 30,
+      "best_epoch": 7,
+      "seed": 2026,
+      "images": {
+        "train": 1800,
+        "validation": 375,
+        "test": 231
+      },
+      "validation_map50": 0.0798280465956093,
+      "heldout_map50": 0.13111851626246968,
+      "heldout_metrics": {
+        "classes": {
+          "pothole": {
+            "ap50": 0.13111851626246968,
+            "gt_count": 197,
+            "prediction_count": 1387,
+            "tp": 97,
+            "fp": 1290,
+            "fn": 100
+          }
+        },
+        "map50": 0.13111851626246968,
+        "matching": "one_to_one_IoU0.5_AP101"
+      },
+      "frozen_operating_confidence": 0.35,
+      "confidence_selection_data": "fixed SRS confidence; no test tuning",
+      "calibration_frozen_at": "2026-11-03T17:44:26.607790+00:00",
+      "operating_metrics": {
+        "classes": {
+          "pothole": {
+            "ap50": 0.05655751942752514,
+            "gt_count": 197,
+            "prediction_count": 72,
+            "tp": 23,
+            "fp": 49,
+            "fn": 174,
+            "recall": 0.116751269035533,
+            "precision": 0.3194444444444444
+          }
+        },
+        "map50": 0.05655751942752514,
+        "matching": "one_to_one_IoU0.5_AP101",
+        "confidence": 0.35,
+        "min_class_recall": 0.116751269035533,
+        "macro_precision": 0.3194444444444444
+      },
+      "elapsed_seconds_shared_training": 1604.6670572999865,
+      "shared_gpu_training": true,
+      "isolated_speed_claim": false,
+      "environment": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "device": "NVIDIA GeForce RTX 2080 Ti",
+        "architecture": "official YOLOX-Nano depth=.33,width=.25,depthwise=True",
+        "source_commit": "6ddff4824372906469a7fae2dc3206c7aa4bbaee",
+        "nano_source_sha256": "57e5ff392fc1a963d92bc15ef6dac2d8a93092ed3ebf74c8ddbc4495ddd3fb95",
+        "pretrained_source": "official YOLOX0.1.1rc0 COCO Nano transfer, not target-trained substitute",
+        "pretrained_sha256": "cd28f55fbbc1829f99d9ac9b38a16d259a22889739c8728ea877610201feff7b",
+        "transferred_parameter_tensors": 636
+      },
+      "known_class_evaluation": false,
+      "partial_annotation_limit": null,
+      "research_only": true,
+      "production_approved": false,
+      "project_acceptance_eligible": false,
+      "independent_route_verified": false,
+      "human_privacy_reviewed": false
+    },
+    "redaction": {
+      "architecture": "YOLOX-Nano",
+      "task": "redaction",
+      "input_size": [
+        640,
+        640
+      ],
+      "classes": [
+        "face",
+        "license_plate"
+      ],
+      "model_path": "data/training/redaction-nano-v3/model.onnx",
+      "model_sha256": "2dda80561442c5b2d6a244003014916115844f508aa9d6c1c41c917f2b94d849",
+      "model_manifest_sha256": "88b1b8e86e3b8aec33a816aca082e1f81da20ba29c33c144e36be02a02693dee",
+      "metadata_amendment_audit": {
+        "at": "2026-11-03T17:47:07.933259+00:00",
+        "operation": "metadata_only_test_usage_scope_clarification",
+        "manifest_before_sha256": "63f3e5c0efe50d37537f39bc31d165814ad4f2cf6ef1ee68fcaf00a798cb21ce",
+        "manifest_after_sha256": "88b1b8e86e3b8aec33a816aca082e1f81da20ba29c33c144e36be02a02693dee",
+        "changed_fields": {
+          "test_split_used": false,
+          "test_evaluated": true,
+          "test_split_used_scope": "training_and_selection"
+        },
+        "weights_sha256_unchanged": "2dda80561442c5b2d6a244003014916115844f508aa9d6c1c41c917f2b94d849",
+        "confidence_unchanged": 0.01,
+        "nms_iou_unchanged": 0.5,
+        "verified_train_validation_assets": 1887,
+        "test_assets_used_for_training_or_selection": 0,
+        "release_sha256": "f749f7e34b2af4256a9015b95b605ef7906197f3b6271690484f0aabd6c65b42",
+        "source_repo_commit": "d3c040b",
+        "executed_training_script_sha256": "12bc7d58dc4ffb5d75023bbcd1ed833c5340d6f5ff13adb5b98a282956eb03d8",
+        "evidence": "Original fixed script, test_used_for_selection:false config, test_split_exported:false provenance, train/validation-only asset membership, completed post-freeze heldout artifact."
+      },
+      "test_split_used": false,
+      "test_evaluated": true,
+      "test_split_used_scope": "training_and_selection",
+      "source_release_sha256": "f749f7e34b2af4256a9015b95b605ef7906197f3b6271690484f0aabd6c65b42",
+      "source_licenses": [
+        "CC-BY-NC-ND-4.0",
+        "MIT"
+      ],
+      "command": "python scripts/setup_training.py run scripts/train_yolox_research.py data/training/research-redaction-fullframe/release.json data/training/redaction-nano-v3 --task redaction --epochs 30 --batch-size 8 --learning-rate 0.0005 --input-size 640 --max-labels 512 --known-class-evaluation",
+      "epochs_requested": 30,
+      "best_epoch": 18,
+      "seed": 2026,
+      "images": {
+        "train": 1583,
+        "validation": 304,
+        "test": 400
+      },
+      "validation_map50": 0.8139662065225136,
+      "heldout_map50": 0.7355132944919525,
+      "heldout_metrics": {
+        "classes": {
+          "face": {
+            "ap50": 0.5007295592809347,
+            "gt_count": 1877,
+            "prediction_count": 6693,
+            "tp": 1104,
+            "fp": 5589,
+            "fn": 773
+          },
+          "license_plate": {
+            "ap50": 0.9702970297029703,
+            "gt_count": 200,
+            "prediction_count": 202,
+            "tp": 195,
+            "fp": 7,
+            "fn": 5
+          }
+        },
+        "map50": 0.7355132944919525,
+        "matching": "one_to_one_IoU0.5_AP101"
+      },
+      "frozen_operating_confidence": 0.01,
+      "confidence_selection_data": "validation only; selected checkpoint; no test/fullscene tuning",
+      "calibration_frozen_at": "2026-11-03T17:45:51.365840+00:00",
+      "operating_metrics": {
+        "classes": {
+          "face": {
+            "ap50": 0.5007295592809347,
+            "gt_count": 1877,
+            "prediction_count": 6693,
+            "tp": 1104,
+            "fp": 5589,
+            "fn": 773,
+            "recall": 0.5881726158763985,
+            "precision": 0.16494845360824742
+          },
+          "license_plate": {
+            "ap50": 0.9702970297029703,
+            "gt_count": 200,
+            "prediction_count": 202,
+            "tp": 195,
+            "fp": 7,
+            "fn": 5,
+            "recall": 0.975,
+            "precision": 0.9653465346534653
+          }
+        },
+        "map50": 0.7355132944919525,
+        "matching": "one_to_one_IoU0.5_AP101",
+        "confidence": 0.01,
+        "min_class_recall": 0.5881726158763985,
+        "macro_precision": 0.5651474941308564
+      },
+      "elapsed_seconds_shared_training": 1732.315168000001,
+      "shared_gpu_training": true,
+      "isolated_speed_claim": false,
+      "environment": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "device": "NVIDIA GeForce RTX 2080 Ti",
+        "architecture": "official YOLOX-Nano depth=.33,width=.25,depthwise=True",
+        "source_commit": "6ddff4824372906469a7fae2dc3206c7aa4bbaee",
+        "nano_source_sha256": "57e5ff392fc1a963d92bc15ef6dac2d8a93092ed3ebf74c8ddbc4495ddd3fb95",
+        "pretrained_source": "official YOLOX0.1.1rc0 COCO Nano transfer, not target-trained substitute",
+        "pretrained_sha256": "cd28f55fbbc1829f99d9ac9b38a16d259a22889739c8728ea877610201feff7b",
+        "transferred_parameter_tensors": 636
+      },
+      "known_class_evaluation": true,
+      "partial_annotation_limit": "Unknown other-class objects can create false-negative objectness supervision; research-only, no exhaustive privacy coverage claim.",
+      "research_only": true,
+      "production_approved": false,
+      "project_acceptance_eligible": false,
+      "independent_route_verified": false,
+      "human_privacy_reviewed": false
+    },
+    "rejected_crop_only_baseline": {
+      "crop_heldout_map50": 0.9356189350278312,
+      "original_frame_challenge_map50": 0.0001207437816952427,
+      "reason": "Crop localization performance did not transfer to full frames; excluded as usable runtime model."
+    }
+  },
+  "metric_protocol": "One-to-one class/image IoU0.5, confidence-floor.01 AP101. Operating TP/FP/FN and precision/recall use frozen validation-selected confidence, not test tuning.",
+  "source_qc_reports": [
+    "docs/reports/POTHOLE-RDD2020-SOURCE-QC.json",
+    "docs/reports/REDACTION-FULLFRAME-V3-QC.json"
+  ],
+  "math_contract_report": "docs/reports/DETECTION-TRAINING-CONTRACT.json",
+  "raw_images_or_per_image_predictions_published": false,
+  "project_acceptance": "Not granted. Public research data, no route audit or human privacy approval; license/privacy/field evaluation remain separate."
+}

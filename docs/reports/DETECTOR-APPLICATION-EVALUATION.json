@@ -1,0 +1,145 @@
+{
+  "pothole-nano-rdd2020-v1": {
+    "scope": "offline_research_actual_application_adapter",
+    "evaluated_at": "2026-11-03T17:47:40.149063+00:00",
+    "task": "pothole",
+    "samples": 231,
+    "manifest_sha256": "dfcd545e3daccb0978b8c9d5daee66ba0e3a0dfe4b810000908466fa26505ed4",
+    "weights_sha256": "dd57f6e50b5ae5b66ebafdec147aee4547622f94f8a5f386a67332646bcfef5f",
+    "source_release_sha256": "eb861554f43d7fa038ff34023a586eddfb8c090fee8480bf8254114b0f4499ac",
+    "backend": "onnxruntime-cpu",
+    "backend_version": "1.31.1",
+    "evaluator_code_sha256": "ef5dceae5f04f353c6700458bf0154d61980d514da885ebf96c77f43ee9dc8c0",
+    "application_adapter_code_sha256": "e5e12ddfc53424b877189ff0c7ad1f09413b000baac071cf05a6d9d7b0398be1",
+    "input_size": [
+      640,
+      640
+    ],
+    "ap_confidence_floor": 0.01,
+    "frozen_operating_confidence": 0.35,
+    "heldout_metrics": {
+      "classes": {
+        "pothole": {
+          "gt_count": 197,
+          "prediction_count": 1387,
+          "tp": 97,
+          "fp": 1290,
+          "fn": 100,
+          "ap50": 0.13111851626246968,
+          "recall": 0.49238578680203043
+        }
+      },
+      "map50": 0.13111851626246968,
+      "matching": "one_to_one_IoU0.5_AP101"
+    },
+    "operating_metrics": {
+      "classes": {
+        "pothole": {
+          "gt_count": 197,
+          "prediction_count": 72,
+          "tp": 23,
+          "fp": 49,
+          "fn": 174,
+          "ap50": 0.05655751942752514,
+          "recall": 0.116751269035533,
+          "precision": 0.3194444444444444
+        }
+      },
+      "map50": 0.05655751942752514,
+      "matching": "one_to_one_IoU0.5_AP101"
+    },
+    "elapsed_seconds_including_metrics": 10.764880900009302,
+    "known_class_conditional": false,
+    "test_used_for_model_or_threshold_selection": false,
+    "production_approved": false,
+    "project_acceptance_passed": false,
+    "independent_route_verified": false,
+    "human_privacy_reviewed": false,
+    "limits": [
+      "Public publisher labels plus machine QC; no independent vehicle acceptance",
+      "Unknown face/plate class annotations are not treated as exhaustive negatives",
+      "No route-event recall, wear-ratio MAE or full-pipeline FPS claim"
+    ]
+  },
+  "redaction-nano-v3": {
+    "scope": "offline_research_actual_application_adapter",
+    "evaluated_at": "2026-11-03T17:47:49.407883+00:00",
+    "task": "redaction",
+    "samples": 400,
+    "manifest_sha256": "88b1b8e86e3b8aec33a816aca082e1f81da20ba29c33c144e36be02a02693dee",
+    "weights_sha256": "2dda80561442c5b2d6a244003014916115844f508aa9d6c1c41c917f2b94d849",
+    "source_release_sha256": "f749f7e34b2af4256a9015b95b605ef7906197f3b6271690484f0aabd6c65b42",
+    "backend": "onnxruntime-cpu",
+    "backend_version": "1.31.1",
+    "evaluator_code_sha256": "ef5dceae5f04f353c6700458bf0154d61980d514da885ebf96c77f43ee9dc8c0",
+    "application_adapter_code_sha256": "e5e12ddfc53424b877189ff0c7ad1f09413b000baac071cf05a6d9d7b0398be1",
+    "input_size": [
+      640,
+      640
+    ],
+    "ap_confidence_floor": 0.01,
+    "frozen_operating_confidence": 0.01,
+    "heldout_metrics": {
+      "classes": {
+        "face": {
+          "gt_count": 1877,
+          "prediction_count": 6693,
+          "tp": 1104,
+          "fp": 5589,
+          "fn": 773,
+          "ap50": 0.5007295592809347,
+          "recall": 0.5881726158763985
+        },
+        "license_plate": {
+          "gt_count": 200,
+          "prediction_count": 202,
+          "tp": 195,
+          "fp": 7,
+          "fn": 5,
+          "ap50": 0.9702970297029703,
+          "recall": 0.975
+        }
+      },
+      "map50": 0.7355132944919525,
+      "matching": "one_to_one_IoU0.5_AP101"
+    },
+    "operating_metrics": {
+      "classes": {
+        "face": {
+          "gt_count": 1877,
+          "prediction_count": 6693,
+          "tp": 1104,
+          "fp": 5589,
+          "fn": 773,
+          "ap50": 0.5007295592809347,
+          "recall": 0.5881726158763985,
+          "precision": 0.16494845360824742
+        },
+        "license_plate": {
+          "gt_count": 200,
+          "prediction_count": 202,
+          "tp": 195,
+          "fp": 7,
+          "fn": 5,
+          "ap50": 0.9702970297029703,
+          "recall": 0.975,
+          "precision": 0.9653465346534653
+        }
+      },
+      "map50": 0.7355132944919525,
+      "matching": "one_to_one_IoU0.5_AP101"
+    },
+    "elapsed_seconds_including_metrics": 20.104234900005395,
+    "known_class_conditional": true,
+    "test_used_for_model_or_threshold_selection": false,
+    "production_approved": false,
+    "project_acceptance_passed": false,
+    "independent_route_verified": false,
+    "human_privacy_reviewed": false,
+    "limits": [
+      "Public publisher labels plus machine QC; no independent vehicle acceptance",
+      "Unknown face/plate class annotations are not treated as exhaustive negatives",
+      "No route-event recall, wear-ratio MAE or full-pipeline FPS claim"
+    ]
+  }
+}

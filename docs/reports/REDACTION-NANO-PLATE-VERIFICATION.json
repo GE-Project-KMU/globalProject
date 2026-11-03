@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "task": "redaction",
+  "classes": [
+    "face",
+    "license_plate"
+  ],
+  "manifest_sha256": "88b1b8e86e3b8aec33a816aca082e1f81da20ba29c33c144e36be02a02693dee",
+  "weight_sha256": "2dda80561442c5b2d6a244003014916115844f508aa9d6c1c41c917f2b94d849",
+  "research_only": true,
+  "production_approved": false,
+  "project_acceptance_eligible": false,
+  "source_licenses": [
+    "CC-BY-NC-ND-4.0",
+    "MIT"
+  ],
+  "split_counts": {
+    "train": 1583,
+    "validation": 304,
+    "test": 400
+  },
+  "independent_route_verified": false,
+  "accuracy_evaluation_performed": false,
+  "remaining_prerequisites": [
+    "independent ZED 2i vehicle evaluation",
+    "license-compatible intended use",
+    "agency acceptance"
+  ],
+  "metadata_valid": true,
+  "weight_hash_verified": true,
+  "app_repeatability": {
+    "passed": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "p99_abs_error": 0.0,
+    "rmse": 0.0,
+    "cosine_similarity": 1.0,
+    "relative_l2_error": 0.0,
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "ort_metadata": {
+    "onnx_checked": true,
+    "operators": [
+      "Add",
+      "Cast",
+      "Concat",
+      "Constant",
+      "Conv",
+      "Exp",
+      "Expand",
+      "MaxPool",
+      "Mul",
+      "Reshape",
+      "Resize",
+      "Shape",
+      "Sigmoid",
+      "Slice",
+      "Transpose",
+      "Unsqueeze"
+    ],
+    "opsets": [
+      {
+        "domain": "",
+        "version": 17
+      }
+    ],
+    "onnxruntime": "1.20.1",
+    "input_shape": [
+      1,
+      3,
+      640,
+      640
+    ],
+    "output_shape": [
+      1,
+      8400,
+      7
+    ]
+  },
+  "app_vs_ort": {
+    "passed": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "p99_abs_error": 0.0,
+    "rmse": 0.0,
+    "cosine_similarity": 1.0,
+    "relative_l2_error": 0.0,
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "torch_metadata": {
+    "torch": "2.7.1+cu126",
+    "device": "cpu",
+    "output_shape": [
+      1,
+      8400,
+      7
+    ]
+  },
+  "app_vs_torch": {
+    "passed": true,
+    "max_abs_error": 0.0095672607421875,
+    "mean_abs_error": 4.771759267896414e-05,
+    "p99_abs_error": 0.0006103515625,
+    "rmse": 0.0001630689100237999,
+    "cosine_similarity": 0.9999999999996727,
+    "relative_l2_error": 8.090073506611567e-07,
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "ort_vs_torch": {
+    "passed": true,
+    "max_abs_error": 0.0095672607421875,
+    "mean_abs_error": 4.771759267896414e-05,
+    "p99_abs_error": 0.0006103515625,
+    "rmse": 0.0001630689100237999,
+    "cosine_similarity": 0.9999999999996727,
+    "relative_l2_error": 8.090073506611567e-07,
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "detection_postprocess_parity": {
+    "ort": {
+      "passed": true,
+      "application_count": 1,
+      "reference_count": 1,
+      "application_class_counts": {
+        "license_plate": 1
+      },
+      "reference_class_counts": {
+        "license_plate": 1
+      },
+      "matched_count": 1,
+      "unmatched_application": 0,
+      "unmatched_reference": 0,
+      "min_matched_iou": 1.0,
+      "max_abs_bbox_error_px": 0.0,
+      "max_abs_confidence_error": 0.0,
+      "bbox_atol_px": 0.05,
+      "confidence_atol": 0.0001,
+      "no_positive_predictions": false
+    },
+    "torch": {
+      "passed": true,
+      "application_count": 1,
+      "reference_count": 1,
+      "application_class_counts": {
+        "license_plate": 1
+      },
+      "reference_class_counts": {
+        "license_plate": 1
+      },
+      "matched_count": 1,
+      "unmatched_application": 0,
+      "unmatched_reference": 0,
+      "min_matched_iou": 0.9999994860648855,
+      "max_abs_bbox_error_px": 9.1552734375e-05,
+      "max_abs_confidence_error": 0.0,
+      "bbox_atol_px": 0.05,
+      "confidence_atol": 0.0001,
+      "no_positive_predictions": false
+    }
+  },
+  "postprocess_parity_passed": true,
+  "runtime_python": "3.14.7",
+  "opencv_preprocessing_version": "5.0.0",
+  "app_backend": "onnxruntime-cpu",
+  "app_backend_version": "1.31.1",
+  "finite_output": true,
+  "output_shape": [
+    1,
+    8400,
+    7
+  ],
+  "preprocess_contract_verified": true,
+  "adapter_result_count": 1,
+  "synthetic_input": false,
+  "torch_checkpoint_compared": true,
+  "numerical_parity_passed": true,
+  "artifact_contract_verified": true,
+  "status": "artifact_verified"
+}
