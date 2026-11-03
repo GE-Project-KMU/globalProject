@@ -277,3 +277,66 @@ async def revoke_link(id:str,req:Request):
         lp=payload(x);lp.update(status="revoked",reason=b["reason"],decided_at=iso(),decided_by=p["sub"])
         x=store.change(id,p["org_id"],lp,x["version"],s);store.audit(p,"duplicate.revoke",id,s)
     return ok(x)
+@app.get("/internal/report-snapshot")
+def report_snapshot(req:Request,from_:str|None=Query(None,alias="from"),to:str|None=None,type:str|None=None,review_status:str|None=None):
+    p=principal(req);role(p,"admin","reviewer","viewer")
+    r=listing(req,type=type,review_status=review_status,from_=from_,to=to,quality=None,grade=None,run_id=None,bbox=None,limit=200,cursor=None)["data"]
+    items=r["items"]
+    while r["next_cursor"]:
+        r=listing(req,type=type,review_status=review_status,from_=from_,to=to,quality=None,grade=None,run_id=None,bbox=None,limit=200,cursor=r["next_cursor"])["data"]
+        items+=r["items"]
+        if len(items)>10000:fail(422,"REPORT_TOO_LARGE")
+    reps=list({x["case_id"]:x for x in items}.values())
+    return ok({"items":reps,"counts_unit":"case"})
+@app.post("/internal/validate-observations")
+async def validate_observations(req:Request):
+    p=principal(req);b=await req.json()
+    for id in b.get("ids",[]):
+        try:store.get(id,p["org_id"],"observation")
+        except HTTPException:return ok({"valid":False})
+    return ok({"valid":True})
+def target_observations(refs,p):
+    allobs=store.list(p["org_id"],"observation");selected={}
+    for ref in refs:
+        kind,id=ref["kind"],valid_uuid(ref["id"])
+        if kind=="observation":
+            o=store.get(id,p["org_id"],"observation");selected[id]=o
+        elif kind in ("image","run","case"):
+            for o in allobs:
+                if kind=="image" and o["payload"]["image"]["file_id"]==id or kind=="run" and o["payload"]["run_id"]==id or kind=="case" and o["case_id"]==id:selected[o["id"]]=o
+            if kind in ("run","case"):store.get(id,p["org_id"],kind)
+        else:fail(422,"INVALID_TARGET")
+    return list(selected.values())
+@app.post("/internal/privacy/plan")
+async def privacy_plan(req:Request):
+    p=principal(req);role(p,"admin");b=await req.json()
+    for ref in b["target_refs"]:
+        if ref["kind"]=="image":await remote("media","/internal/images/"+valid_uuid(ref["id"]),p)
+    obs=target_observations(b["target_refs"],p)
+    images={o["payload"]["image"]["file_id"] for o in obs}
+    for ref in b["target_refs"]:
+        if ref["kind"]=="image":images.add(ref["id"])
+    # A shared evidence file cannot be deleted while leaving live references.
+    obs=[o for o in store.list(p["org_id"],"observation") if o["id"] in {x["id"] for x in obs} or o["payload"]["image"]["file_id"] in images]
+    return ok({"observation_ids":[o["id"] for o in obs],"image_ids":sorted(images)})
+@app.post("/internal/privacy/delete")
+async def privacy_delete(req:Request):
+    p=principal(req);role(p,"admin");b=await req.json()
+    with store.tx() as s:
+        for id in b.get("observation_ids",[]):
+            try:o=store.get(id,p["org_id"],"observation",s,expired=True)
+            except HTTPException as e:
+                if e.status_code==404:continue
+                raise
+            tomb=digest("observation:"+id)
+            try:store.get(tomb,p["org_id"],"tombstone",s)
+            except HTTPException:store.create(tomb,p["org_id"],"tombstone",{"reason":"privacy_deletion"},now()+180*86400,s)
+            store.delete(id,p["org_id"],s)
+        remaining=store.list(p["org_id"],"observation",s)
+        keepcases={o["case_id"] for o in remaining};keepevents={o["payload"]["event_id"] for o in remaining}
+        for kind in ("history","link","case","event"):
+            for x in store.list(p["org_id"],kind,s):
+                remove=(kind=="case" and x["id"] not in keepcases or kind=="event" and x["id"] not in keepevents or kind=="history" and x["case_id"] not in keepcases or kind=="link" and (x["source_case_id"] not in keepcases or x["target_case_id"] not in keepcases))
+                if remove:store.delete(x["id"],p["org_id"],s)
+        store.audit(p,"privacy.delete","batch",s)
+    return ok({"deleted":len(b.get("observation_ids",[]))})
