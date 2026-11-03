@@ -99,7 +99,9 @@ def roots(values):
 
 def eligible(path,kind):
     if kind not in KINDS or path.suffix.lower() not in KINDS[kind] or any(suffix.lower() in WEIGHTS for suffix in path.suffixes):raise ValueError("unsupported_research_file_kind")
-    if path.name.lower() in PRESERVED or any(token in path.name.lower() for token in (".source.json","license","licence","readme")):raise PreservedResearchFile("minimal_source_or_provenance_is_preserved")
+    name=path.name.lower()
+    legal_document=re.search(r"(?:^|[-_.])(?:license|licence|readme)(?:\.(?:txt|md|json|rst|html?))?$",name)
+    if name in PRESERVED or name.endswith(".source.json") or legal_document:raise PreservedResearchFile("minimal_source_or_provenance_is_preserved")
     def has_private_reference(item):
         if isinstance(item,dict):return any(k in PRIVATE_FIELDS or k in {"images","predictions","detections"} and isinstance(v,(list,dict)) or has_private_reference(v) for k,v in item.items())
         if isinstance(item,list):return any(has_private_reference(v) for v in item)

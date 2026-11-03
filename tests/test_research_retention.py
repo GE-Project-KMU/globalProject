@@ -192,3 +192,18 @@ def test_coverage_does_not_treat_size_or_read_failures_as_preservation(case,monk
     with pytest.raises(type(error)):
         retention.coverage(case.relative(case.plan),case.relative(case.inventory))
     assert log.exists() and not case.inventory.exists()
+
+
+@pytest.mark.parametrize("name,kind,content",[
+    ("license_plate_predictions.json","per_image_prediction",'{"image_sha256":"'+'a'*64+'"}'),
+    ("license_plate_probe.log","identifiable_manifest",'{"image_sha256":"'+'a'*64+'"}'),
+    ("license_plate_sample.jpg","derived_image","SYNTHETIC IMAGE"),
+    ("probe.source.json.backup.log","identifiable_manifest",'{"sample_id":"SYNTHETIC_PROBE"}'),
+])
+def test_number_plate_artifacts_are_not_mistaken_for_license_documents(case,name,kind,content):
+    path=case.folder/name;path.write_text(content,encoding="utf-8");case.save(path,kind)
+    retention.register(case.relative(case.plan),case.relative(case.inventory))
+    record=next(iter(json.loads(case.inventory.read_text())["entries"].values()))
+    assert record["expires_at"]=="2026-01-08T00:00:00Z"
+    result=retention.purge(case.relative(case.inventory),now=datetime(2026,1,9,tzinfo=timezone.utc))
+    assert result["counts"]["would_delete"]==1 and path.exists()
