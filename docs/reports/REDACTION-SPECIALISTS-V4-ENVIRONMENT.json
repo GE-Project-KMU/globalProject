@@ -1,0 +1,19 @@
+{
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "os": "Windows-10-10.0.19045-SP0",
+  "torch": "2.7.1+cu126",
+  "torch_cuda": "12.6",
+  "opencv": "4.10.0",
+  "numpy": "1.26.4",
+  "onnx": "1.17.0",
+  "onnxruntime": "1.20.1",
+  "official_yolox_commit": "6ddff4824372906469a7fae2dc3206c7aa4bbaee",
+  "executed_source_hashes": {
+    "agent/redaction_network.py": "9d26b063b22b54b1606cb33be1291b6e71f57945849aab21119764e1c847ca5d",
+    "scripts/improve_redaction_train.py": "43ae1e92d49d51f2e52c3e22939fa3ccba8f18831557ea3e0832e3eb91c1dc26",
+    "scripts/train_yolox_research.py": "ff33c7cfcec15c4038f476127354f6e35a4052e8c03f4e4ec91a33c792572242",
+    ".cache/vendor/YOLOX/exps/default/yolox_nano.py": "57e5ff392fc1a963d92bc15ef6dac2d8a93092ed3ebf74c8ddbc4495ddd3fb95",
+    ".cache/vendor/YOLOX/yolox/models/yolo_head.py": "0275bcdeb1b1d5dbd3172fc4897c75cb161f707843983bf582fb087676f969c2"
+  },
+  "state": "Training ongoing; metadata-only audit, no code/weights/dataset/threshold mutation"
+}

@@ -1,0 +1,12 @@
+{
+  "device": "CPU",
+  "state_tensor_count": 642,
+  "optimizer_or_ema_algorithm_changed": false,
+  "ema_decay": 0.059635124849719265,
+  "repeated_state_dict_seconds": 1.2787395999766886,
+  "cached_state_dict_seconds": 0.009374500019475818,
+  "all_ema_tensors_bit_identical": true,
+  "factory_sha256": "9d26b063b22b54b1606cb33be1291b6e71f57945849aab21119764e1c847ca5d",
+  "corrected_trainer_sha256": "43ae1e92d49d51f2e52c3e22939fa3ccba8f18831557ea3e0832e3eb91c1dc26",
+  "scope": "Dictionary overhead and exact EMA update equivalence only; not an inference throughput or model metric."
+}

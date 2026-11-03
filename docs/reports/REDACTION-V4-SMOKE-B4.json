@@ -1,0 +1,15 @@
+{
+  "batch_size": 4,
+  "input_size": 960,
+  "dense_gt_counts": [
+    386,
+    380,
+    246,
+    200
+  ],
+  "loss": 8.591957092285156,
+  "seconds": 1.1031718000012916,
+  "peak_allocated_mib": 1595.09765625,
+  "peak_reserved_mib": 1634.0,
+  "training_started": false
+}
