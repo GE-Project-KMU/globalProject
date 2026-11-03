@@ -1,4 +1,9 @@
 import { defineConfig } from "@playwright/test";
+import { mkdirSync } from "node:fs";
+import { resolve } from "node:path";
+const temporary = resolve(import.meta.dirname, "../.cache/tmp");
+mkdirSync(temporary, { recursive: true });
+for (const name of ["TEMP", "TMP", "TMPDIR"]) process.env[name] = temporary;
 export default defineConfig({
   testDir: "./e2e",
   timeout: 30000,
