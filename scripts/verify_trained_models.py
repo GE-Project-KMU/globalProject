@@ -28,10 +28,43 @@ def read(path):
     if Path(path).stat().st_size>20_000_000:raise ValueError("metadata_too_large")
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
+def validate_architecture(info):
+    """Validate reconstructible structure, including non-parameter operators."""
+    task=info.get("task");architecture=info.get("architecture")
+    if task=="lane":
+        if "architecture" in info and architecture!="deeplabv3_mobilenet_v3_large":raise ValueError("unsupported_lane_architecture")
+        rates=info.get("aspp_dilations",[12,24,36])
+        if not isinstance(rates,(list,tuple)) or len(rates)!=3 or any(type(x) is not int or not 1<=x<=64 for x in rates):raise ValueError("invalid_lane_aspp_dilations")
+    elif task in ("pothole","redaction"):
+        if "architecture" not in info or architecture=="YOLOX-Nano":return
+        if task!="redaction" or architecture!="two YOLOX-Nano specialists":raise ValueError("unsupported_detector_architecture")
+        if info.get("input_size")!=[960,960] or type(info.get("face_input_size")) is not int or info["face_input_size"]!=960 or type(info.get("plate_input_size")) is not int or info["plate_input_size"]!=640:raise ValueError("invalid_specialist_geometry")
+    else:raise ValueError("unsupported_model_task")
+
+def build_torch_reference(info,yolox_source):
+    validate_architecture(info)
+    if info["task"]=="lane":
+        from agent.lane_network import make_lane_network
+        return make_lane_network(pretrained=False,aspp_dilations=info.get("aspp_dilations",[12,24,36]))
+    source=scoped(yolox_source,exists=False)
+    if info.get("architecture")=="two YOLOX-Nano specialists":
+        from agent.redaction_network import build_redaction_network
+        return build_redaction_network(yolox_root=source,face_input_size=info["face_input_size"],plate_input_size=info["plate_input_size"])
+    sys.path.insert(0,str(source))
+    from yolox.exp import get_exp
+    exp=get_exp(exp_file=str(source/"exps/default/yolox_nano.py"));exp.num_classes=len(info["classes"])
+    model=exp.get_model();model.head.decode_in_inference=True
+    return model
+
+def check_model_output(info,array):
+    check_output(info["task"],info["classes"],array)
+    if info.get("architecture")=="two YOLOX-Nano specialists" and tuple(array.shape)!=(1,27300,7):raise ValueError("invalid_specialist_output_shape")
+
 def validate_metadata(path):
     from datetime import datetime,timezone
     path=scoped(path);m=read(path);task=m.get("task")
     if m.get("format")!="onnx" or task not in EXPECTED or m.get("classes")!=EXPECTED[task]:raise ValueError("task_class_format_mismatch")
+    validate_architecture(m)
     for key,value in (("target_trained",True),("research_only",True),("production_approved",False),("project_acceptance_eligible",False),("test_split_used",False)):
         if m.get(key) is not value:raise ValueError("invalid_research_flag:"+key)
     if type(m.get("independent_route_verified")) is not bool:raise ValueError("independent_route_disclosure_required")
@@ -101,20 +134,17 @@ def worker(args):
         output=session.run(None,{session.get_inputs()[0].name:blob})[0]
         metadata={"onnx_checked":True,"operators":sorted({n.op_type for n in graph.graph.node}),"opsets":[{"domain":x.domain,"version":x.version} for x in graph.opset_import],"onnxruntime":ort.__version__,"input_shape":session.get_inputs()[0].shape,"output_shape":list(output.shape)}
     else:
-        import torch,torchvision
+        import torch
         torch.set_num_threads(2)
-        if info["task"]=="lane":model=torchvision.models.segmentation.deeplabv3_mobilenet_v3_large(weights=None,weights_backbone=None,num_classes=2,aux_loss=False)
-        else:
-            source=scoped(args.yolox_source,exists=False);sys.path.insert(0,str(source))
-            from yolox.exp import get_exp
-            exp=get_exp(exp_file=str(source/"exps/default/yolox_nano.py"));exp.num_classes=len(info["classes"]);model=exp.get_model();model.head.decode_in_inference=True
+        model=build_torch_reference(info,args.yolox_source)
         state=torch.load(scoped(args.checkpoint),map_location="cpu",weights_only=True)
         state=state.get("model",state) if isinstance(state,dict) else state
         if all(key.startswith("module.") for key in state):state={key[7:]:value for key,value in state.items()}
         model.load_state_dict(state,strict=True);model.eval().cpu()
         with torch.inference_mode():output=model(torch.from_numpy(blob));output=output["out"] if isinstance(output,dict) else output;output=output.numpy()
-        metadata={"torch":torch.__version__,"device":"cpu","output_shape":list(output.shape)}
-    check_output(info["task"],info["classes"],output)
+        metadata={"torch":torch.__version__,"device":"cpu","output_shape":list(output.shape),"architecture":info.get("architecture","legacy-task-default")}
+        if info["task"]=="lane":metadata["aspp_dilations"]=info.get("aspp_dilations",[12,24,36])
+    check_model_output(info,output)
     np.save(scoped(args.result,exists=False),output,allow_pickle=False)
     scoped(args.worker_report,exists=False).write_text(json.dumps(metadata),encoding="utf-8")
 
@@ -185,7 +215,7 @@ def verify(args):
     capture=Capture(adapter.net);adapter.net=capture;prediction=adapter.predict(image)
     original=capture.output.copy();adapter.predict(image)
     result["app_repeatability"]=compare(original,capture.output,args.rtol,args.atol);capture.output=original
-    check_output(m["task"],m["classes"],capture.output)
+    check_model_output(m,capture.output)
     width,height=m["input_size"];scale=min(width/image.shape[1],height/image.shape[0]);rw,rh=round(image.shape[1]*scale),round(image.shape[0]*scale)
     canvas=np.full((height,width,3),114,np.uint8);canvas[:rh,:rw]=cv2.resize(image,(rw,rh))
     if m["task"]=="lane":expected=(cv2.cvtColor(canvas,cv2.COLOR_BGR2RGB).astype(np.float32)/255-np.array(m.get("mean",[.485,.456,.406]),np.float32))/np.array(m.get("std",[.229,.224,.225]),np.float32)

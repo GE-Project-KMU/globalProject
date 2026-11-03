@@ -197,3 +197,44 @@ def test_detector_reference_tensors_use_real_classwise_nms_and_report_deltas():
     assert not compare_detections(app,postprocess_detection(manifest,bad_score,image))["passed"]
     empty=compare_detections([],[])
     assert empty["passed"] and empty["no_positive_predictions"] and empty["min_matched_iou"] is None
+
+def test_lane_reference_factory_keeps_legacy_and_explicit_dilation_contract(monkeypatch):
+    from scripts.verify_trained_models import build_torch_reference,validate_architecture
+    import agent.lane_network as factory
+    calls=[];sentinel=object()
+    monkeypatch.setattr(factory,'make_lane_network',lambda **kwargs:calls.append(kwargs) or sentinel)
+    assert build_torch_reference({'task':'lane'},ROOT/'.cache/vendor/YOLOX') is sentinel
+    assert calls[-1]=={'pretrained':False,'aspp_dilations':[12,24,36]}
+    explicit={'task':'lane','architecture':'deeplabv3_mobilenet_v3_large','aspp_dilations':[6,12,18]}
+    assert build_torch_reference(explicit,ROOT/'.cache/vendor/YOLOX') is sentinel
+    assert calls[-1]['aspp_dilations']==[6,12,18]
+    for values in (None,[6,12],[True,12,18],[0,12,18],[6,12,65]):
+        with pytest.raises(ValueError,match='aspp_dilations'):validate_architecture(explicit|{'aspp_dilations':values})
+    for architecture in (None,'resnet50','unknown'):
+        with pytest.raises(ValueError,match='unsupported_lane_architecture'):validate_architecture(explicit|{'architecture':architecture})
+
+def test_specialist_reference_factory_and_exact_output_contract(monkeypatch):
+    from scripts.verify_trained_models import build_torch_reference,validate_architecture,check_model_output
+    import agent.redaction_network as factory
+    info={'task':'redaction','classes':['face','license_plate'],'architecture':'two YOLOX-Nano specialists','input_size':[960,960],'face_input_size':960,'plate_input_size':640}
+    calls=[];sentinel=object()
+    monkeypatch.setattr(factory,'build_redaction_network',lambda **kwargs:calls.append(kwargs) or sentinel)
+    assert build_torch_reference(info,ROOT/'.cache/vendor/YOLOX') is sentinel
+    assert calls==[{'yolox_root':ROOT/'.cache/vendor/YOLOX','face_input_size':960,'plate_input_size':640}]
+    check_model_output(info,np.zeros((1,27300,7),np.float32))
+    with pytest.raises(ValueError,match='specialist_output'):check_model_output(info,np.zeros((1,18900,7),np.float32))
+    for patch in ({'task':'pothole'},{'input_size':[640,640]},{'plate_input_size':960},{'face_input_size':None},{'architecture':'unknown'}):
+        with pytest.raises(ValueError):validate_architecture(info|patch)
+    validate_architecture({'task':'pothole','architecture':'YOLOX-Nano'})
+    validate_architecture({'task':'redaction'})
+
+@pytest.mark.parametrize('structure',[
+    {'architecture':'deeplabv3_mobilenet_v3_large','aspp_dilations':[6,12,18]},
+    {'task':'redaction','classes':['face','license_plate'],'architecture':'two YOLOX-Nano specialists','input_size':[960,960],'face_input_size':960,'plate_input_size':640,'output_layout':'yolox_decoded_xywh'},
+])
+def test_artifact_package_preserves_non_parameter_structure_contract(artifact,structure):
+    from scripts.model_artifacts import inspect_archive
+    artifact.model.update(structure);artifact.manifest.write_text(json.dumps(artifact.model),encoding='utf-8')
+    output,receipt,_=package_fixture(artifact)
+    _,payload=inspect_archive(output,receipt['sha256']);restored=json.loads(payload['model.json'])
+    for key,value in structure.items():assert restored[key]==value

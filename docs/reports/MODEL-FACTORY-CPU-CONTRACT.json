@@ -1,0 +1,37 @@
+{
+  "format": "model-factory-cpu-contract-v1",
+  "scope": "random initialization structure/execution checks only; not trained model accuracy or numerical export parity",
+  "torch_version": "2.7.1+cu126",
+  "device": "cpu",
+  "gpu_operations": 0,
+  "legacy_lane_state_keys_shapes_compatible": true,
+  "legacy_aspp_dilations": [
+    12,
+    24,
+    36
+  ],
+  "new_explicit_aspp_dilations": [
+    6,
+    12,
+    18
+  ],
+  "lane_output_shape": [
+    1,
+    2,
+    64,
+    64
+  ],
+  "specialists_output_shape": [
+    1,
+    27300,
+    7
+  ],
+  "specialists_class_column_contract_verified": true,
+  "strict_combined_state_load": true,
+  "all_outputs_finite": true,
+  "factory_sha256": {
+    "agent/lane_network.py": "648961d31d6b6bd77f6f5b54f447e5f08a6d7c3928d133b15ed246ca1fd07f72",
+    "agent/redaction_network.py": "9d26b063b22b54b1606cb33be1291b6e71f57945849aab21119764e1c847ca5d"
+  },
+  "production_approved": false
+}
