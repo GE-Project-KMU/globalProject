@@ -14,6 +14,10 @@ EXPIRIES={"expires_at","source_expires_at","collection_expires_at","mask_expires
 PRESERVED={"provenance.json","source.json","source-qc.json","source-metadata.json","acquisition.json","license-evidence.json","license.json","license.txt","license.md","license","notice","readme.md","readme.txt","environment-report.json","install-receipt.json"}
 PRIVATE_FIELDS={"source_member","path","image_path","mask_path","source_path","filename","file_name","sample_id","source_id","image_id","image_sha256","bbox_xywh_px","paint_mask_rle"}
 
+
+class PreservedResearchFile(ValueError):
+    """Explicit preservation policy, distinct from an unreadable file."""
+
 def clock(value=None):
     if value is None:return datetime.now(timezone.utc)
     if isinstance(value,datetime):date=value
@@ -95,7 +99,7 @@ def roots(values):
 
 def eligible(path,kind):
     if kind not in KINDS or path.suffix.lower() not in KINDS[kind] or any(suffix.lower() in WEIGHTS for suffix in path.suffixes):raise ValueError("unsupported_research_file_kind")
-    if path.name.lower() in PRESERVED or any(token in path.name.lower() for token in (".source.json","license","licence","readme")):raise ValueError("minimal_source_or_provenance_is_preserved")
+    if path.name.lower() in PRESERVED or any(token in path.name.lower() for token in (".source.json","license","licence","readme")):raise PreservedResearchFile("minimal_source_or_provenance_is_preserved")
     def has_private_reference(item):
         if isinstance(item,dict):return any(k in PRIVATE_FIELDS or k in {"images","predictions","detections"} and isinstance(v,(list,dict)) or has_private_reference(v) for k,v in item.items())
         if isinstance(item,list):return any(has_private_reference(v) for v in item)
@@ -103,23 +107,23 @@ def eligible(path,kind):
     if path.suffix.lower()==".json":
         value=read(path)
         if isinstance(value,dict):
-            if value.get("format")=="onnx" or "weights" in value or value.get("format") in ("training-provenance-v1","model-release-summary-v1"):raise ValueError("model_or_minimal_provenance_is_preserved")
+            if value.get("format")=="onnx" or "weights" in value or value.get("format") in ("training-provenance-v1","model-release-summary-v1"):raise PreservedResearchFile("model_or_minimal_provenance_is_preserved")
         # Aggregate reports without individual identifiers/pixels are retained.
-        if not has_private_reference(value):raise ValueError("aggregate_or_unclassified_json_is_preserved")
+        if not has_private_reference(value):raise PreservedResearchFile("aggregate_or_unclassified_json_is_preserved")
     elif path.suffix.lower()==".jsonl":
         if path.stat().st_size>100*1024*1024:raise ValueError("metadata_too_large")
         with path.open(encoding="utf-8") as stream:
-            if not any(has_private_reference(json.loads(line)) for line in stream if line.strip()):raise ValueError("aggregate_or_unclassified_jsonl_is_preserved")
+            if not any(has_private_reference(json.loads(line)) for line in stream if line.strip()):raise PreservedResearchFile("aggregate_or_unclassified_jsonl_is_preserved")
     elif path.suffix.lower()==".csv":
         with path.open(encoding="utf-8-sig",newline="") as stream:
-            if not set(next(csv.reader(stream),[]))&PRIVATE_FIELDS:raise ValueError("aggregate_or_unclassified_csv_is_preserved")
+            if not set(next(csv.reader(stream),[]))&PRIVATE_FIELDS:raise PreservedResearchFile("aggregate_or_unclassified_csv_is_preserved")
     elif path.suffix.lower()==".log":
         if path.stat().st_size>100*1024*1024:raise ValueError("metadata_too_large")
         text=path.read_text(encoding="utf-8",errors="replace")
         # Verifier stdout may identify a probe by image_sha256 without a media
         # filename. Accept JSON/JSONL and Python repr keys in mixed stdout too.
         private_key=r"[\"'](?:"+"|".join(re.escape(key) for key in sorted(PRIVATE_FIELDS))+r")[\"']\s*:"
-        if not re.search(private_key,text) and not re.search(r"[^\s\"<>]+\.(?:jpg|jpeg|png|bmp|webp|xml)(?:[\s\"'<>:]|$)",text,re.I):raise ValueError("aggregate_or_unclassified_log_is_preserved")
+        if not re.search(private_key,text) and not re.search(r"[^\s\"<>]+\.(?:jpg|jpeg|png|bmp|webp|xml)(?:[\s\"'<>:]|$)",text,re.I):raise PreservedResearchFile("aggregate_or_unclassified_log_is_preserved")
 
 def evidence_expiries(value):
     found=[]
@@ -272,7 +276,7 @@ def coverage(plan_path,inventory_path="data/research-retention/inventory.json",*
                 elif suffix in KINDS["source_annotation"]:kind="source_annotation"
                 else:counts["unclassified_files"]+=1;continue
                 try:eligible(path,kind)
-                except (ValueError,OSError):counts["preserved_files"]+=1;continue
+                except PreservedResearchFile:counts["preserved_files"]+=1;continue
                 counts["candidate_files"]+=1;bykind[kind]=bykind.get(kind,0)+1
                 if identifier in planned:counts["planned_candidates"]+=1
                 if identifier in active:counts["registered_candidates"]+=1

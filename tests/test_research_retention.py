@@ -170,3 +170,25 @@ def test_aggregate_stdout_hashes_and_private_field_mentions_remain_preserved(cas
     log.write_text(json.dumps({"dataset_release_sha256":"a"*64,"checkpoint_sha256":"b"*64})+'\nimage_sha256 is omitted from this aggregate\n',encoding="utf-8")
     with pytest.raises(ValueError,match="aggregate_or_unclassified_log"):
         retention.eligible(log,"identifiable_manifest")
+
+
+@pytest.mark.parametrize("suffix",[".json",".jsonl"])
+def test_coverage_refuses_malformed_metadata_instead_of_counting_it_as_preserved(case,suffix):
+    private=case.folder/("SYNTHETIC_BROKEN_PROBE"+suffix)
+    private.write_text('{"image_sha256":',encoding="utf-8")
+    with pytest.raises(json.JSONDecodeError):
+        retention.coverage(case.relative(case.plan),case.relative(case.inventory))
+    assert private.exists() and not case.inventory.exists()
+
+
+@pytest.mark.parametrize("error",[ValueError("metadata_too_large"),OSError("SYNTHETIC_PRIVATE_READ_ERROR")])
+def test_coverage_does_not_treat_size_or_read_failures_as_preservation(case,monkeypatch,error):
+    log=case.folder/"verification.log";log.write_text("synthetic",encoding="utf-8")
+    original=retention.eligible
+    def checked(path,kind):
+        if path==log:raise error
+        return original(path,kind)
+    monkeypatch.setattr(retention,"eligible",checked)
+    with pytest.raises(type(error)):
+        retention.coverage(case.relative(case.plan),case.relative(case.inventory))
+    assert log.exists() and not case.inventory.exists()
