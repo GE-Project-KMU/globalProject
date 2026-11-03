@@ -29,7 +29,7 @@ npm.cmd --prefix frontend run build
 npm.cmd --prefix frontend run test:e2e
 ```
 
-GitHub Actions에는 Ubuntu Python 3.14 HTTP/영상 도구와 Node 24 build/실제 연동 UI job을 추가했다. 로컬 통과 결과와 원격 CI 결과는 구분한다.
+GitHub Actions의 Ubuntu Python 3.14 HTTP/영상 도구 job과 Node 24 build/실제 연동 UI job도 모두 통과했다. [검증 실행 41618115916](https://github.com/GE-Project-KMU/globalProject/actions/runs/41618115916)은 커밋 `4655102`를 대상으로 각각 45초, 1분 13초에 완료했다. 이는 Ubuntu 네이티브 프로세스 실행 결과이며 Docker/PostgreSQL 검증과는 구분한다.
 
 ## 남은 검증과 구현 제한
 
