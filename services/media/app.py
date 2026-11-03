@@ -71,3 +71,36 @@ async def upload(req:Request,file:UploadFile=File(...),metadata:str=Form(...)):
         store.change(a["id"],p["org_id"],payload,a["version"],s)
         store.create(id,p["org_id"],"image",{"sha256":sha,"device_id":p["sub"],"captured_at":b["captured_at"],"mime":mime,"width":width,"height":height,"state":"ready","approval_id":a["id"]},expires,s)
     return ok({"image_id":id,"state":"ready","sha256":sha,"expires_at":iso(expires),"deduplicated":False})
+@app.get("/internal/images/{id}")
+def verify(id:str,req:Request):
+    p=principal(req);x=store.get(id,p["org_id"],"image")
+    if p["role"]=="device" and x["device_id"]!=p["sub"]:fail(403,"FORBIDDEN")
+    if x["state"]!="ready":fail(410,"DATA_EXPIRED")
+    return ok(x)
+@app.get("/api/v1/images/{id}/content")
+def content(id:str,req:Request):
+    p=principal(req);role(p,"admin","reviewer","viewer");x=verify(id,req)["data"]
+    path=FILES/valid_uuid(id)
+    if not path.is_file():fail(404,"FILE_NOT_FOUND")
+    return FileResponse(path,media_type=x["mime"],headers={"Cache-Control":"private, no-store"})
+@app.post("/internal/privacy/delete")
+async def delete(req:Request):
+    p=principal(req);role(p,"admin");b=await req.json();ids=b.get("image_ids",[])
+    deleted=[]
+    for id in ids:
+        id=valid_uuid(id)
+        try:store.get(id,p["org_id"],"image",expired=True)
+        except HTTPException as e:
+            if e.status_code==404:continue
+            raise
+        (FILES/id).unlink(missing_ok=True);store.delete(id,p["org_id"]);deleted.append(id)
+    return ok({"deleted":deleted})
+@app.post("/internal/retention")
+def retention(req:Request):
+    p=principal(req);role(p,"admin")
+    with store.tx() as s:
+        rows=list(s.scalars(select(Aggregate).where(Aggregate.org==p["org_id"],Aggregate.expires<=now())))
+        for row in rows:
+            if row.kind=="image":(FILES/row.id).unlink(missing_ok=True)
+            s.delete(row)
+    return ok({"deleted":len(rows)})
