@@ -16,23 +16,27 @@ export default function ProtectedImage({
     if (!path) return;
     let alive = true,
       objectUrl = "";
+    const controller = new AbortController();
     fetch(path.startsWith("/api/") ? path : `/api/v1${path}`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
+      signal: controller.signal,
     })
       .then((r) => {
         if (!r.ok) throw new Error();
         return r.blob();
       })
       .then((b) => {
+        if (!alive) return;
         objectUrl = URL.createObjectURL(b);
-        if (alive) setUrl(objectUrl);
+        setUrl(objectUrl);
       })
       .catch(() => {
         if (alive) setError(true);
       });
     return () => {
       alive = false;
+      controller.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [token, path]);

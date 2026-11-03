@@ -23,12 +23,18 @@ export default function ObservationMap({
     }).setView([37.55, 126.98], 12);
     map.current = m;
     layer.current = L.layerGroup().addTo(m);
-    const observer = new ResizeObserver(() => m.invalidateSize());
+    let mounted = true;
+    const observer = new ResizeObserver(() => {
+      if (mounted) m.invalidateSize({ animate: false, pan: false });
+    });
     observer.observe(host.current);
     return () => {
       observer.disconnect();
+      mounted = false;
+      m.stop();
       m.remove();
       map.current = null;
+      layer.current = null;
     };
   }, []);
   useEffect(() => {
@@ -62,7 +68,10 @@ export default function ObservationMap({
         .on("click", () => onSelect(o));
     });
     if (points.length)
-      m.fitBounds(L.latLngBounds(points).pad(0.25), { maxZoom: 16 });
+      m.fitBounds(L.latLngBounds(points).pad(0.25), {
+        maxZoom: 16,
+        animate: false,
+      });
   }, [items, onSelect, selected]);
   return (
     <div className="map-wrap">
