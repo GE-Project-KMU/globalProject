@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-04",
+  "python": {
+    "passed": 180,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 43.79
+  },
+  "browser": {
+    "duration_seconds": 35.6,
+    "actual_gateway_tests": 2,
+    "passed": 20,
+    "total": 20,
+    "failed": 0,
+    "isolated_ui_tests": 18
+  },
+  "browser_errors": {
+    "page_error": 0,
+    "unexpected_request_failed": 0,
+    "api_http_400_or_higher": 0,
+    "console_error": 0
+  },
+  "build": {
+    "vite": "passed",
+    "typescript": "passed"
+  },
+  "http_and_console": {
+    "pytest_exit_code": 0,
+    "services": {
+      "analysis": {
+        "new_bytes": 29656,
+        "new_error_lines": 0
+      },
+      "frontend": {
+        "new_bytes": 0,
+        "new_error_lines": 0
+      },
+      "gateway": {
+        "new_bytes": 50709,
+        "new_error_lines": 0,
+        "http_methods": {
+          "GET": 130,
+          "POST": 446,
+          "DELETE": 1,
+          "PATCH": 29,
+          "PUT": 2
+        },
+        "http_status_counts": {
+          "200": 326,
+          "401": 7,
+          "404": 9,
+          "405": 1,
+          "422": 45,
+          "201": 181,
+          "403": 8,
+          "428": 3,
+          "202": 11,
+          "409": 7,
+          "415": 1,
+          "204": 1,
+          "413": 1,
+          "410": 7
+        }
+      },
+      "gateway_tls": {
+        "new_bytes": 609,
+        "new_error_lines": 0
+      },
+      "identity": {
+        "new_bytes": 49481,
+        "new_error_lines": 0
+      },
+      "inspection": {
+        "new_bytes": 36943,
+        "new_error_lines": 0
+      },
+      "media": {
+        "new_bytes": 18345,
+        "new_error_lines": 0
+      },
+      "reporting": {
+        "new_bytes": 7178,
+        "new_error_lines": 0
+      }
+    }
+  },
+  "dependency_checks": {
+    "app": "passed",
+    "training": "passed"
+  },
+  "independent_field_acceptance": false
+}

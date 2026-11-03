@@ -1,0 +1,92 @@
+{
+  "automatic_schedule_configured": false,
+  "content_hashes_verified": true,
+  "coverage": {
+    "automatic_deletion_discovery": false,
+    "candidate_counts_by_kind": {
+      "derived_image": 12027,
+      "identifiable_manifest": 28,
+      "source_annotation": 3,
+      "source_archive": 9,
+      "source_image": 3903
+    },
+    "content_hashes_rechecked": false,
+    "counts": {
+      "candidate_files": 15970,
+      "files": 16064,
+      "links_refused": 0,
+      "planned_candidates": 15970,
+      "preserved_files": 89,
+      "registered_candidates": 15970,
+      "unclassified_files": 5,
+      "uncovered_candidates": 0
+    },
+    "read_only": true
+  },
+  "deadline_date_counts": {
+    "2026-11-10": 12874,
+    "2027-02-01": 3096
+  },
+  "dry_run": {
+    "automatic_schedule_configured": false,
+    "counts": {
+      "deleted": 0,
+      "missing": 0,
+      "modified_refused": 0,
+      "not_due": 15970,
+      "retired": 0,
+      "scope_refused": 0,
+      "would_delete": 0
+    },
+    "dry_run": true,
+    "model_weights_deleted": 0,
+    "private_plan_counts": {
+      "deleted": 0,
+      "missing": 0,
+      "modified_refused": 0,
+      "not_due": 1,
+      "retired": 0,
+      "scope_refused": 0,
+      "would_delete": 0
+    }
+  },
+  "explicit_root_count": 16,
+  "format": "research-retention-verification-v1",
+  "hash_verification": "all registered source files and pinned evidence verified at registration",
+  "inventory_sha256": "a54f568d2c7c2b49427dc8d1b3ac925364f8f5c90160c2ac526b6c4e34b8bc91",
+  "model_weights_deleted": 0,
+  "operation": "register_and_dry_run_only",
+  "partial_acquisition_files_registered": 2,
+  "plan_sha256": "0d8fef1d0f719579faae361ca7ab67c794d7d74b76fd4c31ca5b7c67c1acda75",
+  "preserved_counts": {
+    "aggregate_or_unclassified_json_is_preserved": 35,
+    "aggregate_or_unclassified_log_is_preserved": 6,
+    "minimal_source_or_provenance_is_preserved": 29,
+    "model_or_minimal_provenance_is_preserved": 8,
+    "weights": 11
+  },
+  "registered_bytes": 10278384460,
+  "registered_file_count": 15970,
+  "registration_counts_by_kind": {
+    "derived_image": 12027,
+    "identifiable_manifest": 28,
+    "source_annotation": 3,
+    "source_archive": 9,
+    "source_image": 3903
+  },
+  "safe_regression_tests": {
+    "failed": 0,
+    "passed": 17
+  },
+  "source_deadlines_extended": false,
+  "source_files_deleted": 0,
+  "source_files_modified": false,
+  "unclassified_review": {
+    "action": "preserved",
+    "executed_training_source_code": 2,
+    "individual_source_or_prediction_files": 0,
+    "public_source_documentation": 3,
+    "reviewed_files": 5
+  },
+  "verified_at": "2026-11-03T17:55:22.128498Z"
+}

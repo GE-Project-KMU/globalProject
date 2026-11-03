@@ -1,5 +1,15 @@
 # 개발 MVP 검증 기록
 
+## 2026-11-04 학습·추론 변경 후 재검증
+
+Windows 전체 Python/실제 HTTP/영상 도구 시험 **180/180 통과**(43.79초, 실패·skip0), TypeScript/Vite build 및 Chromium **20/20 통과**(실제 Gateway2건 포함). 이번 HTTP 실행의 GET130/POST446/PATCH29/PUT2/DELETE1 요청에서 예상 상태 코드와 응답을 검사했다. 인증·입력 오류 시험의 4xx는 예상 결과이며 500은0건이다. 이번 실행 이후 증가한 서버 로그의 ERROR/Traceback/unhandled는0건, 실제 연동 브라우저의 console.error/pageerror/예상하지 않은 요청 실패도0건이다. 데스크톱·모바일 화면도 확인했다.
+
+소스 변경 도중 첫 실행에서 이전 models import와 새 pipeline이 섞여4건 실패했다. 파일 변경을 완료한 뒤 전체155건을 통과했고, 검출 후처리 비교와 경로 검증을 추가한157건, 이어 경계 NMS6건과 보관 도구17건을 포함한 최종180건을 통과했다. 첫 실패 원인은 이 기록에 남기며 로컬 최종 로그는 마지막 실행 결과다. 새 합성 모델/평가 수식 검사는 수치·좌표·보관 계약을 검증하며 도로 정확도 근거가 아니다.
+
+실제 GPU 학습·공개 자료 평가 결과는 [모델 학습 기록](MODEL-TRAINING.md)과 `reports/MODEL-TRAINING-SUMMARY.json`, 검출기 수식 검사9건은 `reports/DETECTION-TRAINING-CONTRACT.json`에 구분한다. [Ubuntu CI 41684055596](https://github.com/GE-Project-KMU/globalProject/actions/runs/41684055596)도 Python/HTTP/영상·PostGIS/HTTP·build/Chromium 세 job을 통과했다. GPU 학습은 Windows에서 수행했으며 Ubuntu GPU 학습 실행 결과는 없다.
+
+로컬 증거: `data/training-backend-junit.xml`, `data/training-backend-test.log`, `data/training-http-log-check.json`, `frontend/test-results/revalidation-summary.json`. 정제된 합계는 `reports/TRAINING-REGRESSION.json`에 보관한다. 아래11월3일 기록은 변경 전의 검증 이력이다.
+
 2026-11-03, Windows에서 프로젝트 내부 가상환경·캐시·합성 자료로 검증했다. 실물 주행 정확도 또는 운영 적합성 인증 결과가 아니다.
 
 | 검증 | 결과 | 범위 |
