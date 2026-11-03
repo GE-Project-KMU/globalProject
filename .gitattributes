@@ -3,3 +3,5 @@
 *.jpg binary
 *.jpeg binary
 *.pdf binary
+# Machine evidence is a byte snapshot; hashes must survive a checkout.
+docs/reports/*.json -text -eol whitespace=cr-at-eol
