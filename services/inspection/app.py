@@ -131,3 +131,56 @@ async def ingest(b:Observation,req:Request,response:Response):
         store.audit(p,"observation.create",b.observation_id,s)
         v=view(o,p,s)
     return ok({**v,"event_id":b.event_id,"deduplicated":False})
+def rank(o):
+    return (0 if o["review"]["priority"]=="urgent" else 1,0 if o["type"]=="pothole" else 1 if o.get("lane",{}).get("grade")=="worn_candidate" else 2,o["captured_at"],o["id"])
+@app.get("/api/v1/observations")
+def listing(req:Request,type:str|None=None,review_status:str|None=None,quality:str|None=None,grade:str|None=None,run_id:str|None=None,bbox:str|None=None,from_:str|None=Query(None,alias="from"),to:str|None=None,limit:int=Query(50,ge=1,le=200),cursor:str|None=None):
+    p=principal(req);role(p,"admin","reviewer","viewer")
+    if type not in (None,"pothole","lane_segment") or quality not in (None,"valid","degraded","unavailable") or review_status not in (None,"unreviewed","confirmed","false_positive","recapture","action_planned","completed") or grade not in (None,"visible_good","monitor","worn_candidate","unassessable"):fail(422,"INVALID_FILTER")
+    if grade and type=="pothole" or bbox and quality=="unavailable":fail(422,"INVALID_FILTER")
+    bounds=None
+    if bbox:
+        try:
+            bounds=[float(x) for x in bbox.split(",")];w,s,e,n=bounds
+            if not(all(math.isfinite(x) for x in bounds) and -180<=w<=e<=180 and -90<=s<=n<=90):raise ValueError("Invalid bbox")
+        except (ValueError,AssertionError):fail(422,"INVALID_BBOX")
+    ft=stamp(from_) if from_ else None;tt=stamp(to) if to else None
+    if ft is not None and tt is not None and ft>=tt:fail(422,"INVALID_TIME_RANGE")
+    fh=digest([p["org_id"],type,review_status,quality,grade,run_id,bbox,from_,to])
+    after=None;snapshot=now()
+    if cursor:
+        try:
+            raw,sig=cursor.rsplit(".",1)
+            if not hmac.compare_digest(hmac.new(service_key("inspection"),raw.encode(),"sha256").hexdigest(),sig):raise ValueError()
+            c=json.loads(base64.urlsafe_b64decode(raw))
+            if c["filter"]!=fh or c["expires"]<=now():raise ValueError("Invalid cursor")
+            after=tuple(c["after"]);snapshot=c["snapshot"]
+        except (ValueError,KeyError,AssertionError):fail(422,"INVALID_CURSOR")
+    items=[]
+    with store.tx() as s:
+        for o in store.list(p["org_id"],"observation",s):
+            if o["created"]>snapshot:continue
+            v=view(o,p,s);loc=v["location"];capt=stamp(v["captured_at"])
+            if type and v["type"]!=type or review_status and v["review"]["status"]!=review_status or quality and loc["quality"]!=quality or run_id and v["run_id"]!=run_id:continue
+            if grade and (v.get("lane") or {}).get("grade")!=grade:continue
+            if ft is not None and capt<ft or tt is not None and capt>=tt:continue
+            if bounds:
+                west,south,east,north=bounds
+                if loc["lat"] is None or not(west<=loc["lon"]<=east and south<=loc["lat"]<=north):continue
+            items.append(v)
+    items.sort(key=rank);counts={t:sum(v["type"]==t for v in items) for t in ("pothole","lane_segment")}
+    page=[v for v in items if after is None or rank(v)>after]
+    result=page[:limit];next_cursor=None
+    if len(page)>limit:
+        raw=base64.urlsafe_b64encode(json.dumps({"filter":fh,"after":rank(result[-1]),"snapshot":snapshot,"expires":now()+300}).encode()).decode()
+        next_cursor=raw+"."+hmac.new(service_key("inspection"),raw.encode(),"sha256").hexdigest()
+    return ok({"items":result,"next_cursor":next_cursor,"counts_by_type":counts,"counts_unit":"observation"})
+@app.get("/api/v1/observations/{id}")
+def detail(id:str,req:Request):
+    p=principal(req);role(p,"admin","reviewer","viewer");valid_uuid(id)
+    try:
+        store.get(digest("observation:"+id),p["org_id"],"tombstone")
+        fail(410,"DATA_EXPIRED")
+    except HTTPException as e:
+        if e.status_code!=404:raise
+    return ok(view(store.get(id,p["org_id"],"observation"),p))
