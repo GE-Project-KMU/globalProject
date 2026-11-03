@@ -2,12 +2,36 @@
 from datetime import datetime, timezone, timedelta
 import json
 import uuid
+import time
 import cv2
 import numpy as np
 from .capture import replay
 from .models import OnnxModel, ModelNotReady, frame_quality, redact
 from .lane import measure_patch
 from .paths import workspace_path, atomic_json, sha256
+
+
+def infer_potholes(source, manifest_path, output):
+    """Single-image real inference, with explicit external-baseline provenance."""
+    source = workspace_path(source, exists=True)
+    model = OnnxModel(manifest_path)
+    if model.manifest["task"] != "pothole":
+        raise ValueError("pothole_model_required")
+    image = cv2.imread(str(source))
+    if image is None:
+        raise ValueError("image_decode_failed")
+    started = time.perf_counter()
+    detections = model.predict(image)
+    result = {"status": "inference_completed", "source_sha256": sha256(source),
+              "source_size": [image.shape[1], image.shape[0]], "detections": detections,
+              "model_architecture": model.manifest.get("architecture", "YOLOX"),
+              "model_sha256": model.manifest["sha256"], "dataset_release": model.manifest["dataset_release"],
+              "production_approved": model.manifest.get("production_approved", False),
+              "runtime": "OpenCV DNN CPU", "elapsed_seconds": time.perf_counter() - started,
+              "inferred_at": datetime.now(timezone.utc).isoformat(),
+              "sharing_state": "local_result_only_no_image_approval"}
+    atomic_json(output, result)
+    return result
 
 
 def intersection_over_union(a, b):
@@ -131,7 +155,7 @@ def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_
             lane["unassessable_reason"] = "intentional_gap_geometry_required"
         item = {"run_id": run_id, "frame_id": sample["frame_id"], "pts_seconds": sample["pts_seconds"],
                 "quality": quality, "potholes": potholes, "lane": lane,
-                "image": {"path": str(image_path.relative_to(workspace_path("."))), "sha256": sha256(image_path),
+                "image": {"path": image_path.relative_to(workspace_path(".")).as_posix(), "sha256": sha256(image_path),
                           "redacted": True, "reviewed_for_sharing": False},
                 "expires_at": (started + timedelta(days=90)).isoformat(),
                 "status": "awaiting_human_review"}

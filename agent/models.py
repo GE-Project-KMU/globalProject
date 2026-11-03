@@ -26,7 +26,7 @@ def readiness(manifest_path):
                     "redaction": ["face", "license_plate"]}
         if task not in required or classes != required[task]:
             raise ValueError("task_class_mapping_mismatch")
-        if not manifest.get("target_trained") or not manifest.get("dataset_release"):
+        if manifest.get("target_trained") is not True or not isinstance(manifest.get("dataset_release"), str) or not manifest["dataset_release"].strip():
             raise ValueError("target_training_provenance_required")
         weights = workspace_path(manifest["weights"], exists=True)
         if sha256(weights) != manifest.get("sha256"):
@@ -34,8 +34,16 @@ def readiness(manifest_path):
         size = manifest.get("input_size")
         if not isinstance(size, list) or len(size) != 2 or any(type(x) is not int or x < 16 or x > 4096 for x in size):
             raise ValueError("invalid_input_size")
-        if manifest.get("task") in ("pothole", "redaction") and manifest.get("output_layout") != "yolox_decoded_xywh":
-            raise ValueError("export_decoded_yolox_required")
+        if manifest.get("task") in ("pothole", "redaction") and manifest.get("output_layout") not in ("yolox_decoded_xywh", "yolox_raw_xywh"):
+            raise ValueError("supported_yolox_output_layout_required")
+        for field in ("confidence", "nms_iou"):
+            value = manifest.get(field, .35 if field == "confidence" else .5)
+            if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1:
+                raise ValueError("invalid_" + field)
+        try:
+            cv2.dnn.readNetFromONNX(str(weights))
+        except cv2.error as exc:
+            raise ValueError("onnx_load_failed: " + str(exc)) from exc
         return {"ready": True, "status": "ready", "manifest": manifest, "weights": str(weights)}
     except (FileNotFoundError, KeyError, ValueError, json.JSONDecodeError) as exc:
         return {"ready": False, "status": "model_not_ready", "reason": str(exc)}
@@ -52,7 +60,9 @@ class OnnxModel:
         except cv2.error as exc:
             raise ModelNotReady("onnx_load_failed: " + str(exc)) from exc
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-        self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+        # OpenCV 5's graph engine defaults to CPU and warns on explicit target.
+        if int(cv2.__version__.split(".")[0]) < 5:
+            self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
     def predict(self, frame):
         if frame is None or frame.ndim != 3 or frame.shape[2] != 3:
@@ -68,7 +78,11 @@ class OnnxModel:
             # YOLOX reference preprocessing is BGR float32 with no /255.
             blob = image.transpose(2, 0, 1)[None].astype(np.float32)
         else:
-            image = cv2.cvtColor(cv2.resize(frame, (width, height)), cv2.COLOR_BGR2RGB).astype(np.float32) / 255
+            scale = min(width / source_w, height / source_h)
+            resized = cv2.resize(frame, (max(1, round(source_w * scale)), max(1, round(source_h * scale))))
+            canvas = np.full((height, width, 3), 114, np.uint8)
+            canvas[:resized.shape[0], :resized.shape[1]] = resized
+            image = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB).astype(np.float32) / 255
             mean = np.array(self.manifest.get("mean", [.485, .456, .406]), np.float32)
             std = np.array(self.manifest.get("std", [.229, .224, .225]), np.float32)
             if np.any(std <= 0):
@@ -82,10 +96,15 @@ class OnnxModel:
             if output.ndim != 4 or output.shape[0] != 1 or output.shape[1] != 2:
                 raise ModelNotReady("lane_output_must_be_N_2_H_W_logits")
             mask = np.argmax(output[0], axis=0).astype(np.uint8)
+            crop_h = max(1, round(resized.shape[0] * mask.shape[0] / height))
+            crop_w = max(1, round(resized.shape[1] * mask.shape[1] / width))
+            mask = mask[:crop_h, :crop_w]
             return cv2.resize(mask, (source_w, source_h), interpolation=cv2.INTER_NEAREST)
         predictions = output[0] if output.ndim == 3 else output
         if predictions.ndim != 2 or predictions.shape[1] != 5 + len(self.manifest["classes"]):
             raise ModelNotReady("unexpected_yolox_output_shape")
+        if self.manifest["output_layout"] == "yolox_raw_xywh":
+            predictions = decode_yolox_raw(predictions, width, height, self.manifest.get("strides", [8, 16, 32]))
         boxes, scores, labels = [], [], []
         threshold = float(self.manifest.get("confidence", .35))
         for row in predictions:
@@ -111,6 +130,27 @@ class OnnxModel:
                 results.append({"bbox_xywh_px": boxes[index], "confidence": scores[index],
                                 "class": self.manifest["classes"][label]})
         return results
+
+
+def decode_yolox_raw(predictions, width, height, strides=(8, 16, 32)):
+    grids, scales = [], []
+    for stride in strides:
+        if type(stride) is not int or stride <= 0 or width % stride or height % stride:
+            raise ModelNotReady("invalid_yolox_stride")
+        x, y = np.meshgrid(np.arange(width // stride), np.arange(height // stride))
+        grid = np.stack((x, y), axis=-1).reshape(-1, 2)
+        grids.append(grid)
+        scales.append(np.full((len(grid), 1), stride, np.float32))
+    grid, scale = np.concatenate(grids), np.concatenate(scales)
+    if len(grid) != len(predictions):
+        raise ModelNotReady("raw_yolox_grid_count_mismatch")
+    decoded = predictions.copy()
+    decoded[:, :2] = (decoded[:, :2] + grid) * scale
+    with np.errstate(over="ignore", invalid="ignore"):
+        decoded[:, 2:4] = np.exp(decoded[:, 2:4]) * scale
+    if not np.isfinite(decoded).all():
+        raise ModelNotReady("raw_yolox_non_finite_decoding")
+    return decoded
 
 
 def redact(frame, boxes, padding=.15):
