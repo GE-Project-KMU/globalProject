@@ -33,6 +33,16 @@ def test_default_dry_run_does_not_delete_or_mutate_inventory(case):
     assert case.source.exists() and case.inventory.read_bytes()==original
     assert "SYNTHETIC_PRIVATE_FILENAME" not in json.dumps(result)
 
+def test_only_explicit_a2d2_extension_root_is_allowed(case):
+    base=retention.ROOT/'data/public/a2d2-improvement-v2';base.mkdir(parents=True)
+    source=base/'SYNTHETIC_NEW_FRAME.png';source.write_bytes(b'SYNTHETIC DATA')
+    plan=case.save(source);plan['roots']=['data/public/a2d2-improvement-v2']
+    case.plan.write_text(json.dumps(plan),encoding='utf-8')
+    result=retention.register(case.relative(case.plan),case.relative(case.inventory))
+    assert result['registered_files']==1 and source.exists()
+    for parent in ('data','data/public','data/public/a2d2-improvement','data/public/a2d2-improvement-v2/../'):
+        with pytest.raises(ValueError,match='unknown_research_root'):retention.roots([parent])
+
 def test_apply_deletes_only_expired_registered_exact_file_and_minimizes_state(case):
     unregistered=case.folder/"unregistered.jpg";unregistered.write_bytes(b"PRESERVE")
     retention.register(case.relative(case.plan),case.relative(case.inventory))
