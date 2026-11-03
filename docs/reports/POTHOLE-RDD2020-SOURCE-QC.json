@@ -1,0 +1,67 @@
+{
+  "source": "author RDD2020 release DOI10.17632/5ty2wb6gvg.1",
+  "publisher_archive_sha256": "e06f74463b2d7410fa7e02f478818025be9b051087f80e0c51631abb32c0af55",
+  "publisher_hash_verified": true,
+  "license": "CC-BY-NC-3.0",
+  "literal_XML_counts": {
+    "Czech": {
+      "D40": 197,
+      "D00": 988,
+      "D10": 399,
+      "D20": 161
+    },
+    "India": {
+      "D40": 3187,
+      "D00": 1555,
+      "D20": 2021,
+      "D44": 1062,
+      "D01": 179,
+      "D43": 57,
+      "D10": 68,
+      "D11": 45,
+      "D50": 28,
+      "D0w0": 1
+    },
+    "Japan": {
+      "D00": 4049,
+      "D20": 6199,
+      "D10": 3979,
+      "D50": 3553,
+      "D44": 3995,
+      "D43": 736,
+      "D40": 2243
+    }
+  },
+  "selection": {
+    "India": {
+      "positive_available": 1530,
+      "negative_available": 6176,
+      "selected": 1800,
+      "split": "train"
+    },
+    "Japan": {
+      "positive_available": 1390,
+      "negative_available": 9116,
+      "selected": 375,
+      "split": "validation"
+    },
+    "Czech": {
+      "positive_available": 154,
+      "negative_available": 2675,
+      "selected": 231,
+      "split": "test"
+    }
+  },
+  "final_split_counts": {
+    "test": 231,
+    "train": 1800,
+    "validation": 375
+  },
+  "exact_or_cross_split_dhash_duplicates_removed": 0,
+  "release_sha256": "eb861554f43d7fa038ff34023a586eddfb8c090fee8480bf8254114b0f4499ac",
+  "independence": "India/Japan/Czech disjoint countries; exactSHA and cross-split64bit dHashHamming<=3 excluded; no exhaustive physical identity/route audit",
+  "human_privacy_reviewed": false,
+  "not_for_deployment": true,
+  "release_path": "data/training/research-pothole-rdd2020/release.json",
+  "source_files_not_committed": true
+}
