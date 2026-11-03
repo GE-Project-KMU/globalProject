@@ -18,6 +18,14 @@ def preserve_freeze(path,value):
     else:atomic_json(path,value)
 
 
+def verified_lane_artifact(path):
+    proof=json.loads((path.parent/"verification-final.json").read_text(encoding="utf-8"))
+    if (proof.get("manifest_sha256")!=sha256(path) or proof.get("numerical_parity_passed") is not True
+        or proof.get("torch_checkpoint_compared") is not True or proof.get("synthetic_input") is not False
+        or proof.get("lane_adapter_postprocess_matches_reference") is not True):
+        raise ValueError("positive_validation_numerical_and_postprocess_verification_required")
+
+
 def _compare(plan_path,output):
     plan_path=workspace_path(plan_path,exists=True);plan=json.loads(plan_path.read_text(encoding="utf-8"))
     output=workspace_path(output)
@@ -38,6 +46,7 @@ def _compare(plan_path,output):
         if seen&{r["sha256"] for r in development} or groups&{r["leakage_group_id"] for r in development}:raise ValueError("holdout_training_or_validation_leakage")
         if name=="baseline" and sha256(path)!=plan["baseline_manifest_sha256"]:raise ValueError("baseline_changed")
         if name=="candidate" and m["dataset_release"]!="manifest-sha256:"+plan["candidate_release_sha256"]:raise ValueError("candidate_source_changed")
+        verified_lane_artifact(path)
         models[name]=model;paths[name]=path;frozen[name]={"manifest_sha256":sha256(path),"weights_sha256":m["sha256"],"paint_threshold":m["paint_threshold"],
             "input_size":m["input_size"],"backend":model.backend,"backend_version":model.backend_version}
     if set(models)!={"baseline","candidate"}:raise ValueError("exactly_one_baseline_and_candidate_required")

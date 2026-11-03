@@ -106,3 +106,16 @@ def test_comparison_lock_rejects_parallel_writer_and_cleans_up_exception(monkeyp
     monkeypatch.setattr(comparison,"_compare",failed)
     with pytest.raises(ValueError,match="synthetic execution failure"):comparison.compare("unused",output)
     assert not lock.exists()
+
+
+def test_final_comparison_requires_current_real_image_torch_and_postprocess_proof():
+    from scripts.compare_lane_models import verified_lane_artifact
+    folder=ROOT/".cache/lane-improvement-tests"/uuid.uuid4().hex;folder.mkdir(parents=True)
+    model=folder/"model.json";atomic_json(model,{"synthetic":"proof-guard"})
+    proof={"manifest_sha256":sha256(model),"numerical_parity_passed":True,"torch_checkpoint_compared":True,
+           "synthetic_input":False,"lane_adapter_postprocess_matches_reference":True}
+    path=folder/"verification-final.json";atomic_json(path,proof);verified_lane_artifact(model)
+    for patch in ({"manifest_sha256":"0"*64},{"numerical_parity_passed":False},{"torch_checkpoint_compared":False},
+                  {"synthetic_input":True},{"lane_adapter_postprocess_matches_reference":False}):
+        atomic_json(path,proof|patch)
+        with pytest.raises(ValueError,match="verification_required"):verified_lane_artifact(model)
