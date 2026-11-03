@@ -1,0 +1,36 @@
+{
+  "format": "model-improvement-software-regression-v1",
+  "scope": "Software checks while model training is still running; no final model accuracy or field acceptance claim",
+  "tested_source_commit": "abede0590f477e53d98a11b2eeca254be426bd1d",
+  "local_backend": {
+    "passed": 244,
+    "failed": 0,
+    "differential_subtests_passed": 189,
+    "elapsed_seconds": 61.0,
+    "live_http_methods_checked": ["GET", "POST", "PATCH", "PUT", "DELETE"],
+    "expected_error_response_paths_checked": true,
+    "new_server_error_lines": 0
+  },
+  "local_frontend": {
+    "typescript_and_production_build_passed": true,
+    "browser_tests_passed": 20,
+    "browser_tests_failed": 0,
+    "elapsed_seconds": 31.3,
+    "desktop_and_mobile_screenshots_inspected": true,
+    "unexpected_console_or_page_errors": 0,
+    "initial_browser_launch_missing_environment_setting": true,
+    "successful_rerun_used_project_local_browser_path": true
+  },
+  "ubuntu_ci": {
+    "url": "https://github.com/GE-Project-KMU/globalProject/actions/runs/41700518425",
+    "conclusion": "success",
+    "jobs": {
+      "Python / live HTTP / vision": "success",
+      "PostgreSQL / PostGIS migrations and HTTP": "success",
+      "TypeScript / build / Chromium UI": "success"
+    }
+  },
+  "model_weights_or_raw_data_pushed": false,
+  "final_model_accuracy_evaluated_by_this_report": false,
+  "project_acceptance_passed": false
+}
