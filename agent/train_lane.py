@@ -9,6 +9,7 @@ import os
 import random
 import sys
 import shutil
+import time
 import cv2
 import numpy as np
 from .dataset import validate_release,validate_research_release
@@ -52,9 +53,10 @@ def stage_lane_pairs(output,manifest_path,rows):
     return copied,provenance_path
 
 
-def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001, seed=2026,research=False,pretrained=False):
+def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001, seed=2026,research=False,pretrained=False,augment=False,dice_weight=0.,cache_pairs=False):
     if epochs < 1 or batch_size < 2 or not 0 < learning_rate < 1:
         raise ValueError("positive_epochs_batch_at_least_two_and_valid_lr_required")
+    if not 0<=dice_weight<=1:raise ValueError("invalid_dice_weight")
     manifest_path, output = workspace_path(manifest_path, exists=True), workspace_path(output)
     rows = json.loads(manifest_path.read_text(encoding="utf-8"))
     validation = (validate_research_release if research else validate_release)(rows)
@@ -82,11 +84,20 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     class Pairs(torch.utils.data.Dataset):
-        def __init__(self, entries): self.entries = entries
+        def __init__(self, entries, training=False):
+            self.entries=entries;self.training=training
+            self.cache=[prepare_pair(row["path"],row["mask_path"]) for row in entries] if cache_pairs else None
         def __len__(self): return len(self.entries)
         def __getitem__(self, index):
             row = self.entries[index]
-            pixels, labels = prepare_pair(row["path"], row["mask_path"])
+            pixels, labels = self.cache[index] if self.cache is not None else prepare_pair(row["path"], row["mask_path"])
+            if self.training and augment:
+                pixels,labels=pixels.copy(),labels.copy()
+                if random.random()<.5:pixels=pixels[:,:,::-1].copy();labels=labels[:,::-1].copy()
+                mean=np.array([.485,.456,.406],np.float32)[:,None,None];std=np.array([.229,.224,.225],np.float32)[:,None,None]
+                raw=pixels*std+mean
+                raw=np.clip((raw-.5)*random.uniform(.8,1.2)+.5,0,1)*random.uniform(.8,1.2)
+                pixels=((np.clip(raw,0,1)-mean)/std).astype(np.float32)
             return torch.from_numpy(pixels), torch.from_numpy(labels)
 
     torch.set_num_threads(min(4,os.cpu_count() or 1))
@@ -112,12 +123,14 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
     paint_weight=min(12.,max(1.,((valid_pixels-paint_pixels)/paint_pixels)**.5))
     criterion = torch.nn.CrossEntropyLoss(ignore_index=255,weight=torch.tensor([1.,paint_weight],device=device))
     scaler=torch.amp.GradScaler("cuda",enabled=device=="cuda")
-    loader = torch.utils.data.DataLoader(Pairs(train_rows), batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
+    loader = torch.utils.data.DataLoader(Pairs(train_rows,True), batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
     val_loader = torch.utils.data.DataLoader(Pairs(val_rows), batch_size=1, num_workers=0)
     output.mkdir(parents=True, exist_ok=True)
     best, history = -1., []
     checkpoint = output / "lane_best.pt"
+    started=time.perf_counter()
     for epoch in range(epochs):
+        for group in optimizer.param_groups:group["lr"]=learning_rate*(.1+.9*(1+np.cos(np.pi*epoch/max(epochs-1,1)))/2)
         model.train(); losses = []
         for pixels, labels in loader:
             if not (labels != 255).any():
@@ -125,7 +138,11 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
             pixels, labels = pixels.to(device), labels.to(device)
             optimizer.zero_grad(set_to_none=True)
             with torch.amp.autocast(device_type=device,enabled=device=="cuda"):
-                loss = criterion(model(pixels)["out"], labels)
+                logits=model(pixels)["out"];loss = criterion(logits, labels)
+                if dice_weight:
+                    valid=labels!=255;prob=torch.softmax(logits.float(),dim=1)[:,1]*valid;target=(labels==1).float()*valid
+                    dice=1-(2*(prob*target).sum()+1)/(prob.sum()+target.sum()+1)
+                    loss=(1-dice_weight)*loss+dice_weight*dice
             if not torch.isfinite(loss): raise RuntimeError("non_finite_training_loss")
             scaler.scale(loss).backward();scaler.step(optimizer);scaler.update(); losses.append(float(loss.detach()))
         if not losses: raise ValueError("no_valid_training_pixels")
@@ -144,7 +161,7 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
         if metric > best:
             best = metric
             torch.save(model.state_dict(), checkpoint)
-        atomic_json(output / "training.json", {"seed": seed, "device": device, "manifest_sha256": sha256(manifest_path),"pretrained_initialization":pretrained,"research_only":research,"paint_loss_weight":paint_weight,
+        atomic_json(output / "training.json", {"seed": seed, "device": device, "manifest_sha256": sha256(manifest_path),"code_sha256":sha256(workspace_path("agent/train_lane.py")),"epochs_requested":epochs,"batch_size":batch_size,"base_learning_rate":learning_rate,"elapsed_seconds":time.perf_counter()-started,"augmentation":augment,"dice_weight":dice_weight,"cache_pairs":cache_pairs,"pretrained_initialization":pretrained,"research_only":research,"paint_loss_weight":paint_weight,
                     "torch": torch.__version__, "torchvision": torchvision.__version__, "history": history,
                     "test_split_used": False, "production_approved": False})
     model.load_state_dict(torch.load(checkpoint, map_location=device, weights_only=True)); model.eval().cpu()
@@ -179,10 +196,13 @@ def main():
     parser.add_argument("--learning-rate", type=float, default=.0001)
     parser.add_argument("--research",action="store_true")
     parser.add_argument("--pretrained",action="store_true")
+    parser.add_argument("--augment",action="store_true")
+    parser.add_argument("--dice-weight",type=float,default=0.)
+    parser.add_argument("--cache-pairs",action="store_true")
     args = parser.parse_args()
     try:
         print(json.dumps(train(args.manifest, args.output, epochs=args.epochs, batch_size=args.batch_size,
-                               learning_rate=args.learning_rate,research=args.research,pretrained=args.pretrained), ensure_ascii=False, indent=2))
+                               learning_rate=args.learning_rate,research=args.research,pretrained=args.pretrained,augment=args.augment,dice_weight=args.dice_weight,cache_pairs=args.cache_pairs), ensure_ascii=False, indent=2))
         return 0
     except (ValueError, RuntimeError, OSError, KeyError) as exc:
         print(json.dumps({"status": "training_blocked", "reason": str(exc)}, ensure_ascii=False))

@@ -48,17 +48,20 @@ def evaluate(manifest_path,model_path,output,split="test"):
         samples.append({"sample_id":row["sample_id"],"source_id":row["source_id"],"confusion":c,**metrics(c)})
         if index<8:predictions.append((image,truth,predicted))
     model_sha=artifact["sha256"]
+    annotation_versions=sorted({row["annotation_version"] for row in chosen})
+    recording_heldout=all(row.get("recording_heldout_verified",False) for row in chosen)
     report={"evaluated_at":datetime.now(timezone.utc).isoformat(),"task":"lane","scope":"offline_public_data_research",
             "split":split,"sample_count":len(chosen),"foreground_samples":sum(s["confusion"]["tp"]+s["confusion"]["fn"]>0 for s in samples),
             "manifest_sha256":sha256(manifest_path),"model_sha256":model_sha,"model_manifest_sha256":sha256(model_path),
-            "runtime":"OpenCV DNN CPU application adapter","runtime_version":cv2.__version__,"input_size":artifact["input_size"],
+            "runtime":getattr(model,"backend","unknown")+" CPU application adapter","runtime_version":getattr(model,"backend_version",cv2.__version__),"input_size":artifact["input_size"],
             "paint_threshold":artifact.get("paint_threshold",.5),"threshold_selection":artifact.get("threshold_calibration",{"selected_on":"fixed_default","test_images_used":0}),"confusion":dict(totals),**metrics(totals),
             "latency_seconds":{"median":float(np.median(timings)),"p95":float(np.percentile(timings,95)),"first":timings[0]},
             "target_paint_iou":.75,"target_passed_on_this_research_holdout":metrics(totals)["paint_iou"]>=.75 if metrics(totals)["paint_iou"] is not None else False,
+            "annotation_versions":annotation_versions,"recording_heldout_verified":recording_heldout,
             "independent_route_verified":all(row.get("independent_route_verified",False) for row in chosen),"project_acceptance_passed":False,
             "retention_mae_pp":None,"retention_mae_unavailable_reason":"No independent expected-outline/gap/valid O/G/V ground truth in this public dataset",
-            "limitations":["RTK roadMarking is a public low-resolution proxy for paint, not ZED 2i worn-lane acceptance data",
-                           "Blocked filename partitions and duplicate checks do not prove independent physical road objects/routes",
+            "limitations":["Publisher road-marking pixels are a proxy for paint, not ZED 2i worn-lane acceptance data",
+                           "Recording/date holdout does not prove independent physical roads/routes" if recording_heldout else "Blocked filename partitions and duplicate checks do not prove independent physical road objects/routes",
                            "Publisher labels plus machine QC; no fabricated independent human privacy review"],"samples":samples}
     output=workspace_path(output);atomic_json(output,report)
     # Fixed first eight holdouts, never curated for apparent quality. Local only.
