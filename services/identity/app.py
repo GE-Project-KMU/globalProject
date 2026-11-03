@@ -52,3 +52,30 @@ def logout(req:Request):
     p=principal(req)
     if p.get("session_id"):store.delete(p["session_id"],p["org_id"])
     return Response(status_code=204)
+def public_user(x):return {k:x[k] for k in ("id","login","role","active")}
+@app.get("/api/v1/users")
+def users(req:Request):
+    p=principal(req);role(p,"admin");return ok({"items":[public_user(x) for x in store.list(p["org_id"],"user")]})
+@app.post("/api/v1/users",status_code=201)
+async def create_user(req:Request):
+    p=principal(req);role(p,"admin");b=await req.json()
+    if set(b)-{"login","password","role"} or not 1<=len(b.get("login",""))<=254 or not 12<=len(b.get("password",""))<=128 or b.get("role") not in ("admin","reviewer","viewer"):fail(422,"VALIDATION_ERROR")
+    if any(x["login"]==b["login"] for x in store.list(p["org_id"],"user")):fail(409,"LOGIN_EXISTS")
+    x=store.create(uid(),p["org_id"],"user",{"login":b["login"],"password_hash":ph.hash(b["password"]),"role":b["role"],"active":True})
+    store.audit(p,"user.create",x["id"]);return ok(public_user(x))
+@app.patch("/api/v1/users/{id}")
+async def change_user(id:str,req:Request):
+    p=principal(req);role(p,"admin");b=await req.json()
+    if not b or set(b)-{"role","active","password"} or ("role" in b and b["role"] not in ("admin","reviewer","viewer")) or ("active" in b and not isinstance(b["active"],bool)) or ("password" in b and not 12<=len(b["password"])<=128):fail(422,"VALIDATION_ERROR")
+    with store.tx() as s:
+        x=store.get(id,p["org_id"],"user",s)
+        if x["role"]=="admin" and x["active"] and (b.get("active") is False or b.get("role",x["role"])!="admin"):
+            if sum(u["active"] and u["role"]=="admin" for u in store.list(p["org_id"],"user",s))<=1:fail(409,"LAST_ADMIN")
+        payload={k:x[k] for k in ("login","password_hash","role","active")}
+        payload.update({k:v for k,v in b.items() if k!="password"})
+        if "password" in b:payload["password_hash"]=ph.hash(b["password"])
+        x=store.change(id,p["org_id"],payload,x["version"],s)
+        for session in store.list(p["org_id"],"session",s):
+            if session["user_id"]==id:store.delete(session["id"],p["org_id"],s)
+        store.audit(p,"user.update",id,s)
+    return ok(public_user(x))
