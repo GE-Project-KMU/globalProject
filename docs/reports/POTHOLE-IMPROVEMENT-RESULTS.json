@@ -1,0 +1,169 @@
+{
+  "research_only": true,
+  "production_approved": false,
+  "project_acceptance_eligible": false,
+  "new_holdout": {
+    "images": 86,
+    "release_sha256": "6c5618898d96dd032ae5d9579c8c79aa676a063d6557c1c2f361a37fe5a8388c",
+    "baseline_AP50": 0.13294134203781388,
+    "candidate_AP50": 0.6181486602735436,
+    "AP50_change": 0.48520731823572977,
+    "baseline_fixed035": {
+      "classes": {
+        "pothole": {
+          "ap50": 0.08683993399339933,
+          "gt_count": 62,
+          "prediction_count": 26,
+          "tp": 8,
+          "fp": 18,
+          "fn": 54,
+          "recall": 0.12903225806451613,
+          "precision": 0.3076923076923077
+        }
+      },
+      "map50": 0.08683993399339933,
+      "matching": "one_to_one_IoU0.5_AP101",
+      "confidence": 0.35,
+      "min_class_recall": 0.12903225806451613,
+      "macro_precision": 0.3076923076923077,
+      "recall_Wilson95": [
+        0.06685878059283037,
+        0.2344932729017363
+      ],
+      "Wilson_limit": "Treats GT objects as independent; within-image/route correlation makes this an auxiliary descriptive interval only"
+    },
+    "candidate_fixed035": {
+      "classes": {
+        "pothole": {
+          "ap50": 0.5050254366095951,
+          "gt_count": 62,
+          "prediction_count": 55,
+          "tp": 38,
+          "fp": 17,
+          "fn": 24,
+          "recall": 0.6129032258064516,
+          "precision": 0.6909090909090909
+        }
+      },
+      "map50": 0.5050254366095951,
+      "matching": "one_to_one_IoU0.5_AP101",
+      "confidence": 0.35,
+      "min_class_recall": 0.6129032258064516,
+      "macro_precision": 0.6909090909090909,
+      "recall_Wilson95": [
+        0.48847843539018354,
+        0.7241535483288614
+      ],
+      "Wilson_limit": "Treats GT objects as independent; within-image/route correlation makes this an auxiliary descriptive interval only"
+    },
+    "candidate_validation_F2_selected_threshold": 0.1,
+    "candidate_selected_operating": {
+      "classes": {
+        "pothole": {
+          "ap50": 0.578065633671847,
+          "gt_count": 62,
+          "prediction_count": 76,
+          "tp": 45,
+          "fp": 31,
+          "fn": 17,
+          "recall": 0.7258064516129032,
+          "precision": 0.5921052631578947
+        }
+      },
+      "map50": 0.578065633671847,
+      "matching": "one_to_one_IoU0.5_AP101",
+      "confidence": 0.1,
+      "min_class_recall": 0.7258064516129032,
+      "macro_precision": 0.5921052631578947,
+      "recall_Wilson95": [
+        0.6040746035801102,
+        0.8211893638579796
+      ],
+      "Wilson_limit": "Treats GT objects as independent; within-image/route correlation makes this an auxiliary descriptive interval only"
+    },
+    "uncertainty": {
+      "method": "paired filename20-block bootstrap percentile95; proxy groups, NOT verified independent routes",
+      "repetitions": 500,
+      "valid_repetitions": 500,
+      "seed": 20261104,
+      "groups": 21,
+      "baseline_AP50_interval95": [
+        0.05976381367801063,
+        0.23173703725724254
+      ],
+      "candidate_AP50_interval95": [
+        0.5007579944061468,
+        0.7494305731745469
+      ],
+      "paired_AP50_change_interval95": [
+        0.3427605636781845,
+        0.64837635552464
+      ]
+    }
+  },
+  "old_Czech_regression": {
+    "role": "previously examined regression benchmark only; not fresh final acceptance",
+    "candidate_AP50": 0.10696192756544701,
+    "candidate_fixed035": {
+      "classes": {
+        "pothole": {
+          "ap50": 0.061012824075743266,
+          "gt_count": 197,
+          "prediction_count": 59,
+          "tp": 18,
+          "fp": 41,
+          "fn": 179,
+          "recall": 0.09137055837563451,
+          "precision": 0.3050847457627119
+        }
+      },
+      "map50": 0.061012824075743266,
+      "matching": "one_to_one_IoU0.5_AP101",
+      "confidence": 0.35,
+      "min_class_recall": 0.09137055837563451,
+      "macro_precision": 0.3050847457627119
+    },
+    "candidate_selected_operating": {
+      "classes": {
+        "pothole": {
+          "ap50": 0.07615663094654893,
+          "gt_count": 197,
+          "prediction_count": 125,
+          "tp": 30,
+          "fp": 95,
+          "fn": 167,
+          "recall": 0.15228426395939088,
+          "precision": 0.24
+        }
+      },
+      "map50": 0.07615663094654893,
+      "matching": "one_to_one_IoU0.5_AP101",
+      "confidence": 0.1,
+      "min_class_recall": 0.15228426395939088,
+      "macro_precision": 0.24
+    }
+  },
+  "manifest_sha256": "28efe86e7c9eacdf90d11caf0eb942dbb19b0a4d6830229069b3277cc8a45a6a",
+  "weights_sha256": "9b956d8ead74d1b11db0d1c43bac9ae5bdda2b0d6b843062319ae28de2f2f269",
+  "best_epoch": 38,
+  "baseline_checkpoint_sha256": "d3a682b5608bac2c1340578f81d64c6f81ad243909b37474c0105e119842532c",
+  "executed_trainer_script_sha256": "88cd0e6ffd80e1f3d3268537cf1daf5167817fab9d46e9657a860f4ee9a122c0",
+  "protocol": {
+    "candidate_count": 1,
+    "checkpoint": "new validation AP50 maximum",
+    "operating_threshold": "new validation F2 maximum only",
+    "AP_confidence_floor": 0.01,
+    "nms_iou": 0.5,
+    "fixed_035_reference_declared_before_test": true,
+    "baseline_old_test_never_reused_as_train": true,
+    "new_final_test_never_used_for_selection": true
+  },
+  "limits": [
+    "Same-country Japan filename20 block holdout; physical route/recording independence unverified",
+    "Small final holdout: uncertainty intervals are descriptive; source/route sampling bias is not removed by bootstrap",
+    "Balanced positive/negative images do not represent deployment pothole prevalence; precision is not an operational false-alarm/km estimate",
+    "Data and training recipe changed together; this is not a controlled attribution/ablation of individual improvements",
+    "Official publisher D40 annotation is retained without model-based relabeling; real-world Korean camera domain not validated",
+    "CC-BY-NC-3.0 noncommercial research; human privacy not reviewed; no production acceptance"
+  ]
+}
