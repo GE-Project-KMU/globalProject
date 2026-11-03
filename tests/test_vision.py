@@ -400,6 +400,62 @@ def test_lane_adapter_letterbox_crops_padding_back_to_original_size():
     assert result.shape == (20, 40) and result.all()
 
 
+@pytest.mark.parametrize("boxes", [
+    [[-100., 10., 150., 40.], [0., 10., 50., 40.]],
+    [[50., 10., 150., 40.], [50., 10., 50., 40.]],
+    [[10., -100., 40., 150.], [10., 0., 40., 50.]],
+    [[10., 50., 40., 150.], [10., 50., 40., 50.]],
+])
+def test_detector_nms_preserves_boundary_boxes_distinct_before_clipping(boxes):
+    # Unclipped IoU=1/3, but clipped IoU=1: clipping first wrongly suppresses
+    # one candidate. Native YOLOX applies class NMS before source-image clipping.
+    confidences = [.95, .9]
+    rows = [[x+w/2, y+h/2, w, h, 1., score]
+            for (x,y,w,h),score in zip(boxes,confidences)]
+    model = object.__new__(OnnxModel)
+    model.manifest = {"task":"pothole", "classes":["pothole"], "input_size":[100,100],
+                      "output_layout":"yolox_decoded_xywh", "confidence":.35, "nms_iou":.5}
+    class FakeNetwork:
+        def setInput(self,value): pass
+        def forward(self): return np.array([rows], np.float32)
+    model.net = FakeNetwork()
+    expected=[]
+    for x,y,w,h in boxes:
+        left,top=max(0.,x),max(0.,y)
+        expected.append([left,top,min(100.,x+w)-left,min(100.,y+h)-top])
+    assert len(cv2.dnn.NMSBoxes(boxes,confidences,.35,.5)) == 2
+    assert len(cv2.dnn.NMSBoxes(expected,confidences,.35,.5)) == 1
+    actual=model.predict(np.zeros((100,100,3),np.uint8))
+    assert len(actual)==2
+    for item,box,confidence in zip(actual,expected,confidences):
+        assert item["bbox_xywh_px"]==pytest.approx(box)
+        assert item["confidence"]==pytest.approx(confidence)
+        assert item["class"]=="pothole"
+
+
+@pytest.mark.parametrize("boxes", [
+    [[-100.,10.,150.,40.],[-90.,10.,110.,40.]],
+    [[50.,10.,150.,40.],[80.,10.,110.,40.]],
+])
+def test_detector_nms_suppresses_raw_overlap_before_clipping_and_rejects_empty(boxes):
+    # Unclipped IoU=110/150, clipped IoU=20/50: clipping first would retain
+    # an extra lower-confidence box. Fully out-of-image selections are removed.
+    rows=[[x+w/2,y+h/2,w,h,1.,score] for (x,y,w,h),score in zip(boxes,[.95,.9])]
+    rows.append([-50.,-50.,10.,10.,1.,.99])
+    model=object.__new__(OnnxModel)
+    model.manifest={"task":"redaction","classes":["face","license_plate"],"input_size":[100,100],
+                    "output_layout":"yolox_decoded_xywh","confidence":.35,"nms_iou":.5}
+    class FakeNetwork:
+        def setInput(self,value): pass
+        def forward(self): return np.array([[row+[0.] for row in rows]],np.float32)
+    model.net=FakeNetwork()
+    actual=model.predict(np.zeros((100,100,3),np.uint8))
+    assert len(actual)==1
+    x,y,w,h=boxes[0];left,top=max(0.,x),max(0.,y)
+    assert actual[0]["bbox_xywh_px"]==pytest.approx([left,top,min(100.,x+w)-left,min(100.,y+h)-top])
+    assert actual[0]["class"]=="face" and actual[0]["confidence"]==pytest.approx(.95)
+
+
 def test_raw_yolox_decoding_grid_strides_and_count():
     raw = np.zeros((21, 6), np.float32)  # 32x32: 4x4 + 2x2 + 1x1
     result = decode_yolox_raw(raw, 32, 32)

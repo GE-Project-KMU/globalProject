@@ -179,11 +179,11 @@ class OnnxModel:
             if confidence < threshold:
                 continue
             cx, cy, bw, bh = row[:4] / scale
-            x, y = max(0., float(cx - bw / 2)), max(0., float(cy - bh / 2))
-            right, bottom = min(source_w, float(cx + bw / 2)), min(source_h, float(cy + bh / 2))
-            if right <= x or bottom <= y:
+            if bw <= 0 or bh <= 0:
                 continue
-            boxes.append([x, y, right - x, bottom - y])
+            # Match native YOLOX: NMS uses the decoded box, including parts
+            # outside the source image. Clipping first changes pairwise IoU.
+            boxes.append([float(cx - bw / 2), float(cy - bh / 2), float(bw), float(bh)])
             scores.append(confidence)
             labels.append(label)
         results = []
@@ -193,7 +193,12 @@ class OnnxModel:
                                        float(self.manifest.get("nms_iou", .5)))
             for local_id in np.asarray(selected).reshape(-1):
                 index = candidates[int(local_id)]
-                results.append({"bbox_xywh_px": boxes[index], "confidence": scores[index],
+                x, y, bw, bh = boxes[index]
+                left, top = max(0., x), max(0., y)
+                right, bottom = min(source_w, x + bw), min(source_h, y + bh)
+                if right <= left or bottom <= top:
+                    continue
+                results.append({"bbox_xywh_px": [left, top, right - left, bottom - top], "confidence": scores[index],
                                 "class": self.manifest["classes"][label]})
         return results
 
