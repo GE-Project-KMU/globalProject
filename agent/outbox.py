@@ -43,7 +43,7 @@ class Outbox:
             raise ValueError("explicit_human_review_required")
         identifier = str(uuid.UUID(observation["observation_id"]))
         path = workspace_path(image, exists=True)
-        if path.suffix.lower() not in (".png", ".jpg", ".jpeg") or "raw" in path.parts:
+        if path.suffix.lower() not in (".png", ".jpg", ".jpeg") or "raw" in [part.casefold() for part in path.parts]:
             raise ValueError("only_redacted_still_images_may_be_queued")
         if not 0 < path.stat().st_size <= 5_000_000:
             raise ValueError("image_size_limit")

@@ -6,9 +6,10 @@ from .capture import record, replay, EncryptedStore
 from .dataset import validate_annotation, validate_release, split_connected
 from .models import readiness, ModelNotReady
 from .outbox import Outbox
-from .pipeline import analyze_video
+from .pipeline import analyze_video, infer_potholes
 from .retention import purge_expired_runs
 from .paths import workspace_path, atomic_json
+from .baseline import download_external_baseline
 
 
 def main(argv=None):
@@ -25,6 +26,12 @@ def main(argv=None):
     decrypt.add_argument("destination")
     ready = commands.add_parser("model-status")
     ready.add_argument("manifest")
+    baseline = commands.add_parser("download-baseline")
+    baseline.add_argument("--output", default="data/models/external")
+    infer = commands.add_parser("infer-potholes")
+    infer.add_argument("source")
+    infer.add_argument("--manifest", required=True)
+    infer.add_argument("--output", required=True)
     analyze = commands.add_parser("analyze")
     analyze.add_argument("source")
     analyze.add_argument("--output", required=True)
@@ -65,6 +72,10 @@ def main(argv=None):
             result = readiness(args.manifest)
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0 if result["ready"] else 2
+        elif args.command == "download-baseline":
+            result = download_external_baseline(args.output)
+        elif args.command == "infer-potholes":
+            result = infer_potholes(args.source, args.manifest, args.output)
         elif args.command == "analyze":
             result = analyze_video(args.source, args.output, pothole_manifest=args.pothole_manifest,
                                    lane_manifest=args.lane_manifest, redaction_manifest=args.redaction_manifest,
