@@ -15,6 +15,45 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  postgres-spatial:
+    name: PostgreSQL / PostGIS migrations and HTTP
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgis:
+        image: postgis/postgis:16-3.6
+        env:
+          POSTGRES_USER: road_probe
+          POSTGRES_DB: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ['55432:5432']
+        options: >-
+          --health-cmd "pg_isready -U road_probe -d postgres"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+      PYTHONPYCACHEPREFIX: ${{ github.workspace }}/.cache/pycache
+      ROAD_ENV: development
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Prepare workspace-only temporary files
+        run: |
+          mkdir -p .cache/tmp .cache/pip data
+          echo "TMPDIR=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+          echo "TEMP=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+          echo "TMP=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - name: Install project Python environment
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -r requirements.txt -r requirements-vision.txt
+      - name: Migrate five owned databases and verify real spatial HTTP
+        run: .venv/bin/python scripts/postgres_probe.py
+
   backend-contracts:
     name: Python / live HTTP / vision
     runs-on: ubuntu-24.04
@@ -44,7 +83,7 @@ jobs:
       - name: Start isolated domain services
         run: .venv/bin/python scripts/manage.py start --timeout 90
       - name: Test live HTTP contracts and local vision tooling
-        run: .venv/bin/python -m pytest tests/test_http.py tests/test_vision.py -q --tb=short --junitxml=data/backend-junit.xml
+        run: .venv/bin/python -m pytest tests -q --tb=short --junitxml=data/backend-junit.xml
       - name: Summarize without secrets or raw payloads
         if: always()
         run: |
