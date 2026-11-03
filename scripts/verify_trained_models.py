@@ -36,9 +36,15 @@ def validate_architecture(info):
         rates=info.get("aspp_dilations",[12,24,36])
         if not isinstance(rates,(list,tuple)) or len(rates)!=3 or any(type(x) is not int or not 1<=x<=64 for x in rates):raise ValueError("invalid_lane_aspp_dilations")
     elif task in ("pothole","redaction"):
+        tiled=architecture=="two YOLOX-Nano specialists global plus four tiles"
+        if not tiled and any(key in info for key in ("shared_input_size","face_tile_grid")):raise ValueError("unexpected_tiled_geometry")
         if "architecture" not in info or architecture=="YOLOX-Nano":return
-        if task!="redaction" or architecture!="two YOLOX-Nano specialists":raise ValueError("unsupported_detector_architecture")
-        if info.get("input_size")!=[960,960] or type(info.get("face_input_size")) is not int or info["face_input_size"]!=960 or type(info.get("plate_input_size")) is not int or info["plate_input_size"]!=640:raise ValueError("invalid_specialist_geometry")
+        if task!="redaction" or architecture not in ("two YOLOX-Nano specialists","two YOLOX-Nano specialists global plus four tiles"):raise ValueError("unsupported_detector_architecture")
+        if not isinstance(info.get("input_size"),list) or len(info["input_size"])!=2 or any(type(x) is not int for x in info["input_size"]):raise ValueError("invalid_specialist_geometry")
+        if type(info.get("face_input_size")) is not int or info["face_input_size"]!=960 or type(info.get("plate_input_size")) is not int or info["plate_input_size"]!=640:raise ValueError("invalid_specialist_geometry")
+        if tiled:
+            if info.get("input_size")!=[1920,1920] or type(info.get("shared_input_size")) is not int or info["shared_input_size"]!=1920 or type(info.get("face_tile_grid")) is not int or info["face_tile_grid"]!=2:raise ValueError("invalid_tiled_geometry")
+        elif info.get("input_size")!=[960,960]:raise ValueError("invalid_specialist_geometry")
     else:raise ValueError("unsupported_model_task")
 
 def build_torch_reference(info,yolox_source):
@@ -47,6 +53,9 @@ def build_torch_reference(info,yolox_source):
         from agent.lane_network import make_lane_network
         return make_lane_network(pretrained=False,aspp_dilations=info.get("aspp_dilations",[12,24,36]))
     source=scoped(yolox_source,exists=False)
+    if info.get("architecture")=="two YOLOX-Nano specialists global plus four tiles":
+        from agent.redaction_tiled_network import build_redaction_tiled_network
+        return build_redaction_tiled_network(yolox_root=source,shared_input_size=info["shared_input_size"],face_input_size=info["face_input_size"],plate_input_size=info["plate_input_size"])
     if info.get("architecture")=="two YOLOX-Nano specialists":
         from agent.redaction_network import build_redaction_network
         return build_redaction_network(yolox_root=source,face_input_size=info["face_input_size"],plate_input_size=info["plate_input_size"])
@@ -59,6 +68,7 @@ def build_torch_reference(info,yolox_source):
 def check_model_output(info,array):
     check_output(info["task"],info["classes"],array)
     if info.get("architecture")=="two YOLOX-Nano specialists" and tuple(array.shape)!=(1,27300,7):raise ValueError("invalid_specialist_output_shape")
+    if info.get("architecture")=="two YOLOX-Nano specialists global plus four tiles" and tuple(array.shape)!=(1,102900,7):raise ValueError("invalid_tiled_output_shape")
 
 def validate_metadata(path):
     from datetime import datetime,timezone

@@ -231,6 +231,7 @@ def test_specialist_reference_factory_and_exact_output_contract(monkeypatch):
 @pytest.mark.parametrize('structure',[
     {'architecture':'deeplabv3_mobilenet_v3_large','aspp_dilations':[6,12,18]},
     {'task':'redaction','classes':['face','license_plate'],'architecture':'two YOLOX-Nano specialists','input_size':[960,960],'face_input_size':960,'plate_input_size':640,'output_layout':'yolox_decoded_xywh'},
+    {'task':'redaction','classes':['face','license_plate'],'architecture':'two YOLOX-Nano specialists global plus four tiles','input_size':[1920,1920],'face_input_size':960,'plate_input_size':640,'shared_input_size':1920,'face_tile_grid':2,'output_layout':'yolox_decoded_xywh'},
 ])
 def test_artifact_package_preserves_non_parameter_structure_contract(artifact,structure):
     from scripts.model_artifacts import inspect_archive
@@ -238,3 +239,19 @@ def test_artifact_package_preserves_non_parameter_structure_contract(artifact,st
     output,receipt,_=package_fixture(artifact)
     _,payload=inspect_archive(output,receipt['sha256']);restored=json.loads(payload['model.json'])
     for key,value in structure.items():assert restored[key]==value
+
+def test_tiled_factory_metadata_cannot_silently_become_standard(monkeypatch):
+    from scripts.verify_trained_models import build_torch_reference,validate_architecture,check_model_output
+    import agent.redaction_tiled_network as factory
+    info={'task':'redaction','classes':['face','license_plate'],'architecture':factory.ARCHITECTURE,'input_size':[1920,1920],'face_input_size':960,'plate_input_size':640,'shared_input_size':1920,'face_tile_grid':2}
+    calls=[];sentinel=object()
+    monkeypatch.setattr(factory,'build_redaction_tiled_network',lambda **kwargs:calls.append(kwargs) or sentinel)
+    assert build_torch_reference(info,ROOT/'.cache/vendor/YOLOX') is sentinel
+    assert calls==[{'yolox_root':ROOT/'.cache/vendor/YOLOX','shared_input_size':1920,'face_input_size':960,'plate_input_size':640}]
+    check_model_output(info,np.zeros((1,102900,7),np.float32))
+    with pytest.raises(ValueError,match='tiled_output'):check_model_output(info,np.zeros((1,27300,7),np.float32))
+    for key in ('shared_input_size','face_tile_grid','face_input_size','plate_input_size','input_size'):
+        missing=info.copy();missing.pop(key)
+        with pytest.raises(ValueError):validate_architecture(missing)
+    for patch in ({'shared_input_size':1920.0},{'shared_input_size':True},{'face_tile_grid':2.0},{'face_tile_grid':True},{'face_tile_grid':3},{'input_size':[960,960]},{'input_size':[1920.0,1920.0]},{'architecture':'two YOLOX-Nano specialists'},{'architecture':'YOLOX-Nano'},{'architecture':None}):
+        with pytest.raises(ValueError):validate_architecture(info|patch)
