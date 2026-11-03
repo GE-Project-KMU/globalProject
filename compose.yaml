@@ -45,7 +45,7 @@ services:
     restart: unless-stopped
 
   inspection-db:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.6
     environment:
       POSTGRES_DB: inspection
       POSTGRES_USER: inspection
@@ -142,6 +142,7 @@ services:
     user: "${ROAD_CONTAINER_UID:-1000}:${ROAD_CONTAINER_GID:-1000}"
     environment:
       <<: *app-env
+      ROAD_POSTGIS_ENABLED: "1"
       INSPECTION_DATABASE_URL: postgresql+psycopg://inspection:${INSPECTION_DB_PASSWORD}@inspection-db:5432/inspection
     volumes:
       - ./data/containers/inspection:/app/data
