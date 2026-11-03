@@ -6,6 +6,9 @@ ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 EXPECTED={"lane":["background","paint"],"pothole":["pothole"],"redaction":["face","license_plate"]}
 
+def default_training_python(os_name=None):
+    return ROOT/(".venv-training/python.exe" if (os.name if os_name is None else os_name)=="nt" else ".venv-training/bin/python")
+
 def scoped(value,*,exists=True,portable=False):
     if not isinstance(value,(str,Path)):raise ValueError("path_required")
     value=str(value)
@@ -123,6 +126,34 @@ def compare(a,b,rtol,atol):
     relative=float(np.linalg.norm(aa-bb)/max(np.linalg.norm(bb),1e-12))
     return {"passed":matched,"max_abs_error":float(difference.max()),"mean_abs_error":float(difference.mean()),"p99_abs_error":float(np.quantile(difference,.99)),"rmse":float(np.sqrt(np.mean((aa-bb)**2))),"cosine_similarity":float(np.clip(np.dot(aa,bb)/norm,-1,1)) if norm else None,"relative_l2_error":relative,"rtol":rtol,"atol":atol}
 
+def postprocess_detection(manifest,raw,image):
+    """Replay reference tensors through the real application postprocessor."""
+    from agent.models import OnnxModel
+    class FixedOutput:
+        def setInput(self,value):pass
+        def forward(self):return raw
+    model=object.__new__(OnnxModel);model.manifest=manifest;model.net=FixedOutput()
+    return model.predict(image)
+
+def compare_detections(application,reference,*,bbox_atol=.05,confidence_atol=.0001):
+    from collections import Counter
+    def iou(a,b):
+        ax,ay,aw,ah=a;bx,by,bw,bh=b
+        inter=max(0,min(ax+aw,bx+bw)-max(ax,bx))*max(0,min(ay+ah,by+bh)-max(ay,by))
+        union=aw*ah+bw*bh-inter
+        return inter/union if union>0 else 0.
+    available=set(range(len(reference)));errors=[];scores=[];overlaps=[]
+    for item in sorted(application,key=lambda x:(x["class"],-x["confidence"],*x["bbox_xywh_px"])):
+        choices=[index for index in available if reference[index]["class"]==item["class"]]
+        if not choices:continue
+        index=max(choices,key=lambda j:iou(item["bbox_xywh_px"],reference[j]["bbox_xywh_px"]))
+        candidate=reference[index];available.remove(index)
+        errors.append(max(abs(a-b) for a,b in zip(item["bbox_xywh_px"],candidate["bbox_xywh_px"])))
+        scores.append(abs(item["confidence"]-candidate["confidence"]));overlaps.append(iou(item["bbox_xywh_px"],candidate["bbox_xywh_px"]))
+    ac=dict(sorted(Counter(item["class"] for item in application).items()));rc=dict(sorted(Counter(item["class"] for item in reference).items()))
+    matched=len(errors);passed=ac==rc and len(application)==len(reference)==matched and max(errors,default=0)<=bbox_atol and max(scores,default=0)<=confidence_atol
+    return {"passed":passed,"application_count":len(application),"reference_count":len(reference),"application_class_counts":ac,"reference_class_counts":rc,"matched_count":matched,"unmatched_application":len(application)-matched,"unmatched_reference":len(available),"min_matched_iou":min(overlaps) if overlaps else None,"max_abs_bbox_error_px":max(errors) if errors else None,"max_abs_confidence_error":max(scores) if scores else None,"bbox_atol_px":bbox_atol,"confidence_atol":confidence_atol,"no_positive_predictions":not application and not reference}
+
 def verify(args):
     validated=validate_metadata(args.manifest);m=validated["manifest"]
     result={"schema_version":1,"task":m["task"],"classes":m["classes"],"manifest_sha256":digest(validated["manifest_path"]),"weight_sha256":m["sha256"],"research_only":True,"production_approved":False,"project_acceptance_eligible":False,"source_licenses":m["source_licenses"],"split_counts":validated["split_counts"],"independent_route_verified":m["independent_route_verified"],"accuracy_evaluation_performed":False,"remaining_prerequisites":["independent ZED 2i vehicle evaluation","license-compatible intended use","agency acceptance"],"metadata_valid":True}
@@ -181,19 +212,23 @@ def verify(args):
                 masks[mode]=cv2.resize(mask[:ch,:cw],(image.shape[1],image.shape[0]),interpolation=cv2.INTER_NEAREST)
             result["lane_adapter_postprocess_matches_reference"]=bool(np.array_equal(prediction,masks["app"]))
             result["mask_agreement"]={mode:{"pixel_agreement":float((prediction==mask).mean()),"paint_pixels":int(mask.sum()),"paint_iou_against_app":float(((prediction==1)&(mask==1)).sum()/((prediction==1)|(mask==1)).sum()) if ((prediction==1)|(mask==1)).any() else None} for mode,mask in masks.items()}
+        else:
+            result["detection_postprocess_parity"]={mode:compare_detections(prediction,postprocess_detection(m,raw,image)) for mode,raw in raw_outputs.items() if mode!="app"}
+            result["postprocess_parity_passed"]=all(value["passed"] for value in result["detection_postprocess_parity"].values())
     result.update(runtime_python=sys.version.split()[0],opencv_preprocessing_version=cv2.__version__,app_backend=adapter.backend,app_backend_version=adapter.backend_version,finite_output=True,output_shape=list(capture.output.shape),preprocess_contract_verified=True,adapter_result_count=int((prediction==1).sum()) if m["task"]=="lane" else len(prediction),synthetic_input=args.image is None,torch_checkpoint_compared=bool(args.checkpoint),production_approved=False)
     result["numerical_parity_passed"]=all(value["passed"] for key,value in result.items() if key.startswith("app_vs_") or key in ("ort_vs_torch","app_repeatability"))
-    result["status"]="artifact_verified" if result["numerical_parity_passed"] else "numerical_mismatch"
+    result["artifact_contract_verified"]=result["numerical_parity_passed"] and result.get("postprocess_parity_passed",True)
+    result["status"]="artifact_verified" if result["artifact_contract_verified"] else "numerical_mismatch" if not result["numerical_parity_passed"] else "postprocess_mismatch"
     return result
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("manifest");parser.add_argument("--metadata-only",action="store_true");parser.add_argument("--image");parser.add_argument("--checkpoint");parser.add_argument("--training-python",default=str(ROOT/".venv-training/python.exe"));parser.add_argument("--yolox-source",default=str(ROOT/".cache/vendor/YOLOX"));parser.add_argument("--output");parser.add_argument("--rtol",type=float,default=.001);parser.add_argument("--atol",type=float,default=.0001);parser.add_argument("--worker",choices=["ort","torch","inspect"]);parser.add_argument("--blob");parser.add_argument("--result");parser.add_argument("--worker-report");args=parser.parse_args()
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("manifest");parser.add_argument("--metadata-only",action="store_true");parser.add_argument("--image");parser.add_argument("--checkpoint");parser.add_argument("--training-python",default=str(default_training_python()));parser.add_argument("--yolox-source",default=str(ROOT/".cache/vendor/YOLOX"));parser.add_argument("--output");parser.add_argument("--rtol",type=float,default=.001);parser.add_argument("--atol",type=float,default=.0001);parser.add_argument("--worker",choices=["ort","torch","inspect"]);parser.add_argument("--blob");parser.add_argument("--result");parser.add_argument("--worker-report");args=parser.parse_args()
     try:
         if args.worker:worker(args);return 0
         result=verify(args)
         if args.output:
             path=scoped(args.output,exists=False);path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(result,indent=2),encoding="utf-8")
-        print(json.dumps(result,indent=2));return 0 if result.get("numerical_parity_passed",True) else 2
+        print(json.dumps(result,indent=2));return 0 if result.get("artifact_contract_verified",result.get("numerical_parity_passed",True)) else 2
     except Exception as error:
         print(json.dumps({"status":"verification_failed","reason":str(error)[:200],"production_approved":False}));return 2
 

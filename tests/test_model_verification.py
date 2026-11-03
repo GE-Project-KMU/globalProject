@@ -168,3 +168,32 @@ def test_actual_ort_default_executes_known_conv_and_preserves_lane_contract(arti
     with pytest.raises(ValueError,match="unsupported_inference_backend"):load_network(artifact.weights,"opencv-auto")
     artifact.manifest.write_text("[]",encoding="utf-8")
     assert readiness(artifact.manifest)["reason"]=="model_manifest_object_required"
+
+def test_training_python_default_matches_project_platform_paths():
+    from scripts.verify_trained_models import default_training_python
+    assert default_training_python("nt")==ROOT/".venv-training/python.exe"
+    assert default_training_python("posix")==ROOT/".venv-training/bin/python"
+
+def test_detector_reference_tensors_use_real_classwise_nms_and_report_deltas():
+    from scripts.verify_trained_models import postprocess_detection,compare_detections
+    manifest={"task":"redaction","classes":["face","license_plate"],"input_size":[32,32],"output_layout":"yolox_decoded_xywh","confidence":.35,"nms_iou":.5}
+    # Two overlapping face anchors collapse, while the plate is retained by
+    # classwise NMS. These are synthetic tensors, never accuracy evidence.
+    raw=np.array([[[10,10,8,8,.9,.9,.1],[10.1,10.1,8,8,.8,.9,.1],[24,24,6,4,.9,.1,.95],[5,5,2,2,.1,.9,.1]]],np.float32)
+    image=np.zeros((32,32,3),np.uint8)
+    app=postprocess_detection(manifest,raw,image)
+    assert len(app)==2 and {r["class"] for r in app}=={"face","license_plate"}
+    nearby=raw.copy();nearby[0,0,0]+=.01;nearby[0,0,4]+=.000001
+    result=compare_detections(app,postprocess_detection(manifest,nearby,image))
+    assert result["passed"] and result["matched_count"]==2 and 0<result["max_abs_bbox_error_px"]<.05
+    assert result["application_class_counts"]=={"face":1,"license_plate":1}
+    missing=raw.copy();missing[0,2,4]=0
+    assert not compare_detections(app,postprocess_detection(manifest,missing,image))["passed"]
+    wrong_class=raw.copy();wrong_class[0,2,5:]=[.95,.1]
+    assert not compare_detections(app,postprocess_detection(manifest,wrong_class,image))["passed"]
+    bad_box=raw.copy();bad_box[0,2,0]+=1
+    assert not compare_detections(app,postprocess_detection(manifest,bad_box,image))["passed"]
+    bad_score=raw.copy();bad_score[0,2,4]-=.01
+    assert not compare_detections(app,postprocess_detection(manifest,bad_score,image))["passed"]
+    empty=compare_detections([],[])
+    assert empty["passed"] and empty["no_positive_predictions"] and empty["min_matched_iou"] is None

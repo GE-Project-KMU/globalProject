@@ -24,6 +24,8 @@
 
 기본 입력은 합성 난수 이미지이며 정확도 평가가 아니다. `--image`에 프로젝트 안의 실제 validation 이미지를 지정할 수 있다. 임시 입력/출력 배열은 검사 종료 시 제거하고 보고서에 원본 픽셀·이미지 파일명·bbox 목록을 넣지 않는다. 별도 독립 holdout 평가는 평가 도구로 수행하며 모델·threshold 선택에 test를 사용하지 않는다. paint_threshold와 validation-only threshold_calibration은 이식 과정에서도 보존한다.
 
+별도 학습 인터프리터 기본값은 Windows의 `.venv-training/python.exe`, Linux의 `.venv-training/bin/python`이며 `--training-python`으로 프로젝트 내부의 다른 경로를 지정할 수 있다. 검출기는 ORT/PyTorch raw tensor를 동일한 실제 앱 후처리에 넣고 class별 NMS 뒤 개수·클래스·최대 박스 오차·최대 신뢰도 오차·매칭 IoU도 보고한다. 후처리 일치가 raw allclose 실패를 덮어쓰지 않는다. 양쪽 예측이 비면 no_positive_predictions를 명시하며 양성 사례의 근거로 사용하지 않는다. 현재 후처리 비교 허용 오차는 박스0.05pixel/신뢰도0.0001이다.
+
 ## 연구용 모델 묶음
 
 `artifact_redistribution_allowed:true`가 출처 사용조건 검토를 통해 명시된 모델만 build가 가능하다. 미지정 또는 false이면 로컬 묶음 생성 단계에서 차단한다. WIDER 등 제한이 확인된 자료의 파생 가중치를 허용 플래그 변경으로 우회하지 않는다. 현재 외부 업로드·Release 게시를 수행하는 명령은 제공하지 않는다.
