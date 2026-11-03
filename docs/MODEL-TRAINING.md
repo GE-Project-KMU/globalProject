@@ -1,8 +1,10 @@
-# 공개 데이터 모델 학습 기록
+# 초기 공개 데이터 모델 학습 기록
 
 작성일: 2026-11-04. 실물 ZED 2i 없이 현재 호스트 RTX 2080 Ti에서 실제 역전파·가중치 갱신·checkpoint 선택·ONNX 내보내기를 수행한다. 공개 자료의 연구 결과이며 운영 승인 또는 실차 인수 결과가 아니다. 최종 수치는 `reports/MODEL-TRAINING-SUMMARY.json`에 기록한다.
 
-## 완료 결과
+이 문서는 개선 전 초기 가중치와 baseline 시험 기록이다. 후속 도막 개선의 같은 시험군 비교와 남은 수치 검증 문제는 [개선 실험 기록](LANE-IMPROVEMENT-REPRODUCTION.md)에 구분하여 기록한다. 아래 초기 결과를 후속 후보의 검증 통과로 해석하지 않는다.
+
+## 초기 실험 결과
 
 | 연구 가중치 | 실제 학습 | 고정 공개 시험 결과 | 판정 |
 | --- | --- | --- | --- |
@@ -13,7 +15,7 @@
 
 도막 두 시험은 서로 다른 데이터이므로 같은 benchmark의 순위로 비교하지 않는다. 얼굴·번호판은 validation에서 confidence.01을 고정했으며 게시자가 알려준 클래스에 한정한 수치다. 개인정보가 모두 제거된다는 보증이 아니다. 포트홀·비식별화의 실제 앱 ONNX Runtime CPU 시험은 native GPU 평가의 AP·TP/FP/FN과 일치했다. 공개 보고서 `reports/DETECTOR-APPLICATION-EVALUATION.json`에 기록한다.
 
-최종 A2D2·포트홀·얼굴/번호판 후보는 엄격한 앱/별도 ORT/PyTorch 수치 비교를 통과했다. 얼굴과 번호판은 각각 양성 validation 표본을 사용해 NMS 후 클래스·박스·신뢰도까지 확인했다. RTK 초기 모델은 한 test 표본에서 Torch raw allclose가 미달한 사실을 보존한다. 해당 표본도 앱↔reference ORT와 세 엔진의 도막 마스크는 일치했으나 전체 수치 검증 합격으로 바꾸지 않는다.
+이 초기 실험의 A2D2 v1·포트홀 v1·얼굴/번호판 v3 후보는 엄격한 앱/별도 ORT/PyTorch 수치 비교를 통과했다. 얼굴과 번호판은 각각 양성 validation 표본을 사용해 NMS 후 클래스·박스·신뢰도까지 확인했다. RTK 초기 모델은 한 test 표본에서 Torch raw allclose가 미달한 사실을 보존한다. 해당 표본도 앱↔reference ORT와 세 엔진의 도막 마스크는 일치했으나 전체 수치 검증 합격으로 바꾸지 않는다.
 
 가중치 위치는 `data/training/lane-rtk-v1/lane.onnx`, `lane-a2d2-v1/lane.onnx`, `pothole-nano-rdd2020-v1/model.onnx`, `redaction-nano-v3/model.onnx`다(두 번째 이후 경로도 `data/training/` 아래). 해당 폴더의 manifest와 provenance를 함께 사용한다. 이 파일들은 Git에서 제외하고 로컬 프로젝트에 보관한다.
 

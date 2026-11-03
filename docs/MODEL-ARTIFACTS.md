@@ -28,6 +28,8 @@
 
 ## 연구용 모델 묶음
 
+원시 출력이 일치해도 lane adapter 또는 비교한 엔진의 최종 마스크가 다르면 전체 artifact 검증은 실패한다. 패키징도 전체 artifact 판정과 lane 후처리 판정을 모두 요구한다. 검사 보고서의 실제 입력 `image_sha256`는 로컬 원본 기한을 적용하는 영상별 진단 자료이며 공개 package 요약에는 복사하지 않는다. 체크포인트·ONNX 해시는 모델 출처 증거로 구분한다. 도막의 [진단용 정확도 평가](LANE-PORTABILITY-DIAGNOSIS.md)는 이 엄격한 패키징 통과를 대신하지 않는다.
+
 `artifact_redistribution_allowed:true`가 출처 사용조건 검토를 통해 명시된 모델만 build가 가능하다. 미지정 또는 false이면 로컬 묶음 생성 단계에서 차단한다. WIDER 등 제한이 확인된 자료의 파생 가중치를 허용 플래그 변경으로 우회하지 않는다. 현재 외부 업로드·Release 게시를 수행하는 명령은 제공하지 않는다.
 
 ```powershell
