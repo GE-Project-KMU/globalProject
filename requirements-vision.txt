@@ -1,0 +1,7 @@
+# Base runtime packages are pinned in the root requirements lock.
+opencv-python-headless==5.0.0.93
+numpy==2.5.4
+pillow==13.0.0
+cryptography==50.0.2
+pyserial==3.5
+httpx==0.28.1
