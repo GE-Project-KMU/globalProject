@@ -41,6 +41,8 @@ npm.cmd --prefix frontend run test:e2e
 
 GitHub Actions는 Ubuntu Python 3.14 통합 시험, 실제 PostGIS 공간 조회, Node 24 build/실제 연동 UI의 세 job으로 구성한다. 외부 ONNX 참고 모델은 고정 revision/SHA256으로만 내려받아 실행 시험하며 정확도 합격으로 해석하지 않는다. 원격 CI 실행 결과는 아래 확인 기록에 추가한다.
 
+[Ubuntu 검증 실행 41625044328](https://github.com/GE-Project-KMU/globalProject/actions/runs/41625044328)은 커밋 `bf4026b`의 세 job을 모두 통과했다. 통합 Python 시험과 TypeScript/build/실제 연동 브라우저, PostgreSQL/PostGIS 공간 조회를 각각 별도 job에서 실행했다. 실물 카메라·GPU·독립 현장 정확도 시험과는 구분한다.
+
 ## 남은 검증과 구현 제한
 
 - ZED 이름의 연결 장치를 현재 호스트에서 탐지하지 못했다. 실제 ZED 2i SDK 캡처, 장착·진동·조도·주행 속도별 검증, GPU 추론은 수행하지 않았다.
