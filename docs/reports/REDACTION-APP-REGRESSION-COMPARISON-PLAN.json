@@ -1,0 +1,24 @@
+{
+  "models": {
+    "baseline": "data/training/redaction-nano-v3/model.json",
+    "candidate": "data/training/redaction-inference-options-v4/option-tiled/model.json"
+  },
+  "baseline_manifest_sha256": "88b1b8e86e3b8aec33a816aca082e1f81da20ba29c33c144e36be02a02693dee",
+  "candidate_release_sha256": "4eeae0afdf67fcaf727e3e8b3a9b35486ef6f1126ae486da64637a7aec5bbd16",
+  "benchmark_manifest": "data/training/research-redaction-fullframe/release.json",
+  "benchmark_sha256": "f749f7e34b2af4256a9015b95b605ef7906197f3b6271690484f0aabd6c65b42",
+  "role": "previously_examined_v3_test_known_class_conditional_actual_app_cpu",
+  "samples": 400,
+  "protocol_sha256": "46d26815506d7aaa4cc07921dff5b53ad1a6e810815b6eb66a87c2fbe8942568",
+  "option_selection_freeze_sha256": "d2bcdf37495c5d1cb5be29ca36ba95a33196547ea1483692635daf1a81c0414c",
+  "candidate_manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+  "verification_report_sha256": {
+    "face": "68374115972b0542898b6e8b504c0a4e0ecead37ddc1ec60450c934950cd1126",
+    "license_plate": "87ce9d6f7b7145f327760132cc14872a5c5d511da5360a6d528fca224c9b31c9"
+  },
+  "app_floor_confidence": 0.01,
+  "fixed_reference_confidence": 0.35,
+  "nms_iou": 0.5,
+  "test_used_for_selection": false,
+  "production_approved": false
+}
