@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "device": "CPU; cuda input transfer stubbed only for isolated contract",
+  "synthetic_fixtures": true,
+  "performance_evidence": false,
+  "tests": [
+    "perfect one-to-one AP50=1",
+    "duplicate counts FP; AP interpolation may remain1 after earlier full recall",
+    "missed GT AP50=0 and FN=1",
+    "no-GT AP undefined, empty or false-positive counts retained",
+    "validation-only fixed-grid confidence .2 excludes FP and preserves both recall",
+    "BGR float255 top-left letterbox and horizontal flip bbox center/extent",
+    "training target overflow rejects whole image",
+    "known-class scope excludes unknown-class FP without hiding known missed GT",
+    "native postprocess coordinate inverse maps letterbox box to original pixels"
+  ],
+  "count": 9,
+  "at": "2026-11-03T17:23:47.676551+00:00",
+  "training_script_sha256": "12bc7d58dc4ffb5d75023bbcd1ed833c5340d6f5ff13adb5b98a282956eb03d8",
+  "torch": "2.7.1+cu126"
+}
