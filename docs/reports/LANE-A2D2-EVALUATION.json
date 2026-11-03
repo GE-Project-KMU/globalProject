@@ -1,0 +1,55 @@
+{
+  "evaluated_at": "2026-11-03T17:28:37.468148+00:00",
+  "task": "lane",
+  "scope": "offline_public_data_research",
+  "split": "test",
+  "sample_count": 100,
+  "foreground_samples": 99,
+  "manifest_sha256": "cf74bc4bd1e627b3b5df39793830c26bd66d26c3dbcea2676e363c42a34b37f3",
+  "model_sha256": "57650dbf7e037fa5f6cc995f4e8d3edf6400c5690fedb58c48cda84da85ca0b4",
+  "model_manifest_sha256": "1240a6d4c44635d4764f8e80ea645e91bbde5bc9747ca4f1f0c9612b5f3e78d2",
+  "runtime": "onnxruntime-cpu CPU application adapter",
+  "runtime_version": "1.31.1",
+  "input_size": [
+    512,
+    512
+  ],
+  "paint_threshold": 0.5,
+  "threshold_selection": {
+    "selected_on": "validation",
+    "report_sha256": "a6a926737736bd486bdcb043123b20da2c47e97f3ac4c195e7dcd98a7c3764f7",
+    "validation_samples": 100,
+    "test_images_used": 0
+  },
+  "confusion": {
+    "tp": 2148776,
+    "fp": 1696459,
+    "fn": 1602814,
+    "tn": 226487951,
+    "ignored": 0
+  },
+  "paint_iou": 0.394412017953583,
+  "paint_precision": 0.5588152609658448,
+  "paint_recall": 0.5727640813628355,
+  "paint_dice": 0.5657036985846061,
+  "latency_seconds": {
+    "median": 0.0985755000001518,
+    "p95": 0.11273997000971576,
+    "first": 0.10892379999859259
+  },
+  "target_paint_iou": 0.75,
+  "target_passed_on_this_research_holdout": false,
+  "annotation_versions": [
+    "A2D2-publisher-semseg-solid-dashed-v1"
+  ],
+  "recording_heldout_verified": true,
+  "independent_route_verified": false,
+  "project_acceptance_passed": false,
+  "retention_mae_pp": null,
+  "retention_mae_unavailable_reason": "No independent expected-outline/gap/valid O/G/V ground truth in this public dataset",
+  "limitations": [
+    "Publisher road-marking pixels are a proxy for paint, not ZED 2i worn-lane acceptance data",
+    "Recording/date holdout does not prove independent physical roads/routes",
+    "Publisher labels plus machine QC; no fabricated independent human privacy review"
+  ]
+}

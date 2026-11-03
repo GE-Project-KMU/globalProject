@@ -1,0 +1,51 @@
+{
+  "evaluated_at": "2026-11-03T17:12:23.405884+00:00",
+  "task": "lane",
+  "scope": "offline_public_data_research",
+  "split": "test",
+  "sample_count": 71,
+  "foreground_samples": 33,
+  "manifest_sha256": "126b78c2da0f1c62140a9e74ac7447a611c5b36cd5fe7c5087e721492bbe51b4",
+  "model_sha256": "b8c7ba27f7227b57685502b5efe8936fc16708fa7952bb97728763c234a93984",
+  "model_manifest_sha256": "9497fe80c16e20560beacfbdb7feb8307b6d429893dec36b1bdaed613623bdc9",
+  "runtime": "onnxruntime-cpu CPU application adapter",
+  "runtime_version": "1.31.1",
+  "input_size": [
+    512,
+    512
+  ],
+  "paint_threshold": 0.5,
+  "threshold_selection": {
+    "selected_on": "validation",
+    "report_sha256": "d9d7ad6445f888f89061c8cd1d64e786c628afe4659396796977b7ebdd5ae1a2",
+    "validation_samples": 70,
+    "test_images_used": 0
+  },
+  "confusion": {
+    "tp": 31447,
+    "fp": 23572,
+    "fn": 9625,
+    "tn": 2577485,
+    "ignored": 4555567
+  },
+  "paint_iou": 0.48646432770249365,
+  "paint_precision": 0.5715661862265763,
+  "paint_recall": 0.7656554343591742,
+  "paint_dice": 0.6545253978000021,
+  "latency_seconds": {
+    "median": 0.07268010001280345,
+    "p95": 0.07964524999260902,
+    "first": 0.07508899999083951
+  },
+  "target_paint_iou": 0.75,
+  "target_passed_on_this_research_holdout": false,
+  "independent_route_verified": false,
+  "project_acceptance_passed": false,
+  "retention_mae_pp": null,
+  "retention_mae_unavailable_reason": "No independent expected-outline/gap/valid O/G/V ground truth in this public dataset",
+  "limitations": [
+    "RTK roadMarking is a public low-resolution proxy for paint, not ZED 2i worn-lane acceptance data",
+    "Blocked filename partitions and duplicate checks do not prove independent physical road objects/routes",
+    "Publisher labels plus machine QC; no fabricated independent human privacy review"
+  ]
+}

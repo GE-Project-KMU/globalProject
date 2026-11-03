@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "task": "lane",
+  "classes": [
+    "background",
+    "paint"
+  ],
+  "manifest_sha256": "1240a6d4c44635d4764f8e80ea645e91bbde5bc9747ca4f1f0c9612b5f3e78d2",
+  "weight_sha256": "57650dbf7e037fa5f6cc995f4e8d3edf6400c5690fedb58c48cda84da85ca0b4",
+  "research_only": true,
+  "production_approved": false,
+  "project_acceptance_eligible": false,
+  "source_licenses": [
+    "CC BY-ND 4.0 private offline model research; no derived image/mask or learned artifact redistribution approval; no human privacy acceptance"
+  ],
+  "split_counts": {
+    "train": 400,
+    "validation": 100,
+    "test": 100
+  },
+  "independent_route_verified": false,
+  "accuracy_evaluation_performed": false,
+  "remaining_prerequisites": [
+    "independent ZED 2i vehicle evaluation",
+    "license-compatible intended use",
+    "agency acceptance"
+  ],
+  "metadata_valid": true,
+  "weight_hash_verified": true,
+  "app_repeatability": {
+    "passed": true,
+    "max_abs_error": 0.0,
+    "mean_abs_error": 0.0,
+    "p99_abs_error": 0.0,
+    "rmse": 0.0,
+    "cosine_similarity": 1.0,
+    "relative_l2_error": 0.0,
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "ort_metadata": {
+    "onnx_checked": true,
+    "operators": [
+      "Add",
+      "Concat",
+      "Constant",
+      "Conv",
+      "GlobalAveragePool",
+      "HardSigmoid",
+      "HardSwish",
+      "Mul",
+      "Relu",
+      "Resize",
+      "Shape",
+      "Slice"
+    ],
+    "opsets": [
+      {
+        "domain": "",
+        "version": 17
+      }
+    ],
+    "onnxruntime": "1.20.1",
+    "input_shape": [
+      1,
+      3,
+      512,
+      512
+    ],
+    "output_shape": [
+      1,
+      2,
+      512,
+      512
+    ]
+  },
+  "app_vs_ort": {
+    "passed": true,
+    "max_abs_error": 3.4332275390625e-05,
+    "mean_abs_error": 1.353096649836516e-06,
+    "p99_abs_error": 1.049041748046875e-05,
+    "rmse": 2.432234901333528e-06,
+    "cosine_similarity": 0.999999999999901,
+    "relative_l2_error": 4.580361643154147e-07,
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "torch_metadata": {
+    "torch": "2.7.1+cu126",
+    "device": "cpu",
+    "output_shape": [
+      1,
+      2,
+      512,
+      512
+    ]
+  },
+  "app_vs_torch": {
+    "passed": true,
+    "max_abs_error": 0.0006866455078125,
+    "mean_abs_error": 2.9065988201182336e-05,
+    "p99_abs_error": 0.000232696533203125,
+    "rmse": 5.1482339768642094e-05,
+    "cosine_similarity": 0.9999999999553818,
+    "relative_l2_error": 9.695127476022057e-06,
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "ort_vs_torch": {
+    "passed": true,
+    "max_abs_error": 0.000690460205078125,
+    "mean_abs_error": 2.91360956907738e-05,
+    "p99_abs_error": 0.000232696533203125,
+    "rmse": 5.165873063170589e-05,
+    "cosine_similarity": 0.9999999999553015,
+    "relative_l2_error": 9.728345311705015e-06,
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "lane_adapter_postprocess_matches_reference": true,
+  "mask_agreement": {
+    "app": {
+      "pixel_agreement": 1.0,
+      "paint_pixels": 23601,
+      "paint_iou_against_app": 1.0
+    },
+    "ort": {
+      "pixel_agreement": 1.0,
+      "paint_pixels": 23601,
+      "paint_iou_against_app": 1.0
+    },
+    "torch": {
+      "pixel_agreement": 1.0,
+      "paint_pixels": 23601,
+      "paint_iou_against_app": 1.0
+    }
+  },
+  "runtime_python": "3.14.7",
+  "opencv_preprocessing_version": "5.0.0",
+  "app_backend": "onnxruntime-cpu",
+  "app_backend_version": "1.31.1",
+  "finite_output": true,
+  "output_shape": [
+    1,
+    2,
+    512,
+    512
+  ],
+  "preprocess_contract_verified": true,
+  "adapter_result_count": 23601,
+  "synthetic_input": false,
+  "torch_checkpoint_compared": true,
+  "numerical_parity_passed": true,
+  "artifact_contract_verified": true,
+  "status": "artifact_verified",
+  "diagnostic_input": {
+    "split": "validation",
+    "positive_ground_truth_paint_pixels": 34494,
+    "source_image_sha256": "451f566a1a412dff2544c887af7d6094b29bb69b0e2e16f603cde8a16de397ce",
+    "source_image_hash_verified": true,
+    "no_model_or_threshold_changes": true
+  },
+  "verification_device": "cpu",
+  "manifest_frozen_sha256": "1240a6d4c44635d4764f8e80ea645e91bbde5bc9747ca4f1f0c9612b5f3e78d2"
+}
