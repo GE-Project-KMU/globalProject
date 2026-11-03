@@ -1,0 +1,82 @@
+{
+  "baseline": "pothole-nano-rdd2020-v1",
+  "selection_evidence": "validation only; no GT relabeling from predictions",
+  "counts": {
+    "test:Czech": {
+      "images": 231,
+      "positive_images": 154,
+      "objects": 197
+    },
+    "train:India": {
+      "images": 1800,
+      "positive_images": 1200,
+      "objects": 2508
+    },
+    "validation:Japan": {
+      "images": 375,
+      "positive_images": 250,
+      "objects": 391
+    }
+  },
+  "bbox_sqrt_area_px_percentiles": {
+    "test": {
+      "p10": 25.289838350975508,
+      "p50": 39.242833740697165,
+      "p90": 67.65930882961281
+    },
+    "train": {
+      "p10": 33.46640106136302,
+      "p50": 68.14690014960328,
+      "p90": 172.91384845860094
+    },
+    "validation": {
+      "p10": 25.079872407968907,
+      "p50": 42.33202097703345,
+      "p90": 103.94229168149026
+    }
+  },
+  "first_epoch": {
+    "epoch": 1,
+    "mean_training_loss": 9.26657370461358,
+    "validation_map50": 0.01333525770239312,
+    "lr": 0.0005
+  },
+  "best_validation_epoch": {
+    "epoch": 7,
+    "mean_training_loss": 5.895078936682807,
+    "validation_map50": 0.0798280465956093,
+    "lr": 0.0004541209397837698
+  },
+  "last_epoch": {
+    "epoch": 30,
+    "mean_training_loss": 2.6462505918078953,
+    "validation_map50": 0.03329981802317271,
+    "lr": 5e-05
+  },
+  "validation_floor01": {
+    "classes": {
+      "pothole": {
+        "ap50": 0.0798280465956093,
+        "gt_count": 391,
+        "prediction_count": 4289,
+        "tp": 157,
+        "fp": 4132,
+        "fn": 234
+      }
+    },
+    "map50": 0.0798280465956093,
+    "matching": "one_to_one_IoU0.5_AP101"
+  },
+  "validation_FP_confidence_ge035": 68,
+  "unmatched_validation_gt_count_floor01": 234,
+  "observations": [
+    "India-only train vs Japan-only validation; country domain shift confounded with model recipe",
+    "training loss declines while validation AP peaks early: consistent with overfit, not causal proof",
+    "old recipe omitted official native mosaic/HSV, SGD decay groups/warmup/EMA/noaug-L1",
+    "publisher D40 original VOC verified, quarantined third-party labels never used"
+  ],
+  "planned_candidate_count": 1,
+  "selection": "new grouped validation AP50; max validation F2 operating threshold",
+  "old_test_role": "already examined regression benchmark only; never train",
+  "synthetic_accuracy_evidence": false
+}
