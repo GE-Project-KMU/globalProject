@@ -27,6 +27,8 @@ export interface Observation {
     unassessable_reason?: string | null;
     color?: string;
     line_type?: string;
+    paint_mask_rle?: { size: number[]; counts: number[] };
+    outline_polygon_px?: number[][];
   } | null;
   quality?: { usable: boolean; reasons: string[] };
   image_content_path?: string;
@@ -36,6 +38,7 @@ export interface Observation {
   profile_id?: string;
   demo?: boolean;
   synthetic?: boolean;
+  corrections?: unknown[];
 }
 export interface ListResult {
   items: Observation[];
@@ -49,6 +52,17 @@ export interface User {
   org_id?: string;
 }
 export interface Summary {
+  trend_by_type?: Record<
+    string,
+    { date: string; candidates: number; confirmed: number; completed: number }[]
+  >;
+  trend?: {
+    date: string;
+    candidates: number;
+    confirmed: number;
+    completed: number;
+  }[];
+  trend_counts_unit?: string;
   total: number;
   pending: number;
   potholes: number;
