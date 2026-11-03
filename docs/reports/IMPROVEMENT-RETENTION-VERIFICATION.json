@@ -1,0 +1,65 @@
+{
+  "automatic_schedule_configured": false,
+  "combined_source_deadline_policy": "Earliest pinned source expiry; conservative earlier dates may apply to mixed-source derived files.",
+  "deadline_date_counts": {
+    "2026-11-10": 23083
+  },
+  "dry_run": {
+    "automatic_schedule_configured": false,
+    "counts": {
+      "deleted": 0,
+      "missing": 0,
+      "modified_refused": 0,
+      "not_due": 23083,
+      "retired": 0,
+      "scope_refused": 0,
+      "would_delete": 0
+    },
+    "dry_run": true,
+    "model_weights_deleted": 0,
+    "private_plan_counts": {
+      "deleted": 0,
+      "missing": 0,
+      "modified_refused": 0,
+      "not_due": 1,
+      "retired": 0,
+      "scope_refused": 0,
+      "would_delete": 0
+    }
+  },
+  "eligible_file_content_hashes_checked": true,
+  "explicit_root_count": 28,
+  "format": "improvement-retention-verification-v1",
+  "model_weights_deleted": 0,
+  "new_inventory_sha256": "d9d1802992930412572c7f23cc17aab58d51920ccf1cf67f2ca26ae620d26e1d",
+  "new_plan_sha256": "6b380f6653619b7bfa6229ec97aaaaa64e33dab523b64463f9e0d1edf4bf46b7",
+  "new_registered_bytes": 3744195332,
+  "new_registered_files": 23083,
+  "old_inventory_sha256": "a54f568d2c7c2b49427dc8d1b3ac925364f8f5c90160c2ac526b6c4e34b8bc91",
+  "old_inventory_unchanged": true,
+  "old_unchanged_registered_files": 15970,
+  "preserved_counts": {
+    "aggregate_or_unclassified_json_is_preserved": 83,
+    "aggregate_or_unclassified_log_is_preserved": 13,
+    "minimal_source_or_provenance_is_preserved": 39,
+    "model_or_minimal_provenance_is_preserved": 14,
+    "weights": 21
+  },
+  "registration": {
+    "inventory_files": 23083,
+    "registered_files": 23083,
+    "source_deadlines_extended": false,
+    "source_files_modified": false
+  },
+  "source_deadlines_extended": false,
+  "source_files_deleted": 0,
+  "source_files_modified": false,
+  "unclassified_extensions": {
+    ".md": 3,
+    ".py": 5
+  },
+  "uncovered_candidates": 0,
+  "union_candidate_files": 39053,
+  "union_coverage_checked_in_memory": true,
+  "verified_at": "2026-11-03T23:52:38.976870Z"
+}
