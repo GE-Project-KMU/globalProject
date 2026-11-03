@@ -96,6 +96,21 @@ def test_aggregate_and_minimal_provenance_are_preserved(case):
     private=case.folder/"release.json";private.write_text(json.dumps([{"source_member":"SYNTHETIC_PLATE_FILENAME"}]),encoding="utf-8");case.save(private,"identifiable_manifest")
     assert retention.register(case.relative(case.plan),case.relative(case.inventory))["registered_files"]==1
 
+
+def test_per_image_numeric_diagnostics_inherit_source_expiry_but_aggregate_hashes_are_preserved(case):
+    diagnostic=case.folder/"synthetic-numeric-diagnostic.json"
+    diagnostic.write_text(json.dumps({"image_sha256":"a"*64,"residuals":[.0002]}),encoding="utf-8")
+    case.save(diagnostic,"per_image_prediction")
+    retention.register(case.relative(case.plan),case.relative(case.inventory))
+    record=next(iter(json.loads(case.inventory.read_text())["entries"].values()))
+    assert record["expires_at"]=="2026-01-08T00:00:00Z"
+    result=retention.purge(case.relative(case.inventory),now=datetime(2026,1,9,tzinfo=timezone.utc))
+    assert result["dry_run"] and result["counts"]["would_delete"]==1 and diagnostic.exists()
+    aggregate=case.folder/"aggregate-metrics.json"
+    aggregate.write_text(json.dumps({"dataset_release_sha256":"a"*64,"paint_iou":.5}),encoding="utf-8")
+    with pytest.raises(ValueError,match="aggregate_or_unclassified"):
+        retention.eligible(aggregate,"identifiable_manifest")
+
 def test_path_escape_unknown_root_bad_hash_and_no_private_cli_errors(case,capsys,monkeypatch):
     plan=case.save();plan["roots"]=["data"];case.plan.write_text(json.dumps(plan),encoding="utf-8")
     with pytest.raises(ValueError,match="unknown_research_root"):retention.register(case.relative(case.plan),case.relative(case.inventory))

@@ -12,7 +12,7 @@ WEIGHTS={".pt",".pth",".onnx",".safetensors",".ckpt",".pkl",".pickle"}
 KINDS={"source_archive":{ ".zip",".tar",".gz",".xz",".7z",".download",".part",".assembled"},"source_image":{ ".jpg",".jpeg",".png",".bmp",".webp",".tif",".tiff"},"derived_image":{ ".jpg",".jpeg",".png",".bmp",".webp",".tif",".tiff"},"source_annotation":{ ".txt",".xml",".mat",".json",".jsonl",".csv"},"per_image_prediction":{ ".json",".jsonl",".csv",".npy",".npz",".jpg",".jpeg",".png"},"identifiable_manifest":{ ".json",".jsonl",".csv",".log"}}
 EXPIRIES={"expires_at","source_expires_at","collection_expires_at","mask_expires_at","license_expires_at","retention_expires_at"}
 PRESERVED={"provenance.json","source.json","source-qc.json","source-metadata.json","acquisition.json","license-evidence.json","license.json","license.txt","license.md","license","notice","readme.md","readme.txt","environment-report.json","install-receipt.json"}
-PRIVATE_FIELDS={"source_member","path","image_path","mask_path","source_path","filename","file_name","sample_id","source_id","image_id","bbox_xywh_px","paint_mask_rle"}
+PRIVATE_FIELDS={"source_member","path","image_path","mask_path","source_path","filename","file_name","sample_id","source_id","image_id","image_sha256","bbox_xywh_px","paint_mask_rle"}
 
 def clock(value=None):
     if value is None:return datetime.now(timezone.utc)
