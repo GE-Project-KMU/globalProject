@@ -1,5 +1,6 @@
 
-import io, json, re, os
+import io, json, re, os, asyncio
+from contextlib import asynccontextmanager
 from PIL import Image, UnidentifiedImageError
 from fastapi import Request, UploadFile, File, Form
 from fastapi.responses import FileResponse
@@ -26,6 +27,11 @@ class Approval(BaseModel):
 @app.post("/api/v1/image-approvals",status_code=201)
 async def approve(b:Approval,req:Request):
     p=principal(req);role(p,"admin","reviewer")
+    try:
+        store.get(digest("image:"+b.file_id),p["org_id"],"tombstone")
+        fail(410,"DATA_EXPIRED")
+    except HTTPException as e:
+        if e.status_code!=404:raise
     await remote("identity","/internal/devices/"+b.device_id,p)
     captured=stamp(b.captured_at);reviewed=stamp(b.reviewed_at)
     if captured>now()+2 or reviewed<captured or reviewed>now()+2:fail(422,"INVALID_TIME")
@@ -41,6 +47,11 @@ async def upload(req:Request,file:UploadFile=File(...),metadata:str=Form(...)):
         if set(b)!={"file_id","approval_id","sha256","captured_at"}:raise ValueError()
         id=valid_uuid(b["file_id"]);valid_uuid(b["approval_id"])
     except (ValueError,TypeError):fail(422,"INVALID_METADATA")
+    try:
+        store.get(digest("image:"+id),p["org_id"],"tombstone")
+        fail(410,"DATA_EXPIRED")
+    except HTTPException as e:
+        if e.status_code!=404:raise
     content=await file.read(5000001)
     if len(content)>5000000:fail(413,"PAYLOAD_TOO_LARGE")
     try:
@@ -73,7 +84,13 @@ async def upload(req:Request,file:UploadFile=File(...),metadata:str=Form(...)):
     return ok({"image_id":id,"state":"ready","sha256":sha,"expires_at":iso(expires),"deduplicated":False})
 @app.get("/internal/images/{id}")
 def verify(id:str,req:Request):
-    p=principal(req);x=store.get(id,p["org_id"],"image")
+    p=principal(req);valid_uuid(id)
+    try:
+        store.get(digest("image:"+id),p["org_id"],"tombstone")
+        fail(410,"DATA_EXPIRED")
+    except HTTPException as e:
+        if e.status_code!=404:raise
+    x=store.get(id,p["org_id"],"image")
     if p["role"]=="device" and x["device_id"]!=p["sub"]:fail(403,"FORBIDDEN")
     if x["state"]!="ready":fail(410,"DATA_EXPIRED")
     return ok(x)
@@ -93,7 +110,13 @@ async def delete(req:Request):
         except HTTPException as e:
             if e.status_code==404:continue
             raise
-        (FILES/id).unlink(missing_ok=True);store.delete(id,p["org_id"]);deleted.append(id)
+        (FILES/id).unlink(missing_ok=True)
+        with store.tx() as s:
+            tid=digest("image:"+id)
+            try:store.get(tid,p["org_id"],"tombstone",s)
+            except HTTPException:store.create(tid,p["org_id"],"tombstone",{"reason":"privacy_deletion"},now()+180*86400,s)
+            store.delete(id,p["org_id"],s)
+        deleted.append(id)
     return ok({"deleted":deleted})
 @app.post("/internal/retention")
 def retention(req:Request):
@@ -104,3 +127,33 @@ def retention(req:Request):
             if row.kind=="image":(FILES/row.id).unlink(missing_ok=True)
             s.delete(row)
     return ok({"deleted":len(rows)})
+
+def purge_expired_media():
+    with store.tx() as s:
+        rows=list(s.scalars(select(Aggregate).where(Aggregate.expires<=now())))
+        for row in rows:
+            if row.kind=="image":
+                (FILES/row.id).unlink(missing_ok=True)
+                tid=digest("image:"+row.id)
+                if s.get(Aggregate,tid) is None:store.create(tid,row.org,"tombstone",{"reason":"ttl_expiry"},now()+180*86400,s)
+            s.delete(row)
+    # Orphans are never externally readable, remove stale staged files.
+    for f in FILES.iterdir():
+        if f.is_file() and f.stat().st_mtime<now()-86400:
+            with store.tx() as s:
+                if s.get(Aggregate,f.name) is None:f.unlink(missing_ok=True)
+async def retention_worker():
+    while True:
+        try:purge_expired_media()
+        except asyncio.CancelledError:raise
+        except Exception:log.exception("media retention cycle failed")
+        await asyncio.sleep(30)
+@asynccontextmanager
+async def lifespan(app):
+    task=asyncio.create_task(retention_worker())
+    try:yield
+    finally:
+        task.cancel()
+        try:await task
+        except asyncio.CancelledError:pass
+app.router.lifespan_context=lifespan
