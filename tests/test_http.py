@@ -6,6 +6,7 @@ accuracy, real camera performance or privacy detector recall.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import io
 import json
@@ -44,6 +45,11 @@ def data(response, expected=200):
     return body["data"]
 
 
+class PrivateFixture(dict):
+    def __repr__(self):
+        return "<synthetic HTTP fixture: generated credentials redacted>"
+
+
 @pytest.fixture(scope="session")
 def client():
     with httpx.Client(base_url=os.getenv("ROAD_TEST_BASE_URL", "http://127.0.0.1:8000"), timeout=30) as c:
@@ -55,7 +61,7 @@ def client():
 @pytest.fixture(scope="session")
 def auth(client):
     login = data(client.post("/api/v1/auth/login", json={"org_code": "demo", "login": "admin@road.local", "password": env_values()["ROAD_BOOTSTRAP_PASSWORD"]}))
-    return {"Authorization": "Bearer " + login["access_token"]}
+    return PrivateFixture({"Authorization": "Bearer " + login["access_token"]})
 
 
 @pytest.fixture(scope="session")
@@ -101,7 +107,7 @@ def setup(client, auth):
                    "profile_id": profile_id, "model_version": bundle_body["version"], "config_hash": bundle_body["config_hash"],
                    "pothole": {"bbox_xywh_px": [100, 200, 160, 80], "confidence": 0.91, "track_observations": 5, "candidate_state": "multi_frame", "occluded": False}, "lane": None,
                    "quality": {"usable": True, "reasons": []}, "image": {"file_id": file_id, "sha256": sha, "redacted": True, "reviewed_for_sharing": True}, "review": {"status": "unreviewed", "priority": "normal"}}
-    return {"device": device, "dh": dh, "run": run_body, "profile": profile_body, "profile_id": profile_id, "bundle": bundle_body, "observation": observation, "blob": blob, "metadata": metadata, "image": image_result, "approval_body": approval_body}
+    return PrivateFixture({"device": device, "dh": dh, "run": run_body, "profile": profile_body, "profile_id": profile_id, "bundle": bundle_body, "observation": observation, "blob": blob, "metadata": metadata, "image": image_result, "approval_body": approval_body})
 
 
 def test_authentication_and_no_header_spoofing(client):
@@ -257,3 +263,114 @@ def test_cross_tenant_isolation(client, auth, setup):
 def test_payload_limits(client, setup):
     too_big = client.post("/api/v1/images", headers=setup["dh"], data={"metadata": json.dumps(setup["metadata"])}, files={"file": ("oversize.jpg", b"x" * 5_000_001, "image/jpeg")})
     assert too_big.status_code == 413
+
+
+@pytest.mark.parametrize("raw", ["{", "null", "[]", '"text"', "", '{"name":"one","name":"two"}', '{"name":1e9999}'])
+def test_malformed_or_non_object_json_is_422_not_500(client, auth, raw):
+    response = client.post("/api/v1/devices", headers={**auth, "Content-Type": "application/json"}, content=raw)
+    assert response.status_code == 422, response.text
+    assert "traceback" not in response.text.lower()
+
+
+def test_profile_and_bundle_reject_wrong_scalar_types(client, auth, setup):
+    profile = json.loads(json.dumps(setup["profile"]))
+    profile["name"] = {"invalid": "object instead of string"}
+    assert client.post("/api/v1/profiles", headers=auth, json=profile).status_code == 422
+    profile["name"] = "bad-image-size-" + uuid4().hex[:8]
+    profile["calibration"]["image_size"] = [True, 720]
+    assert client.post("/api/v1/profiles", headers=auth, json=profile).status_code == 422
+    bundle = json.loads(json.dumps(setup["bundle"]))
+    bundle["version"] = "bad-threshold-" + uuid4().hex[:8]
+    bundle["thresholds"]["pothole_confidence"] = True
+    assert client.post("/api/v1/model-bundles", headers=auth, json=bundle).status_code == 422
+
+
+def test_run_path_put_and_manifest_concurrency(client, auth, setup):
+    path = "/api/v1/runs/" + setup["run"]["run_id"]
+    body = {"segments": [{"coordinates": [[127.0, 37.5], [127.0001, 37.5001]], "from": utc(-30), "to": utc(-20), "quality": "valid", "visible_scope": {"profile_id": setup["profile_id"], "roi_id": "main", "assessment_state": "assessed", "reason": None}}], "manifest_hash": setup["run"]["manifest_hash"]}
+    data(client.put(path + "/path", headers=setup["dh"], json=body))
+    data(client.put(path + "/path", headers=setup["dh"], json=body))
+    complete = {"ended_at": utc(), "status": "completed", "manifest_hash": "2"*64, "summary": {"captured_frames": 1800, "dropped_frames": 0, "quality_failures": 0, "gnss_gap_seconds": 0}}
+    assert client.patch(path, headers=setup["dh"], json=complete).status_code == 428
+    assert client.patch(path, headers={**setup["dh"], "If-Match": '"' + "0"*64 + '"'}, json=complete).status_code == 409
+    data(client.patch(path, headers={**setup["dh"], "If-Match": '"' + setup["run"]["manifest_hash"] + '"'}, json=complete))
+    saved = data(client.get(path, headers=auth))
+    assert saved["status"] == "completed"
+
+
+def wait_job(client, auth, job_id):
+    for _ in range(60):
+        job = data(client.get("/api/v1/jobs/" + job_id, headers=auth))
+        if job["status"] in ("succeeded", "failed"):
+            return job
+        time.sleep(0.25)
+    pytest.fail("Background job did not reach a terminal state")
+
+
+def test_pdf_report_has_readable_korean_content(client, auth):
+    from pypdf import PdfReader
+    response = client.get("/api/v1/reports", headers=auth, params={"format": "pdf", "snapshot_at": utc()})
+    assert response.status_code in (200, 202), response.text
+    result = data(response, response.status_code)
+    assert wait_job(client, auth, result["job_id"])["status"] == "succeeded"
+    pdf = client.get("/api/v1/reports/" + result["job_id"] + "/download", headers=auth)
+    assert pdf.status_code == 200
+    assert pdf.headers["content-type"].startswith("application/pdf")
+    reader = PdfReader(io.BytesIO(pdf.content))
+    text = "\n".join(page.extract_text() for page in reader.pages)
+    assert "도로점검 보고서" in text
+    assert "재귀반사검사" in text
+    assert len(reader.pages) >= 1
+
+
+def test_privacy_delete_removes_image_and_observation_and_blocks_replay(client, auth, setup):
+    privacy_run = json.loads(json.dumps(setup["run"]))
+    privacy_run["run_id"], privacy_run["started_at"] = str(uuid4()), utc(-30)
+    data(client.post("/api/v1/runs", headers=setup["dh"], json=privacy_run), 201)
+    file_id, captured = str(uuid4()), utc(-5)
+    sha = hashlib.sha256(setup["blob"]).hexdigest()
+    approval = data(client.post("/api/v1/image-approvals", headers=auth, json={"file_id": file_id, "device_id": setup["observation"]["device_id"], "sha256": sha, "size_bytes": len(setup["blob"]), "mime": "image/jpeg", "captured_at": captured, "reviewed_at": utc(), "redaction_model_version": "SYNTHETIC-TEST-NO-PEOPLE"}), 201)
+    metadata = {"file_id": file_id, "approval_id": approval["approval_id"], "sha256": sha, "captured_at": captured}
+    data(client.post("/api/v1/images", headers=setup["dh"], data={"metadata": json.dumps(metadata)}, files={"file": ("privacy-synthetic.jpg", setup["blob"], "image/jpeg")}), 201)
+    payload = json.loads(json.dumps(setup["observation"]))
+    payload["observation_id"], payload["event_id"] = str(uuid4()), str(uuid4())
+    payload["image"]["file_id"] = file_id
+    payload["captured_at"] = captured
+    payload["run_id"] = privacy_run["run_id"]
+    data(client.post("/api/v1/observations", headers=setup["dh"], json=payload), 201)
+    related = json.loads(json.dumps(payload))
+    related["observation_id"], related["event_id"] = str(uuid4()), str(uuid4())
+    data(client.post("/api/v1/observations", headers=setup["dh"], json=related), 201)
+    result = data(client.post("/api/v1/privacy-requests", headers=auth, json={"request_type": "deletion", "target_refs": [{"kind": "observation", "id": payload["observation_id"]}], "reason": "Synthetic automated privacy deletion test"}), 202)
+    assert wait_job(client, auth, result["job_id"])["status"] == "succeeded"
+    state = data(client.get("/api/v1/privacy-requests/" + result["request_id"], headers=auth))
+    assert state["status"] == "completed"
+    assert client.get("/api/v1/observations/" + payload["observation_id"], headers=auth).status_code == 410
+    assert client.get("/api/v1/observations/" + related["observation_id"], headers=auth).status_code == 410
+    assert client.get("/api/v1/images/" + file_id + "/content", headers=auth).status_code in (404, 410)
+    assert client.post("/api/v1/observations", headers=setup["dh"], json=payload).status_code == 410
+
+
+def test_true_parallel_idempotent_ingestion(client, auth, setup):
+    payload = json.loads(json.dumps(setup["observation"]))
+    payload["observation_id"], payload["event_id"] = str(uuid4()), str(uuid4())
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        responses = list(pool.map(lambda _: client.post("/api/v1/observations", headers=setup["dh"], json=payload), range(4)))
+    assert sorted(r.status_code for r in responses) == [200, 200, 200, 201], [(r.status_code, r.text[:300]) for r in responses]
+    assert {r.json()["data"]["case_id"] for r in responses}.__len__() == 1
+    rows = data(client.get("/api/v1/observations", headers=auth, params={"run_id": payload["run_id"], "limit": 200}))["items"]
+    assert sum(o["observation_id"] == payload["observation_id"] for o in rows) == 1
+
+
+def test_true_parallel_review_conflict(client, auth, setup):
+    payload = json.loads(json.dumps(setup["observation"]))
+    payload["observation_id"], payload["event_id"] = str(uuid4()), str(uuid4())
+    created = data(client.post("/api/v1/observations", headers=setup["dh"], json=payload), 201)
+    patch = {"expected_case_id": created["case_id"], "expected_version": created["case_version"], "status": "confirmed", "reason": "Synthetic concurrent review"}
+    endpoint = "/api/v1/observations/" + payload["observation_id"] + "/review"
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        responses = list(pool.map(lambda _: client.patch(endpoint, headers=auth, json=patch), range(2)))
+    assert sorted(r.status_code for r in responses) == [200, 409]
+    history = data(client.get("/api/v1/cases/" + created["case_id"] + "/history", headers=auth))
+    entries = history.get("entries", history.get("items", []))
+    assert sum(e.get("to_status") == "confirmed" for e in entries) == 1
