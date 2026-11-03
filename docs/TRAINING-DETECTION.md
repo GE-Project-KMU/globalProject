@@ -64,4 +64,24 @@ WIDER에는 얼굴만, CCPD에는 번호판만 알려진 정답이 있다. 다�
 
 checkpoint는 검증 AP50이 가장 높은 epoch로 선택한다. 비식별화 confidence는 선택된 checkpoint의 검증 정답만 사용해 `.01/.03/.05/.1/.2/.35/.5` 중 결정하고 JSON으로 동결한 뒤 새 시험을 평가한다. 두 클래스 Recall≥.95가 가능한 후보가 있으면 그 안에서 precision을 우선하고, 없으면 최소 클래스 Recall과 precision 순으로 선택한다. 포트홀 confidence는 SRS 기본 .35로 고정한다. AP50(confidence floor .01)과 실제 운영 confidence의 TP/FP/FN·Recall/Precision은 따로 기록한다. 잘 안 나온 시험을 보고 임계값을 다시 조정하지 않는다.
 
-학습 폴더에는 원본 release SHA·Nano source/환경·seed·초기 가중치 해시, epoch loss/검증 지표, 최종 validation calibration, 시험 예측/지표, `best.pt`, ONNX와 manifest, source/TTL provenance를 남긴다. 실행한 trainer의 SHA·실제 명령과 소스 Git commit은 최종 `docs/reports/DETECTION-TRAINING-RESULTS.json`에 별도 기록한다(training-config가 trainer SHA를 자동 기록한다고 주장하지 않는다). 앱 검증은 OpenCV5 새 DNN 엔진 대신 canonical ONNX Runtime에서 수행하고 PyTorch/reference ORT와 함께 대조한다. 코드·실행 결과의 존재와 현장 SRS 정확도 합격은 구별한다.
+학습 폴더에는 원본 release SHA·Nano source/환경·seed·초기 가중치 해시, epoch loss/검증 지표, 최종 validation calibration, 시험 예측/지표, `best.pt`, ONNX와 manifest, source/TTL provenance를 남긴다. 실행한 trainer의 SHA·실제 명령과 소스 Git commit은 최종 `docs/reports/DETECTION-TRAINING-RESULTS.json`에 별도 기록한다(이번 실험의 training-config가 trainer SHA를 자동 기록했다고 주장하지 않는다). 앱 검증은 OpenCV5 새 DNN 엔진 대신 canonical ONNX Runtime에서 수행하고 PyTorch/reference ORT와 함께 대조한다. 코드·실행 결과의 존재와 현장 SRS 정확도 합격은 구별한다.
+
+## 실제 완료 결과와 검증 범위
+
+두 최종 탐지기는 각각30epoch를 실행했다. 가중치는 검증 AP50으로 선택한 checkpoint이고, 시험 결과에 맞춰 다시 학습하거나 임계값을 바꾸지 않았다.
+
+| 연구 모델 | 선택 epoch | 검증 AP50 | 독립 공개 시험 AP50 | 운영 confidence | 운영 시험 결과 |
+| --- | --- | --- | --- | --- | --- |
+| 원본 D40 포트홀 Nano640 | 7 | 7.98% | 13.11% | .35 고정 | TP23/FP49/FN174, Recall11.68%, Precision31.94% |
+| 원본 전체 프레임 얼굴·번호판 Nano640 | 18 | 81.40% | 73.55% macro | 검증에서 .01 선택·동결 | face Recall58.82%/Precision16.49%, plate Recall97.50%/Precision96.53% |
+
+포트홀 국가 전이 성능과 얼굴 누락률은 프로젝트 합격 기준에 미달한다. 실차·개인정보 검출 합격이나 상업 배포 가능 모델이라고 표시하지 않는다. 크롭 baseline의 높은 AP를 원본 장면 성능으로 대신 보고하지 않는다. 새 원본 장면 시험은 v3 학습 전에 이전 시험 이미지/번호판 identity와 겹치지 않도록 동결했지만, 실제 운영 주행의 독립성을 검증한 것은 아니다.
+
+이번 실행 코드는 Git `d3c040b`, SHA-256 `12bc7d58dc4ffb5d75023bbcd1ed833c5340d6f5ff13adb5b98a282956eb03d8`다. 각 폴더의 `training-script.executed.py`에 동일 snapshot을 보존했다. 실행이 모두 끝난 뒤 향후 trainer에 코드/argv 자동 기록과 test 사용범위 필드를 추가했으므로 현재 파일 SHA와 이번 실행 SHA는 구별한다. 기존 manifest에는 가중치·confidence·NMS를 바꾸지 않고 `test_split_used=false`, `test_evaluated=true`, `test_split_used_scope=training_and_selection`만 감사 보완했다. `manifest-metadata-audit.json`에 이전/이후 manifest SHA와 검증 근거를 남긴다. `test_split_used=false`는 시험을 평가조차 하지 않았다는 뜻이 아니다.
+
+```powershell
+# 합성 CPU 수식/좌표 계약: 모델 정확도 측정이 아니다.
+.\.venv\Scripts\python.exe scripts\setup_training.py run scripts\check_detection_training_contract.py
+# 완료한 실제 실험의 집계만 발행한다. raw 이미지/개별 예측은 공개 보고서에 넣지 않는다.
+.\.venv\Scripts\python.exe scripts\summarize_detection_training.py --source-commit d3c040b
+```
