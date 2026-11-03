@@ -2,7 +2,7 @@
 from pathlib import Path
 import argparse,hashlib,json,os,re,shutil,stat,sys,tempfile,uuid,urllib.parse,urllib.request,zipfile
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from scripts.verify_trained_models import ROOT,scoped,digest,read,validate_metadata
+from scripts.verify_trained_models import ROOT,scoped,digest,read,validate_metadata,lane_postprocess_passed
 
 FILES={"model.json","weights.onnx","provenance.json","release-summary.json","verification-summary.json"}
 LIMIT=512*1024*1024
@@ -33,13 +33,15 @@ def verification_summary(path,info):
         if value.get(key) is not True:raise ValueError("full_runtime_verification_required")
     if value.get("app_vs_ort",{}).get("passed") is not True:raise ValueError("onnxruntime_parity_required")
     if value.get("numerical_parity_passed") is not True:raise ValueError("all_requested_numerical_comparisons_must_pass")
+    if value.get("artifact_contract_verified") is not True:raise ValueError("full_runtime_verification_required")
+    if info["manifest"]["task"]=="lane" and not lane_postprocess_passed(value):raise ValueError("lane_postprocess_parity_required")
     if value.get("postprocess_parity_passed",True) is not True:raise ValueError("detection_postprocess_parity_required")
     result={key:value[key] for key in ("manifest_sha256","weight_sha256","metadata_valid","weight_hash_verified","finite_output","preprocess_contract_verified")}
     for key in ("app_vs_ort","app_vs_torch"):
         if key in value:result[key]={k:v for k,v in value[key].items() if k in ("passed","max_abs_error","mean_abs_error","rtol","atol") and isinstance(v,(bool,int,float))}
     for key in ("app_backend","app_backend_version","runtime_python","opencv_preprocessing_version"):
         if key in value and isinstance(value[key],str) and re.fullmatch("[a-zA-Z0-9_+.-]{1,80}",value[key]):result[key]=value[key]
-    result["numerical_parity_passed"]=True
+    result.update(numerical_parity_passed=True,artifact_contract_verified=True,postprocess_parity_passed=True)
     result.update(research_only=True,production_approved=False,accuracy_evaluation_performed=False)
     return result
 

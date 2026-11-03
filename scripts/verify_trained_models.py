@@ -198,6 +198,27 @@ def compare_detections(application,reference,*,bbox_atol=.05,confidence_atol=.00
     matched=len(errors);passed=ac==rc and len(application)==len(reference)==matched and max(errors,default=0)<=bbox_atol and max(scores,default=0)<=confidence_atol
     return {"passed":passed,"application_count":len(application),"reference_count":len(reference),"application_class_counts":ac,"reference_class_counts":rc,"matched_count":matched,"unmatched_application":len(application)-matched,"unmatched_reference":len(available),"min_matched_iou":min(overlaps) if overlaps else None,"max_abs_bbox_error_px":max(errors) if errors else None,"max_abs_confidence_error":max(scores) if scores else None,"bbox_atol_px":bbox_atol,"confidence_atol":confidence_atol,"no_positive_predictions":not application and not reference}
 
+def lane_postprocess_passed(result):
+    if result.get("lane_adapter_postprocess_matches_reference") is not True:return False
+    modes=("app","ort","torch") if result.get("torch_checkpoint_compared") is True else ("app","ort")
+    masks=result.get("mask_agreement",{})
+    return isinstance(masks,dict) and all(isinstance(masks.get(mode),dict)
+        and type(masks[mode].get("pixel_agreement")) in (int,float)
+        and masks[mode]["pixel_agreement"]==1.0 for mode in modes)
+
+
+def finalize_verification(result,task):
+    if task not in EXPECTED:raise ValueError("unsupported_model_task")
+    comparisons={"app_repeatability","app_vs_ort"}
+    if result.get("torch_checkpoint_compared") is True:comparisons.update(("app_vs_torch","ort_vs_torch"))
+    comparisons.update(key for key in result if key.startswith("app_vs_") or key=="ort_vs_torch")
+    result["numerical_parity_passed"]=all(isinstance(result.get(key),dict) and result[key].get("passed") is True for key in comparisons)
+    result["postprocess_parity_passed"]=lane_postprocess_passed(result) if task=="lane" else result.get("postprocess_parity_passed") is True
+    result["artifact_contract_verified"]=result["numerical_parity_passed"] and result["postprocess_parity_passed"]
+    result["status"]="artifact_verified" if result["artifact_contract_verified"] else "numerical_mismatch" if not result["numerical_parity_passed"] else "postprocess_mismatch"
+    return result
+
+
 def verify(args):
     validated=validate_metadata(args.manifest);m=validated["manifest"]
     result={"schema_version":1,"task":m["task"],"classes":m["classes"],"manifest_sha256":digest(validated["manifest_path"]),"weight_sha256":m["sha256"],"research_only":True,"production_approved":False,"project_acceptance_eligible":False,"source_licenses":m["source_licenses"],"split_counts":validated["split_counts"],"independent_route_verified":m["independent_route_verified"],"accuracy_evaluation_performed":False,"remaining_prerequisites":["independent ZED 2i vehicle evaluation","license-compatible intended use","agency acceptance"],"metadata_valid":True}
@@ -263,10 +284,7 @@ def verify(args):
             result["detection_postprocess_parity"]={mode:compare_detections(prediction,postprocess_detection(m,raw,image)) for mode,raw in raw_outputs.items() if mode!="app"}
             result["postprocess_parity_passed"]=all(value["passed"] for value in result["detection_postprocess_parity"].values())
     result.update(runtime_python=sys.version.split()[0],opencv_preprocessing_version=cv2.__version__,app_backend=adapter.backend,app_backend_version=adapter.backend_version,finite_output=True,output_shape=list(capture.output.shape),preprocess_contract_verified=True,adapter_result_count=int((prediction==1).sum()) if m["task"]=="lane" else len(prediction),synthetic_input=args.image is None,torch_checkpoint_compared=bool(args.checkpoint),production_approved=False)
-    result["numerical_parity_passed"]=all(value["passed"] for key,value in result.items() if key.startswith("app_vs_") or key in ("ort_vs_torch","app_repeatability"))
-    result["artifact_contract_verified"]=result["numerical_parity_passed"] and result.get("postprocess_parity_passed",True)
-    result["status"]="artifact_verified" if result["artifact_contract_verified"] else "numerical_mismatch" if not result["numerical_parity_passed"] else "postprocess_mismatch"
-    return result
+    return finalize_verification(result,m["task"])
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("manifest");parser.add_argument("--metadata-only",action="store_true");parser.add_argument("--image");parser.add_argument("--checkpoint");parser.add_argument("--training-python",default=str(default_training_python()));parser.add_argument("--yolox-source",default=str(ROOT/".cache/vendor/YOLOX"));parser.add_argument("--output");parser.add_argument("--rtol",type=float,default=.001);parser.add_argument("--atol",type=float,default=.0001);parser.add_argument("--worker",choices=["ort","torch","inspect"]);parser.add_argument("--blob");parser.add_argument("--result");parser.add_argument("--worker-report");args=parser.parse_args()

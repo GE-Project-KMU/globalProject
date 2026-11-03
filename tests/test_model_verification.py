@@ -73,7 +73,7 @@ def package_fixture(artifact):
     original=json.loads(artifact.provenance.read_text());original["assets"][0].update(source_id="PRIVATE_PERSON",source_path="PRIVATE/raw_face.jpg",files=[{"path":"PRIVATE/raw_face.jpg"}])
     artifact.provenance.write_text(json.dumps(original),encoding="utf-8")
     report=artifact.folder/"verification.json"
-    report.write_text(json.dumps({"manifest_sha256":digest(artifact.manifest),"weight_sha256":artifact.model["sha256"],"metadata_valid":True,"weight_hash_verified":True,"finite_output":True,"preprocess_contract_verified":True,"numerical_parity_passed":True,"app_vs_ort":{"passed":True,"max_abs_error":0.,"mean_abs_error":0.,"rtol":.001,"atol":.0001}}),encoding="utf-8")
+    report.write_text(json.dumps({"manifest_sha256":digest(artifact.manifest),"weight_sha256":artifact.model["sha256"],"metadata_valid":True,"weight_hash_verified":True,"finite_output":True,"preprocess_contract_verified":True,"numerical_parity_passed":True,"artifact_contract_verified":True,"postprocess_parity_passed":True,"torch_checkpoint_compared":False,"lane_adapter_postprocess_matches_reference":True,"mask_agreement":{name:{"pixel_agreement":1.0} for name in ("app","ort")},"app_vs_ort":{"passed":True,"max_abs_error":0.,"mean_abs_error":0.,"rtol":.001,"atol":.0001}}),encoding="utf-8")
     output=artifact.folder/"research.zip";receipt=build(artifact.manifest,output,report)
     return output,receipt,report
 

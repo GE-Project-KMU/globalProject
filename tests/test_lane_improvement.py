@@ -111,9 +111,10 @@ def test_comparison_lock_rejects_parallel_writer_and_cleans_up_exception(monkeyp
 def test_final_comparison_requires_current_real_image_torch_and_postprocess_proof():
     from scripts.compare_lane_models import verified_lane_artifact
     folder=ROOT/".cache/lane-improvement-tests"/uuid.uuid4().hex;folder.mkdir(parents=True)
-    model=folder/"model.json";atomic_json(model,{"synthetic":"proof-guard"})
+    model=folder/"model.json";atomic_json(model,{"synthetic":"proof-guard","sha256":"c"*64})
     proof={"manifest_sha256":sha256(model),"numerical_parity_passed":True,"torch_checkpoint_compared":True,
-           "synthetic_input":False,"lane_adapter_postprocess_matches_reference":True}
+           "synthetic_input":False,"lane_adapter_postprocess_matches_reference":True,"weight_sha256":"c"*64,
+           "artifact_contract_verified":True,"mask_agreement":{name:{"pixel_agreement":1.0} for name in ("app","ort","torch")}}
     path=folder/"verification-final.json";atomic_json(path,proof);verified_lane_artifact(model)
     for patch in ({"manifest_sha256":"0"*64},{"numerical_parity_passed":False},{"torch_checkpoint_compared":False},
                   {"synthetic_input":True},{"lane_adapter_postprocess_matches_reference":False}):
@@ -125,11 +126,11 @@ def test_diagnostic_accuracy_never_turns_a_failed_checkpoint_check_into_a_pass()
     from scripts.compare_lane_models import verified_lane_artifact
     folder=ROOT/".cache/lane-improvement-tests"/uuid.uuid4().hex;folder.mkdir(parents=True)
     model=folder/"model.json";path=folder/"verification-final.json"
-    metadata={"research_only":True,"production_approved":False,"project_acceptance_eligible":False,
+    metadata={"research_only":True,"production_approved":False,"project_acceptance_eligible":False,"sha256":"c"*64,"diagnostic_accuracy_only":True,
               "checkpoint_raw_tensor_parity_passed":False,"trained_checkpoint_sha256":"a"*64,
               "deployment_blocked_reasons":["checkpoint_raw_tensor_parity_unresolved"]}
     proof={"numerical_parity_passed":False,"artifact_contract_verified":False,"torch_checkpoint_compared":True,
-           "synthetic_input":False,"lane_adapter_postprocess_matches_reference":True,"checkpoint_sha256":"a"*64,
+           "synthetic_input":False,"lane_adapter_postprocess_matches_reference":True,"checkpoint_sha256":"a"*64,"weight_sha256":"c"*64,
            "app_vs_ort":{"passed":True},"mask_agreement":{name:{"pixel_agreement":1.0,"paint_pixels":10} for name in ("app","ort","torch")}}
     def write(m,p):
         atomic_json(model,m);atomic_json(path,p|{"manifest_sha256":sha256(model)})
@@ -139,11 +140,11 @@ def test_diagnostic_accuracy_never_turns_a_failed_checkpoint_check_into_a_pass()
     assert result["checkpoint_raw_tensor_parity_passed"] is False and result["diagnostic_accuracy_only"] is True
     assert json.loads(path.read_text())["artifact_contract_verified"] is False
     for mutation in ({"app_vs_ort":{"passed":False}},{"artifact_contract_verified":True},
-                     {"checkpoint_sha256":"b"*64},{"synthetic_input":True},
+                     {"checkpoint_sha256":"b"*64},{"weight_sha256":"b"*64},{"synthetic_input":True},
                      {"mask_agreement":{**proof["mask_agreement"],"torch":{"pixel_agreement":.99999,"paint_pixels":10}}}):
         write(metadata,proof|mutation)
         with pytest.raises(ValueError):verified_lane_artifact(model,diagnostic=True)
     for mutation in ({"production_approved":True},{"research_only":False},{"project_acceptance_eligible":True},
-                     {"checkpoint_raw_tensor_parity_passed":True},{"deployment_blocked_reasons":[]}):
+                     {"checkpoint_raw_tensor_parity_passed":True},{"diagnostic_accuracy_only":False},{"deployment_blocked_reasons":[]}):
         write(metadata|mutation,proof)
         with pytest.raises(ValueError):verified_lane_artifact(model,diagnostic=True)

@@ -19,19 +19,23 @@ def preserve_freeze(path,value):
 
 
 def verified_lane_artifact(path,*,diagnostic=False):
+    from scripts.verify_trained_models import lane_postprocess_passed
+    model=json.loads(path.read_text(encoding="utf-8"))
     proof=json.loads((path.parent/"verification-final.json").read_text(encoding="utf-8"))
     if (proof.get("manifest_sha256")!=sha256(path)
+        or not model.get("sha256") or proof.get("weight_sha256")!=model["sha256"]
         or proof.get("torch_checkpoint_compared") is not True or proof.get("synthetic_input") is not False
-        or proof.get("lane_adapter_postprocess_matches_reference") is not True):
+        or not lane_postprocess_passed(proof)):
         raise ValueError("positive_validation_numerical_and_postprocess_verification_required")
     strict=proof.get("numerical_parity_passed") is True
+    if strict and proof.get("artifact_contract_verified") is not True:raise ValueError("positive_validation_numerical_and_postprocess_verification_required")
     if not strict:
         if not diagnostic:raise ValueError("positive_validation_numerical_and_postprocess_verification_required")
-        model=json.loads(path.read_text(encoding="utf-8"))
         masks=proof.get("mask_agreement",{})
         if (proof.get("numerical_parity_passed") is not False or proof.get("artifact_contract_verified") is not False
             or proof.get("app_vs_ort",{}).get("passed") is not True
             or model.get("checkpoint_raw_tensor_parity_passed") is not False
+            or model.get("diagnostic_accuracy_only") is not True
             or "checkpoint_raw_tensor_parity_unresolved" not in model.get("deployment_blocked_reasons",[])
             or model.get("research_only") is not True or model.get("production_approved") is not False
             or model.get("project_acceptance_eligible") is not False
@@ -39,7 +43,7 @@ def verified_lane_artifact(path,*,diagnostic=False):
             or any(masks.get(name,{}).get("pixel_agreement")!=1.0 or masks.get(name,{}).get("paint_pixels",0)<1 for name in ("app","ort","torch"))):
             raise ValueError("explicit_runtime_consistent_research_diagnostic_required")
     return {"checkpoint_raw_tensor_parity_passed":strict,"diagnostic_accuracy_only":not strict,
-            "verification_manifest_sha256":proof["manifest_sha256"],"validation_probe_scope":"one predeclared positive validation image"}
+            "verification_manifest_sha256":proof["manifest_sha256"],"validation_probe_scope":"one real image; GT positivity and predeclaration audited separately"}
 
 
 def _compare(plan_path,output):
