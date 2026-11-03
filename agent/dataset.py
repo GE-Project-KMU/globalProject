@@ -61,6 +61,10 @@ def validate_annotation(sample):
         if sample.get("lane_masks"):
             masks = sample["lane_masks"]
             decoded = [decode_rle(masks[key]) for key in ("outline", "gap", "paint", "valid")]
+            if sample["image"].get("coord_space", "left_original") == "left_original" and any(mask.shape != (height, width) for mask in decoded):
+                errors.append("mask_image_size_mismatch")
+            if np.any((decoded[2] > 0) & ~(decoded[0] > 0)):
+                errors.append("paint_outside_outline")
             result = measure_patch(*decoded, outline_supported=sample.get("outline_supported", False))
             if "retention_pct" in sample and sample["retention_pct"] != result["retention_pct"]:
                 errors.append("retention_label_mismatch")
@@ -76,8 +80,23 @@ def validate_annotation(sample):
 def validate_release(samples, *, now=None):
     errors, groups, identifiers = [], defaultdict(set), set()
     now = now or datetime.now(timezone.utc)
+    if not isinstance(samples, list):
+        return {"valid": False, "samples": 0, "errors": [{"code": "release_must_be_sample_list"}]}
     for sample in samples:
+        if not isinstance(sample, dict):
+            errors.append({"code": "sample_must_be_object"})
+            continue
         sample_id = sample.get("sample_id")
+        if not isinstance(sample_id, str):
+            errors.append({"code": "sample_id_required"})
+            continue
+        try:
+            uuid.UUID(sample_id)
+        except ValueError:
+            errors.append({"sample_id": sample_id, "code": "invalid_sample_uuid"})
+        for field in ("source_id", "source_hash", "leakage_group_id", "path", "sha256", "annotation_version"):
+            if not sample.get(field):
+                errors.append({"sample_id": sample_id, "code": "missing_" + field})
         if sample_id in identifiers:
             errors.append({"sample_id": sample_id, "code": "duplicate_sample_id"})
         identifiers.add(sample_id)
