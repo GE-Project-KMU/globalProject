@@ -1,0 +1,38 @@
+{
+  "format": "redaction-app-final-comparison-protocol-v1",
+  "recorded_before_fresh_test_scores_access": true,
+  "baseline_manifest": "data/training/redaction-nano-v3/model.json",
+  "baseline_manifest_sha256": "88b1b8e86e3b8aec33a816aca082e1f81da20ba29c33c144e36be02a02693dee",
+  "candidate_release_sha256": "4eeae0afdf67fcaf727e3e8b3a9b35486ef6f1126ae486da64637a7aec5bbd16",
+  "candidate_selection_receipt": "data/training/redaction-inference-options-v4/option-selection-freeze.json",
+  "candidate_manifest_rule": "Use options[selected_option].manifest from the immutable VAL-only selection receipt. Verify final manifest SHA, ONNX SHA, and confidence against that receipt. No test-based choice.",
+  "require_before_test_inference": [
+    "VAL-only option selection receipt written before accessing native test scores",
+    "Selected option positive face VAL strict app/ORT/Torch numerical and postprocess verification",
+    "Selected option positive plate VAL strict app/ORT/Torch numerical and postprocess verification"
+  ],
+  "benchmarks": {
+    "fresh": {
+      "benchmark_manifest": "data/training/research-redaction-v4/release.json",
+      "benchmark_sha256": "4eeae0afdf67fcaf727e3e8b3a9b35486ef6f1126ae486da64637a7aec5bbd16",
+      "role": "new_source_holdout_known_class_conditional_actual_app_cpu",
+      "samples": 400
+    },
+    "regression": {
+      "benchmark_manifest": "data/training/research-redaction-fullframe/release.json",
+      "benchmark_sha256": "f749f7e34b2af4256a9015b95b605ef7906197f3b6271690484f0aabd6c65b42",
+      "role": "previously_examined_v3_test_known_class_conditional_actual_app_cpu",
+      "samples": 400
+    }
+  },
+  "materialized_plans": ["docs/reports/REDACTION-APP-FRESH-COMPARISON-PLAN.json", "docs/reports/REDACTION-APP-REGRESSION-COMPARISON-PLAN.json"],
+  "output_directory": "data/training/redaction-inference-options-v4",
+  "app_floor_confidence": 0.01,
+  "fixed_reference_confidence": 0.35,
+  "nms_iou": 0.5,
+  "fresh_test_used_for_selection": false,
+  "old_crop_diagnostic_test_is_a_different_benchmark": true,
+  "physical_identity_independence_verified": false,
+  "project_acceptance_eligible": false,
+  "production_approved": false
+}
