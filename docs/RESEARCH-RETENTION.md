@@ -10,11 +10,13 @@
 - WIDER/CCPD 등 얼굴·번호판 원본과 RDD 취득 기록에는 기존7일 기한이 있다. A2D2도 기존 source/release 기한을 따른다. RTK는 `data/public/rtk/acquisition.json`의 원래90일 공개 연구자료 기한을 유지하며 새 취득시각이나 임의7일 소급값을 만들지 않는다.
 - 여러 고정 근거가 있으면 가장 이른 expiry를 사용한다. expiry가 없는 근거에는 현재 날짜나 mtime을 대신 넣지 않고 등록을 거부한다.
 - 실제 경로·SHA·기한을 한 번 등록한 뒤 같은 경로의 다른 내용이나 더 늦은 기한을 덮어쓰지 않는다. 새 영수증을 만들어도 기존 기한은 연장되지 않는다.
-- `data/research/redaction`, `data/research/rdd2020`, `data/research/rdd2022`, `data/public/rtk`, `data/public/a2d2`와 명시한 `data/training/<experiment>`만 대상이다. `data`, `data/training`, 프로젝트 전체를 대상으로 지정할 수 없다.
+- `data/research/redaction`, `data/research/rdd2020`, `data/research/rdd2022`, `data/public/rtk`, `data/public/a2d2`, `data/public/a2d2-improvement-v2`와 명시한 `data/training/<experiment>`만 대상이다. `data`, `data/training`, 프로젝트 전체를 대상으로 지정할 수 없다.
 
 학습 원본/test/crop/fullframe, source_member 등 개별 파일명이 담긴 release JSON, 개인별 예측 이미지/JSON, `*.preview.jpg`, `heldout-predictions`/`selected-validation-predictions`의 개별 파일을 명시적으로 등록한다. archive의 `.download`/`.part`/`.assembled` 취득 조각도 고정 SHA와 원본 source 기한으로 등록할 수 있다. 확장자 중 `.pt/.pth/.onnx` 등이 포함되면 부분 다운로드라도 모델 가중치로 보호한다.
 
 모델 manifest, `provenance.json`, 취득 근거, 라이선스 근거와 개별 식별자 없는 집계 보고서는 보존한다. JSON/JSONL/CSV에 개별 이미지·source_member·sample/source ID·bbox 등 연결 정보가 있으면 개인별 자료로 분류하고, precision/recall/count만 있는 집계 자료와 구분한다. 알 수 없는 파일은 자동으로 삭제하지 않는다.
+
+개별 검증 사례의 `image_sha256`도 원본과 연결되는 정보다. JSON 보고서와 같은 키가 담긴 stdout `.log` 사본은 모두 원본 기한을 상속한다. 데이터셋·checkpoint의 집계 해시만 있는 보고서는 보존한다. `license_plate`로 이름 지은 번호판 이미지·예측·검증 로그를 LICENSE 문서로 오인해 보존하지 않는다.
 
 ## 등록
 
@@ -44,6 +46,8 @@ kind는 source_archive/source_image/source_annotation/derived_image/per_image_pr
 ```
 
 coverage는 명시한 roots만 읽기 전용으로 살펴본다. 누락 후보 개수와 종류, 보존/미분류 파일 개수를 점검하며 삭제 대상을 자동 등록하지 않는다. 등록/계획 여부 점검과 콘텐츠 해시 재검증은 구분한다. 출력·details에는 개인별 파일명 대신 개수/경로 hash를 남긴다. 미분류/누락 후보는 원래 취득 근거를 확인해 계획을 보완한 뒤 최종 등록한다. 동시 register/apply는 lock으로 거부하므로 한 작업씩 실행한다.
+
+JSON 구문·크기 제한·읽기 오류는 명시적인 보존 정책과 구분한다. 이런 오류가 발생한 coverage 검사는 실패하며 정상 보존 파일로 합산하지 않는다. 원인을 해결한 뒤 다시 검사해야 한다.
 
 ## dry-run과 명시적 실제 정리
 
