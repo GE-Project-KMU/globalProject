@@ -1,0 +1,150 @@
+{
+  "source_title": "Road Traversing Knowledge (RTK)",
+  "source_url": "https://data.mendeley.com/datasets/hssswvmjwf/1",
+  "institution_source_url": "https://lapix.ufsc.br/pesquisas/projeto-veiculo-autonomo/datasets/",
+  "doi": "10.17632/hssswvmjwf.1",
+  "authors": [
+    "Thiago Rateke",
+    "Aldo von Wangenheim",
+    "Rafael Toledo"
+  ],
+  "license_id": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "license_scope": "Publisher CC BY 4.0 allows reuse with attribution/license link/change notice. No endorsement or privacy approval is implied. Third-party rights still require review.",
+  "retrieval_status": "official_archive_downloaded_and_publisher_sha256_matched",
+  "archive_bytes": 101609702,
+  "archive_url": "https://data.mendeley.com/public-files/datasets/hssswvmjwf/files/2c72e75d-1f50-457a-86f0-a5e3a4174df9/file_downloaded",
+  "data_manifest_path": "data/public/rtk/manifest.json",
+  "sample_count": 563,
+  "publisher_image_count": 701,
+  "image_size": [
+    352,
+    288
+  ],
+  "foreground": "Publisher index4 roadMarking. Known other classes1..12 ->background0; class0 background/void255 ->ignore255. Potholes are negatives, never paint.",
+  "not_ground_truth_for": [
+    "worn-paint retention percentage",
+    "expected painted outline",
+    "independent route generalization",
+    "project acceptance",
+    "human privacy review"
+  ],
+  "research_only": true,
+  "human_privacy_reviewed": false,
+  "not_for_deployment": true,
+  "dataset_expiry": "2027-02-01T16:51:19.893991+00:00",
+  "immutable_artifact_hashes": {
+    "data/public/rtk/RTK.zip": "78803e8df89eae6130139ee9c48de947edd08015fe56826c30fdacb2599841db",
+    "data/public/rtk/source-metadata.json": "4ad6d1239d3f5cd0595d8eb96e68e904467c0f3caa36424de291b39feb0e9d4a",
+    "data/public/rtk/license-evidence.json": "05860ec91789a1f9ab00ed4188de08600640dda2f0210b57839f29d28ac5e4e4",
+    "data/public/rtk/manifest.json": "126b78c2da0f1c62140a9e74ac7447a611c5b36cd5fe7c5087e721492bbe51b4",
+    "data/public/rtk/machine-qc.json": "05f9acf6e97e781e7ddb3182f5b40b7cd2aee69f809f840f8c66474c43cafb84",
+    "scripts/prepare_rtk.py": "8fa9f377d4f112ae48208e9a8dbde76b7b638d043a5112a2f2f0a8ecea3525d7"
+  },
+  "machine_qc": {
+    "samples": 563,
+    "positive_images": 183,
+    "mask_pixel_counts": {
+      "0": 18827678,
+      "1": 479910,
+      "255": 37767100
+    },
+    "positive_images_by_split": {
+      "validation": 21,
+      "train": 129,
+      "test": 33
+    },
+    "positive_pixels_by_split": {
+      "validation": 15559,
+      "train": 423279,
+      "test": 41072
+    },
+    "warnings": [],
+    "split_counts": {
+      "validation": 70,
+      "train": 422,
+      "test": 71
+    },
+    "block_group_count": 3,
+    "route_group_count": null,
+    "independent_holdout_available": false,
+    "research_holdout_available": true,
+    "split_independence": "blocked_frame_indices_with_guard_bands_route_unknown",
+    "independent_route_verified": false,
+    "project_acceptance_eligible": false,
+    "split_blocks": {
+      "train": [
+        125,
+        549
+      ],
+      "validation": [
+        0,
+        74
+      ],
+      "test": [
+        630,
+        700
+      ]
+    },
+    "guard_bands": [
+      [
+        75,
+        124
+      ],
+      [
+        550,
+        629
+      ]
+    ],
+    "guard_band_dropped": 130,
+    "split_plan_version": "RTK-research-blocks-v1-frozen-before-training",
+    "split_plan_rationale": "Before any model training or evaluation, publisher class-support inspection found initial validation480..549 contained zero roadMarking pixels. Validation0..74 and train125..549 chosen once to ensure positive label support with guard bands75..124 and550..629. Test630..700 unchanged. This decision uses only labels, never model performance. No further split changes after training/test.",
+    "near_duplicate_policy": "Exact SHA256 or grayscale32x32 DCT64 pHash Hamming<=6 connected clusters; remove ALL members of every cluster crossing partitions before release.",
+    "cross_split_duplicate_dropped": 8,
+    "cross_split_duplicate_dropped_files": [
+      "000000005.png",
+      "000000006.png",
+      "000000008.png",
+      "000000041.png",
+      "000000058.png",
+      "000000160.png",
+      "000000161.png",
+      "000000162.png"
+    ],
+    "group_plan": null,
+    "archive_sha256": "78803e8df89eae6130139ee9c48de947edd08015fe56826c30fdacb2599841db",
+    "limitation": "Publisher filenames are flattened numeric IDs with no supplied route/video mapping or proof numeric order is chronological. Publisher interleaved 561/140 image split is preserved as metadata only. Blocked frame holdout with guard bands and duplicate checks is research validation, NOT verified independent routes or project acceptance. pHash cannot prove absence of shared road objects or routes."
+  },
+  "validation": {
+    "validate_research_release": {
+      "valid": true,
+      "samples": 563,
+      "errors": []
+    },
+    "mask_values": [
+      0,
+      1,
+      255
+    ],
+    "retention_metric_not_available": true
+  },
+  "alternatives_not_ingested": {
+    "RLMD": {
+      "source_url": "https://github.com/stu9113611/RLMD",
+      "reason": "Author repository documents 25 polygon mask classes and downloads but no explicit dataset license found. Citation request does not grant use rights."
+    },
+    "ApolloScape": {
+      "source_url": "https://github.com/ApolloScapeAuto/dataset-api/tree/master/lane_segmentation",
+      "terms_source": "https://github.com/ApolloScapeAuto/dataset-api/tree/master/scene_parsing",
+      "reason": "Real pixel lane labels with road/record/camera IDs; source photo restriction educational only, commercial excluded. Toolkit Apache2 does not license dataset. Not downloaded."
+    },
+    "BDD100K": {
+      "source_url": "https://github.com/bdd100k/bdd100k/blob/master/doc/source/format.rst",
+      "reason": "Lane masks rasterize annotated lane geometry. Not verified remaining-paint pixels or wear-retention GT. Dataset license differs from BSD toolkit."
+    },
+    "CamVid": {
+      "source_url": "https://web4.cs.ucl.ac.uk/staff/g.brostow/MotionSegRecData/",
+      "reason": "Original32class LaneMkgsDriv/NonDriv could support paint research, but original host/license not verified during this run; not downloaded."
+    }
+  }
+}
