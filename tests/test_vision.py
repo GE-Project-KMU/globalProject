@@ -23,9 +23,12 @@ from agent.retention import purge_expired_runs
 
 
 @pytest.fixture
-def folder():
+def folder(monkeypatch):
     path = ROOT / ".cache" / "vision-tests" / str(uuid.uuid4())
     path.mkdir(parents=True)
+    from agent import governance
+    monkeypatch.setattr(governance,"REGISTRY",path/"registry")
+    monkeypatch.setattr(governance,"REVOCATIONS",path/"revocations.json")
     return path
 
 
@@ -444,3 +447,457 @@ def test_baseline_download_rejects_corrupt_payload_and_removes_partial(folder, m
     assert not (folder / baseline.MODEL_FILE).exists()
     assert not (folder / (baseline.MODEL_FILE + ".download")).exists()
     client.close()
+
+
+def installation_profile(folder):
+    value = {"profile_id":uid(),"calibrated_by":"fixture-operator","calibration":{
+        "image_size":[64,48],"height_m":.4,"pitch_deg":30.,"camera_matrix":[[100.,0,32],[0,100.,24],[0,0,1]],
+        "distortion":[0.,0.,0.,0.,0.],"homography":np.eye(3).tolist(),"roi_polygon_px":[[0,0],[63,0],[63,47],[0,47]],
+        "visible_distance_m":[0.,2.4],"calibrated_at":datetime.now(timezone.utc).isoformat()},
+        "measurement":{"bev_size":[64,48],"meters_per_pixel":.05,"lane_tracks":[{
+            "lane_track_id":uid(),"color":"white","line_type":"solid","bev_x_range":[20,30],"outline_verified":True}]}}
+    path=folder/"profile.json"; atomic_json(path,value)
+    return path,value
+
+
+def test_profile_geometry_homography_and_rejection(folder):
+    from agent.profile import load_profile,geometry,calibrate_homography
+    path,p=installation_profile(folder)
+    image=np.zeros((48,64,3),np.uint8)
+    assert geometry(image,load_profile(path))[1].sum()>1000
+    with pytest.raises(ValueError,match="image_size"):
+        geometry(image[:20],p)
+    p["calibration"]["homography"]=[[0,0,0]]*3; atomic_json(path,p)
+    with pytest.raises(ValueError,match="homography"): load_profile(path)
+    request=folder/"points.json"
+    atomic_json(request,{"image_points":[[0,0],[10,0],[10,10],[0,10]],"bev_points":[[0,0],[20,0],[20,20],[0,20]]})
+    assert np.allclose(calibrate_homography(request,folder/"matrix.json")["homography"],[[2,0,0],[0,2,0],[0,0,1]])
+
+
+def test_metric_segments_deduplicate_and_exclude_verified_dash_gaps(folder):
+    from agent.segments import Segments
+    _,p=installation_profile(folder)
+    p["measurement"]["lane_tracks"][0].update(line_type="dashed",dash_length_m=1.,gap_length_m=1.,phase_m=0.,phase_verified=True)
+    accumulator=Segments(uid(),p)
+    paint=np.ones((48,64),np.uint8); valid=paint.copy()
+    evidence={"frame_id":1}
+    for distance in np.arange(0,9,.2):
+        accumulator.add(paint,valid,float(distance),0,evidence,100.)
+        accumulator.add(paint,valid,float(distance),0,evidence,100.)
+    results=accumulator.finish()
+    first=next(r for r in results if r["start_m"]==0)
+    assert first["lane"]["grade"]=="visible_good"
+    assert first["lane"]["retention_pct"]==100
+    assert first["lane"]["segment_support_ratio"]==1
+    assert len(first["lane"]["patch_ids"])==50
+
+
+def test_motion_requires_gnss_visual_agreement_and_resets_gap():
+    from agent.segments import Distance
+    rng=np.random.default_rng(2026)
+    gray=rng.integers(20,220,(64,64),dtype=np.uint8)
+    shifted=np.roll(gray,2,axis=0)
+    at=datetime.now(timezone.utc)
+    motion=Distance(.05)
+    assert motion.update(gray,at.isoformat(),3.6,True)[0] is None
+    distance,reason=motion.update(shifted,(at+timedelta(seconds=.1)).isoformat(),3.6,True)
+    assert reason is None and abs(distance-.1)<.01
+    assert motion.update(shifted,(at+timedelta(seconds=.2)).isoformat(),3.6,False)[0] is None
+    assert motion.epoch==1
+
+
+def test_capture_run_analysis_review_outbox_contract(folder):
+    from agent.workflow import analyze_samples,run_samples,approve_review,sync_run,overlay_mask
+    video=folder/"stereo.mp4"; synthetic_video(video,frames=6)
+    key=folder/"key"; captured=record(video,folder/"runs",seconds=.6,chunk_seconds=1,minimum_free_bytes=0,key_path=key)
+    captured.update(original_capture_verified=True,precheck={k:True for k in __import__("agent.equipment",fromlist=["CHECKS"]).CHECKS})
+    manifest=folder/"run.json";atomic_json(manifest,captured)
+    profile_path,p=installation_profile(folder)
+    class ContractModel:
+        def __init__(self,task): self.manifest={"task":task,"sha256":"a"*64}
+        def predict(self,image):
+            if self.manifest["task"]=="lane": return np.ones(image.shape[:2],np.uint8)
+            if self.manifest["task"]=="redaction": return []
+            return [{"class":"pothole","bbox_xywh_px":[10.,10.,8.,8.],"confidence":.9}]
+    bundle={"version":"fixture-contract","config_hash":"b"*64,"weights_hashes":{k:"a"*64 for k in ("pothole","lane","redaction")},
+            "pothole":"pothole","lane":"lane","redaction":"redaction"}
+    result=analyze_samples(run_samples(manifest,key_path=key),folder/"analysis",run=captured,profile_path=profile_path,
+                           device_id=uid(),bundle=bundle,model_factory=ContractModel)
+    assert len(result["frames"])==6 and len(result["items"])==2
+    assert result["items"][1]["observation"]["lane"]["estimated_length_m"] is None
+    item=result["items"][0]; obs=item["observation"]
+    assert obs["pothole"]["track_observations"]>=3 and obs["location"]["quality"]=="unavailable"
+    assert obs["image"]["reviewed_for_sharing"] is False
+    decisions=folder/"decisions.json";atomic_json(decisions,[{"observation_id":obs["observation_id"],"approve":True,"image_sha256":obs["image"]["sha256"]}])
+    reviewed=approve_review(folder/"analysis"/"review.json",decisions,reviewed_by="contract-reviewer",queue_path=folder/"queue.sqlite",key_path=key)
+    assert reviewed["queued"]==[obs["observation_id"]]
+    requests=[]
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(201 if request.method=="POST" else 200,json={"data":{}})
+    sync_run(folder/"analysis"/"review.json","http://localhost:8000/api/v1","device",transport=httpx.MockTransport(handler))
+    assert [r.method for r in requests]==["POST","PUT","PATCH"] and "if-match" in requests[2].headers
+    assert json.loads(requests[1].content)["segments"]==[]
+    assert len(list((folder/"analysis").glob("*.redacted.png")))==result["retained_photos"]
+    assert result["removed_unreferenced_photos"]>0
+    assert overlay_mask(np.array([[0,1],[1,0]],np.uint8))=={"size":[2,2],"counts":[1,2,1]}
+    def ingest(request):
+        if request.url.path.endswith("image-approvals"):
+            return httpx.Response(201,json={"data":{"approval_id":uid()}})
+        if request.url.path.endswith("images"):
+            assert b"image/png" in request.content
+            return httpx.Response(201,json={"data":{"file_id":obs["image"]["file_id"]}})
+        from services.inspection.schemas import Observation
+        accepted=Observation.model_validate(json.loads(request.content))
+        assert accepted.run_id==captured["run_id"] and accepted.image.reviewed_for_sharing
+        return httpx.Response(201,json={"data":{"observation_id":accepted.observation_id}})
+    queue=Outbox(folder/"queue.sqlite",key)
+    queue.drain("http://localhost:8000/api/v1",device_token="contract-device",reviewer_token="contract-reviewer",transport=httpx.MockTransport(ingest))
+    assert queue.list()[0]["state"]=="acked"
+
+
+def test_optional_stereo_summary_and_object_coordinate_never_invent_depth():
+    from agent.equipment import depth_summary,object_coordinate
+    points=np.full((10,10,3),np.nan)
+    assert depth_summary(points,[0,0,10,10])["status"]=="unavailable"
+    points[:]=[0,0,5]
+    assert depth_summary(points,[0,0,10,10])["camera_point_m"]==[0.,0.,5.]
+    location={"quality":"valid","lat":37.,"lon":127.}
+    estimate=object_coordinate(location,[0,10,0],np.eye(4).tolist(),0.)
+    assert estimate["lat"]>37 and estimate["accuracy_m"] is None
+    assert object_coordinate({"quality":"unavailable"},[0,0,5],np.eye(4).tolist(),None)["status"]=="unavailable"
+
+
+def test_actual_synthetic_stereo_disparity_and_metric_depth():
+    from agent.equipment import stereo_depth
+    rng=np.random.default_rng(96)
+    left=rng.integers(20,230,(96,192,3),dtype=np.uint8)
+    right=np.roll(left,-8,axis=1)
+    matrix=[[100.,0,96],[0,100.,48],[0,0,1]]
+    calibration={"left_camera_matrix":matrix,"right_camera_matrix":matrix,"rotation":np.eye(3).tolist(),
+                 "translation_m":[-.12,0,0],"left_distortion":[0.]*5,"right_distortion":[0.]*5}
+    result=stereo_depth(left,right,calibration)
+    assert result["valid"].sum()>1000
+    assert abs(float(np.nanmedian(result["depth_m"]))-1.5)<.1
+
+
+def test_independent_metrics_count_duplicates_and_unassessable_fn(folder):
+    from agent.evaluate import detection_metrics,lane_metrics,segmentation_iou,evaluate
+    gt=[{"sample_id":"a","class":"pothole","bbox_xywh_px":[0,0,10,10]}]
+    predictions=[gt[0]|{"confidence":.9},gt[0]|{"confidence":.8}]
+    result=detection_metrics(gt,predictions,["pothole"])
+    assert result["map50"]==1 and result["classes"]["pothole"]["fp"]==1
+    lanes=lane_metrics([{"segment_id":"one","retention_pct":30.},{"segment_id":"two","retention_pct":90.}],
+                       [{"segment_id":"one","retention_pct":None},{"segment_id":"two","retention_pct":80.}])
+    assert lanes["fn"]==1 and lanes["assessable_ratio"]==.5 and lanes["retention_mae_pp"]==10.
+    assert segmentation_iou([[1,0,255]],[[1,1,1]])["paint_iou"]==.5
+    request=folder/"metrics.json"
+    atomic_json(request,{"independent_locked_truth":True,"synthetic":True,"detection":{"truth":gt,"predictions":predictions,"classes":["pothole"]}})
+    assert evaluate(request,folder/"metrics-result.json")["acceptance_approved"] is False
+
+
+def test_detector_coco_export_uses_only_reviewed_train_validation(folder):
+    from agent.train_detector import export_coco
+    rows=[]
+    for number,split in enumerate(("train","validation","test")):
+        path=folder/f"image-{number}.png";cv2.imwrite(str(path),np.full((20,30,3),number*50,np.uint8))
+        rows.append({"sample_id":uid(),"source_id":uid(),"source_hash":sha256(path),"leakage_group_id":uid(),"annotation_version":"1.0",
+                     "path":str(path),"sha256":sha256(path),"privacy_status":"approved","qc_status":"qc_passed","allowed_use":"synthetic-test",
+                     "expires_at":(datetime.now(timezone.utc)+timedelta(days=1)).isoformat(),"split":split,"detection_labels_verified":True,
+                     "objects":[{"class":"pothole","certainty":"confirmed","bbox_xywh_px":[1,2,3,4]}]})
+    release=folder/"release.json";atomic_json(release,rows)
+    output=export_coco(release,folder/"coco","pothole")
+    train=json.loads((output/"annotations/instances_train2017.json").read_text())
+    assert len(train["annotations"])==1 and not (output/"test2017").exists()
+    rows[0]["objects"][0]["certainty"]="uncertain";atomic_json(release,rows)
+    with pytest.raises(ValueError,match="uncertain"):
+        export_coco(release,folder/"rejected-coco","pothole")
+
+
+def test_lane_visible_color_alignment_and_surrounding_plane(folder):
+    from agent.profile import lane_evidence
+    from agent.equipment import road_relative_step
+    _,profile=installation_profile(folder)
+    image=np.full((48,64,3),100,np.uint8);paint=np.zeros((48,64),np.uint8)
+    image[:,20:30]=220;paint[:,20:30]=1
+    valid,status=lane_evidence(image,paint,np.ones_like(paint),profile)
+    key=profile["measurement"]["lane_tracks"][0]["lane_track_id"]
+    assert status[key]["color"]=="white" and valid[:,20:30].all()
+    image[:,20:30]=[0,220,220]
+    valid,status=lane_evidence(image,paint,np.ones_like(paint),profile)
+    assert status[key]["color"]=="yellow" and not valid[:,20:30].any()
+    y,x=np.mgrid[:40,:40]
+    points=np.stack((x*.01,y*.01,np.ones_like(x)),axis=-1).astype(float)
+    points[15:25,15:25,2]+=.05
+    result=road_relative_step(points,[15,15,10,10])
+    assert result["physical_severity"] is None and abs(result["offset_m"]-.05)<1e-6
+
+
+def test_workflow_identity_rejection_precedes_model_execution(folder):
+    from agent.workflow import execute_config
+    from agent.equipment import CHECKS
+    profile_path,p=installation_profile(folder)
+    run_id,device_id,bundle_id=uid(),uid(),uid()
+    manifest=folder/"manifest.json";bundle=folder/"bundle.json"
+    atomic_json(manifest,{"run_id":run_id,"device_id":device_id,"profile_id":p["profile_id"],"precheck":{k:True for k in CHECKS}})
+    atomic_json(bundle,{"model_bundle_id":bundle_id})
+    config={"run_id":uid(),"device_id":device_id,"profile_id":p["profile_id"],"model_bundle_id":bundle_id,
+            "run_manifest":str(manifest),"profile_path":str(profile_path),"bundle_path":str(bundle),"output":str(folder/"result")}
+    path=folder/"config.json";atomic_json(path,config)
+    with pytest.raises(ValueError,match="identity_mismatch"):execute_config(path)
+    assert not (folder/"result").exists()
+
+
+def test_local_retention_removes_only_expired_known_artifacts(folder):
+    from agent.retention import purge_local_material
+    work=folder/"work";temporary=work/uid();temporary.mkdir(parents=True)
+    atomic_json(temporary/"retention.json",{"expires_at":(datetime.now(timezone.utc)-timedelta(seconds=1)).isoformat()})
+    (temporary/"chunk.mp4").write_bytes(b"test-raw")
+    results=folder/"results";job=results/uid();job.mkdir(parents=True)
+    atomic_json(job/"review.json",{"run":{"started_at":(datetime.now(timezone.utc)-timedelta(days=91)).isoformat()}})
+    (job/"000.redacted.png").write_bytes(b"test-derived");(job/"unrelated.txt").write_text("preserve")
+    assert len(purge_local_material(work=work,results=results))==2 and temporary.exists()
+    purge_local_material(work=work,results=results,dry_run=False)
+    assert not temporary.exists() and not (job/"000.redacted.png").exists() and (job/"unrelated.txt").exists()
+
+
+def test_capture_and_run_replay_never_write_plaintext_mp4_or_index(folder,monkeypatch):
+    from agent.capture import replay_bytes
+    from agent.workflow import run_samples
+    source=synthetic_video(folder/"source.mp4",frames=12)
+    original_open=Path.open
+    def guarded_open(path,mode="r",*args,**kwargs):
+        if any(flag in mode for flag in ("w","a","x")) and (path.suffix==".mp4" or path.name.endswith(".pts.json")):
+            raise AssertionError("plaintext_raw_disk_write")
+        return original_open(path,mode,*args,**kwargs)
+    monkeypatch.setattr(Path,"open",guarded_open)
+    monkeypatch.setattr(cv2,"VideoWriter",lambda *a,**k: (_ for _ in ()).throw(AssertionError("disk_encoder_forbidden")))
+    key=folder/"key"
+    result=record(source,folder/"runs",seconds=1.2,chunk_seconds=1,minimum_free_bytes=0,key_path=key)
+    store=EncryptedStore(key)
+    item=result["chunks"][0]["eyes"][0]
+    frames=list(replay_bytes(store.decrypt_bytes(item["path"]),sample_fps=5))
+    assert len(frames)==5 and frames[0]["frame"].shape==(48,64,3)
+    manifest=folder/"runs"/result["run_id"]/"manifest.json"
+    monkeypatch.setattr(store.__class__,"decrypt",lambda *a,**k: (_ for _ in ()).throw(AssertionError("disk_decryption_forbidden")))
+    assert len(list(run_samples(manifest,key_path=key)))==12
+    assert not list(manifest.parent.glob("*.mp4")) and not list(manifest.parent.glob("*.pts.json"))
+
+
+def test_collection_plan_and_stationary_gate(folder):
+    from agent.equipment import collection_plan
+    value={"plan_id":uid(),"organization":"fixture organization","controller_contact":"fixture@example.invalid",
+           "operator":"fixture operator","legal_basis":"fixture declared authorization; not legal guidance",
+           "purpose":"synthetic contract testing","collection_scope":"consented test fixture only",
+           "notice_message":"fixture recording notice and contact","raw_retention_days":7,"masked_retention_days":90,"audit_retention_days":180}
+    path=folder/"plan.json";atomic_json(path,value)
+    assert collection_plan(path)["sha256"]==sha256(path)
+    with pytest.raises(ValueError,match="stationary"):
+        record(0,folder/"runs",minimum_free_bytes=0,collection_plan_path=path)
+    value["raw_retention_days"]=30;atomic_json(path,value)
+    with pytest.raises(ValueError,match="retention"):collection_plan(path)
+
+
+def test_project_ca_keeps_certificate_and_hostname_verification(folder,monkeypatch):
+    import ssl
+    from cryptography import x509
+    from cryptography.x509.oid import NameOID
+    from cryptography.hazmat.primitives import hashes,serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from agent.tls import gateway_tls
+    key=rsa.generate_private_key(public_exponent=65537,key_size=2048)
+    name=x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,"vision-test-ca")])
+    now=datetime.now(timezone.utc)
+    certificate=(x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(key.public_key())
+                 .serial_number(x509.random_serial_number()).not_valid_before(now-timedelta(minutes=1)).not_valid_after(now+timedelta(days=1))
+                 .add_extension(x509.BasicConstraints(ca=True,path_length=None),critical=True).sign(key,hashes.SHA256()))
+    path=folder/"ca.pem";path.write_bytes(certificate.public_bytes(serialization.Encoding.PEM))
+    monkeypatch.setenv("ROAD_CA_BUNDLE",str(path))
+    context=gateway_tls()
+    assert context.check_hostname and context.verify_mode==ssl.CERT_REQUIRED and context.cert_store_stats()["x509_ca"]==1
+    with pytest.raises(ValueError,match="outside_workspace"):gateway_tls(ROOT.parent/"outside.pem")
+
+
+@pytest.mark.parametrize("operator_stop",[True,False])
+def test_camera_operator_stop_and_disconnect_preserve_encrypted_metadata(folder,monkeypatch,operator_stop):
+    import serial
+    from agent.equipment import probe_gnss
+    class FakeSerial:
+        in_waiting=0
+        def __init__(self,port,baudrate,timeout):assert baudrate==9600
+        def close(self):pass
+        def readline(self,*args):return b""
+        def __enter__(self):return self
+        def __exit__(self,*args):self.close()
+    monkeypatch.setattr(serial,"Serial",FakeSerial)
+    assert probe_gnss("FIXTURE",seconds=.001,baudrate=9600)==[]
+    plan=folder/"plan.json"
+    atomic_json(plan,{"plan_id":uid(),"organization":"fixture organization","controller_contact":"fixture@example.invalid",
+        "operator":"fixture operator","legal_basis":"explicit synthetic fixture authorization","purpose":"contract test only",
+        "collection_scope":"generated frames only","notice_message":"fixture collection notice","raw_retention_days":7,
+        "masked_retention_days":90,"audit_retention_days":180})
+    class FakeCamera:
+        def __init__(self):self.count=0;self.closed=False
+        def isOpened(self):return True
+        def set(self,*args):return True
+        def get(self,*args):return 10.
+        def read(self):
+            self.count+=1
+            if self.count==1:return True,np.full((48,128,3),100,np.uint8)
+            if operator_stop:raise KeyboardInterrupt()
+            return False,None
+        def release(self):self.closed=True
+    camera=FakeCamera();monkeypatch.setattr(cv2,"VideoCapture",lambda *args:camera)
+    metadata={"device_id":uid(),"profile_id":uid(),"precheck":{"notice_present":True},"conditions":{"daylight":True,"dry_asphalt":True}}
+    options=dict(seconds=60,minimum_free_bytes=0,key_path=folder/"key",collection_plan_path=plan,confirmed_stationary=True,capture_metadata=metadata,
+                 serial_port="FIXTURE",baudrate=9600)
+    if operator_stop:
+        result=record(0,folder/"runs",**options)
+        assert result["status"]=="completed" and result["stop_reason"]=="operator"
+    else:
+        with pytest.raises(RuntimeError,match="disconnected"):record(0,folder/"runs",**options)
+        result=json.loads(next((folder/"runs").glob("*/manifest.json")).read_text())
+        assert result["status"]=="interrupted"
+    assert camera.closed and result["device_id"]==metadata["device_id"] and result["profile_id"]==metadata["profile_id"]
+    assert result["persisted_frames"]==1 and result["chunks"][0]["index"]["encrypted"]
+    assert result["collection_plan"]["sha256"]==sha256(plan)
+    assert result["gnss_baudrate"]==9600
+
+
+def training_release_fixture(folder):
+    rows=[]
+    now=datetime.now(timezone.utc)
+    for number,split in enumerate(("train","validation")):
+        image=folder/f"source-{number}.png";cv2.imwrite(str(image),np.full((20,30,3),number*70,np.uint8))
+        rows.append({"sample_id":uid(),"source_id":uid(),"source_hash":sha256(image),"leakage_group_id":uid(),"annotation_version":"1.0",
+            "path":str(image),"sha256":sha256(image),"privacy_status":"approved","qc_status":"qc_passed","allowed_use":"synthetic-contract",
+            "expires_at":(now+timedelta(days=10)).isoformat(),"source_expires_at":(now+timedelta(days=1 if number==0 else 10)).isoformat(),
+            "split":split,"detection_labels_verified":True,"objects":[{"class":"pothole","certainty":"confirmed","bbox_xywh_px":[1,2,3,4]}]})
+    release=folder/"release.json";atomic_json(release,rows)
+    return release,rows
+
+
+def test_training_expiry_removes_copies_labels_and_blocks_model(folder,monkeypatch):
+    from agent.train_detector import export_coco
+    from agent.governance import link_model,revoke_known
+    release,rows=training_release_fixture(folder);original_hash=sha256(release)
+    output=export_coco(release,folder/"training"/"run","pothole")
+    provenance=json.loads((output/"provenance.json").read_text())
+    assert provenance["assets"][0]["expires_at"]==rows[0]["source_expires_at"]
+    assert provenance["assets"][0]["files"][0]["sha256"]==rows[0]["sha256"]
+    weights=output/"model.onnx";weights.write_bytes(b"mocked-loader-test-only")
+    manifest=output/"model.json"
+    atomic_json(manifest,{"format":"onnx","task":"pothole","classes":["pothole"],"weights":str(weights),"sha256":sha256(weights),
+        "target_trained":True,"dataset_release":"fixture","input_size":[32,32],"output_layout":"yolox_decoded_xywh",
+        "source_release_path":str(release),"training_provenance":str(output/"provenance.json")})
+    link_model(output/"provenance.json",manifest)
+    monkeypatch.setattr(cv2.dnn,"readNetFromONNX",lambda *args:object())
+    assert readiness(manifest)["ready"]
+    now=datetime.now(timezone.utc)+timedelta(days=2)
+    before=readiness(manifest)
+    result=revoke_known(now=now,dry_run=False,training_root=folder/"training",results_root=folder/"results")
+    assert result["affected"][0]["assets"]==1
+    assert not workspace_path(provenance["assets"][0]["files"][0]["path"]).exists()
+    assert workspace_path(provenance["assets"][1]["files"][0]["path"]).exists()
+    train=json.loads((output/"annotations/instances_train2017.json").read_text())
+    assert train["images"]==[] and train["annotations"]==[]
+    assert "revoked" in readiness(manifest)["reason"]
+    assert sha256(release)==original_hash and workspace_path(rows[0]["path"]).exists()
+    from agent import governance
+    log=(governance.REGISTRY.parent/"revocation-audit.jsonl").read_text()
+    assert rows[0]["sample_id"] not in log and rows[0]["path"] not in log
+    with pytest.raises(ValueError,match="revoked"):
+        export_coco(release,folder/"new-training","pothole")
+
+
+def test_explicit_source_and_observation_revoke_scoped_copies_and_queue(folder):
+    from agent.train_detector import export_coco
+    from agent.governance import revoke_known,identity_hash
+    release,rows=training_release_fixture(folder)
+    output=export_coco(release,folder/"training"/"run","pothole")
+    observation,image=fixture_observation(folder)
+    queue=Outbox(folder/"queue.sqlite",folder/"key")
+    queue.enqueue(observation,image,reviewed_by="reviewer",confirmed_human_review=True,lineage={"source_id":rows[1]["source_id"]})
+    report=revoke_known(request={"source_ids":[rows[1]["source_id"]],"reason":"fixture consent withdrawal"},
+                        dry_run=False,training_root=folder/"training",results_root=folder/"results")
+    assert report["affected"][0]["assets"]==1
+    queue.revoke_observations({identity_hash("source_id",rows[1]["source_id"])},dry_run=False)
+    assert queue.list()==[] and workspace_path(rows[1]["path"]).exists()
+    with pytest.raises(ValueError,match="revoked"):
+        queue.enqueue(observation,image,reviewed_by="reviewer",confirmed_human_review=True,lineage={"source_id":rows[1]["source_id"]})
+    # Tampered provenance cannot authorize deletion of an unrelated project file.
+    unrelated=folder/"unrelated.png";unrelated.write_bytes(b"preserve")
+    provenance=json.loads((output/"provenance.json").read_text())
+    provenance["assets"][0]["files"][0]["path"]=str(unrelated);atomic_json(output/"provenance.json",provenance)
+    with pytest.raises(ValueError,match="unowned_training"):
+        revoke_known(request={"sample_ids":[rows[0]["sample_id"]],"reason":"fixture"},dry_run=False,training_root=folder/"training",results_root=folder/"results")
+    assert unrelated.exists()
+
+
+def test_lane_staged_masks_follow_source_ttl_and_observation_revoke_clears_shared_review(folder):
+    from agent.train_lane import stage_lane_pairs
+    from agent.governance import revoke_known
+    release,rows=training_release_fixture(folder)
+    for index,row in enumerate(rows):
+        mask=folder/f"source-mask-{index}.png";cv2.imwrite(str(mask),np.ones((20,30),np.uint8))
+        row.update(mask_path=str(mask),mask_sha256=sha256(mask))
+    atomic_json(release,rows)
+    copied,provenance=stage_lane_pairs(folder/"training"/"lane",release,rows)
+    revoke_known(now=datetime.now(timezone.utc)+timedelta(days=2),dry_run=False,training_root=folder/"training",results_root=folder/"results")
+    assert not workspace_path(copied[0]["mask_path"]).exists() and not workspace_path(copied[0]["path"]).exists()
+    assert workspace_path(copied[1]["mask_path"]).exists() and workspace_path(rows[0]["mask_path"]).exists()
+    job=folder/"results"/uid();job.mkdir(parents=True)
+    image=job/"000.redacted.png";cv2.imwrite(str(image),np.zeros((20,30,3),np.uint8))
+    first,second=uid(),uid()
+    atomic_json(job/"review.json",{"items":[{"observation":{"observation_id":identifier},"image_path":str(image)} for identifier in (first,second)],
+                "frames":[{"frame_id":0}],"lane_segments":[{"private_evidence":"remove"}]})
+    unrelated=job/"unrelated.txt";unrelated.write_text("preserve")
+    revoke_known(request={"observation_ids":[first],"reason":"fixture deletion request"},dry_run=False,
+                 training_root=folder/"training",results_root=folder/"results")
+    value=json.loads((job/"review.json").read_text())
+    assert value["items"]==[] and value["frames"]==[] and value["lane_segments"]==[]
+    assert not image.exists() and unrelated.exists()
+
+
+def test_path_sync_preserves_gaps_scopes_limits_and_capture_registration(folder):
+    from agent.workflow import derive_path,sync_run,register_capture
+    from agent.equipment import CHECKS
+    from services.contracts import RunPath
+    now=datetime.now(timezone.utc)-timedelta(hours=1)
+    profile_id,device_id,run_id=uid(),uid(),uid()
+    def frame(seconds,quality="valid",usable=True,lat=37.):
+        return {"captured_at":(now+timedelta(seconds=seconds)).isoformat(),"location":{"lat":lat,"lon":127. if lat is not None else None,"quality":quality,"age_ms":0},
+                "quality":{"usable":usable,"reasons":[] if usable else ["blur_or_low_texture"]},
+                "lane_evidence":{"lane":{"outline_supported":usable,"reason":None if usable else "outline_not_supported"}}}
+    frames=[frame(0),frame(.1),frame(.2,"unavailable",lat=None),frame(.3),frame(.4),
+            frame(3),frame(3.1),frame(3.2,"degraded",False),frame(3.3,"degraded",False)]
+    run={"run_id":run_id,"device_id":device_id,"profile_id":profile_id,"started_at":now.isoformat(),
+         "ended_at":(now+timedelta(seconds=4)).isoformat(),"status":"completed","precheck":{k:True for k in CHECKS},
+         "postcheck":{"mount_secure":True,"lens_clear":True,"defect_from":None}}
+    package={"run":run,"device_id":device_id,"profile_id":profile_id,"frames":frames}
+    path=derive_path(package)
+    assert len(path["segments"])==4
+    assert path["segments"][-1]["quality"]=="degraded" and path["segments"][-1]["visible_scope"]["assessment_state"]=="unassessable"
+    assert path["segments"][0]["to"]==frames[1]["captured_at"] and path["segments"][1]["from"]==frames[3]["captured_at"]
+    long_package=package|{"frames":[frame(i*.01) for i in range(3000)]}
+    reduced=derive_path(long_package)
+    assert len(reduced["segments"][0]["coordinates"])==1000 and reduced["removed_interior_points"]==2000
+    RunPath.model_validate({"segments":reduced["segments"],"manifest_hash":"a"*64})
+    many=[]
+    for i in range(600):many.extend([frame(i*3),frame(i*3+.1)])
+    bounded=derive_path(package|{"frames":many})
+    assert len(bounded["segments"])==500 and sum(len(s["coordinates"]) for s in bounded["segments"])==1000 and bounded["omitted_segments"]==100
+    assert bounded["segments"][0]["from"]==many[0]["captured_at"] and bounded["segments"][-1]["to"]==many[-1]["captured_at"]
+    manifest=folder/"finished.json";atomic_json(manifest,run)
+    package_path=folder/"review.json";atomic_json(package_path,package)
+    requests=[]
+    def handler(request):
+        requests.append(request)
+        if request.method=="PUT":RunPath.model_validate(json.loads(request.content))
+        return httpx.Response(200,json={"data":{}})
+    register_capture(manifest,"http://localhost:8000/api/v1","device",transport=httpx.MockTransport(handler))
+    synced=sync_run(package_path,"http://localhost:8000/api/v1","device",transport=httpx.MockTransport(handler))
+    assert [r.method for r in requests]==["POST","POST","PUT","PATCH"]
+    assert json.loads(requests[0].content)==json.loads(requests[1].content)
+    assert json.loads(requests[2].content)["manifest_hash"]==json.loads(requests[3].content)["manifest_hash"]
+    assert synced["path_segments"]==4
