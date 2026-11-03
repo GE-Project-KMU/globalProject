@@ -12,22 +12,39 @@ def finite_tree(x):
 def validate_hash(x):
     import re
     if not isinstance(x,str) or not re.fullmatch("[a-f0-9]{64}",x):fail(422,"INVALID_SHA256")
+def numeric(x):
+    return type(x) in (int,float) and math.isfinite(x)
+def require(condition):
+    if not condition:raise ValueError("Input constraint failed")
+def scalar_string(x,maximum=150):
+    return isinstance(x,str) and 1<=len(x)<=maximum
 @app.post("/api/v1/profiles",status_code=201)
 async def create_profile(req:Request):
     p=principal(req);role(p,"admin");b=await req.json();finite_tree(b)
     required={"name","version","camera_serial","lens_label","calibration","config_hash"}
-    if not required<=set(b) or set(b)-required or not isinstance(b["version"],int) or b["version"]<1:fail(422,"INVALID_PROFILE")
+    if not required<=set(b) or set(b)-required or type(b["version"]) is not int or b["version"]<1:fail(422,"INVALID_PROFILE")
+    if not scalar_string(b["name"],100) or not scalar_string(b["camera_serial"]) or not scalar_string(b["lens_label"]):fail(422,"INVALID_PROFILE")
     validate_hash(b["config_hash"])
     c=b["calibration"];keys={"image_size","height_m","pitch_deg","camera_matrix","distortion","homography","roi_polygon_px","visible_distance_m","calibrated_at"}
     if not isinstance(c,dict) or not keys<=set(c):fail(422,"INVALID_CALIBRATION")
     import numpy as np
     try:
+        require(isinstance(c["image_size"],list) and len(c["image_size"])==2)
+        require(all(type(x) is int and 0<x<=16384 for x in c["image_size"]))
+        require(isinstance(c["visible_distance_m"],list) and len(c["visible_distance_m"])==2)
+        require(all(numeric(x) for x in c["visible_distance_m"]))
         w,h=c["image_size"];near,far=c["visible_distance_m"]
-        assert w>0 and h>0 and c["height_m"]>0 and 0<=near<far
+        require(numeric(c["height_m"]) and numeric(c["pitch_deg"]))
+        require(w>0 and h>0 and c["height_m"]>0 and 0<=near<far)
         for key in ("camera_matrix","homography"):
-            m=np.asarray(c[key],dtype=float);assert m.shape==(3,3) and abs(np.linalg.det(m))>1e-12
-        assert len(c["roi_polygon_px"])>=3
-        assert all(0<=x<=w and 0<=y<=h for x,y in c["roi_polygon_px"])
+            require(isinstance(c[key],list) and len(c[key])==3)
+            require(all(isinstance(row,list) and len(row)==3 and all(numeric(x) for x in row) for row in c[key]))
+            m=np.asarray(c[key],dtype=float);require(m.shape==(3,3) and abs(np.linalg.det(m))>1e-12)
+        require(isinstance(c["distortion"],list) and len(c["distortion"]) in (4,5,8,12,14))
+        require(all(numeric(x) for x in c["distortion"]))
+        require(isinstance(c["roi_polygon_px"],list) and 3<=len(c["roi_polygon_px"])<=256)
+        require(all(isinstance(pt,list) and len(pt)==2 and all(numeric(x) for x in pt) for pt in c["roi_polygon_px"]))
+        require(all(0<=x<=w and 0<=y<=h for x,y in c["roi_polygon_px"]))
         stamp(c["calibrated_at"])
     except (AssertionError,ValueError,TypeError,KeyError):fail(422,"INVALID_CALIBRATION")
     if any(x["name"]==b["name"] and x["version"]==b["version"] for x in store.list(p["org_id"],"profile")):fail(409,"PROFILE_VERSION_EXISTS")
@@ -38,16 +55,21 @@ async def create_bundle(req:Request):
     required={"version","weights_hashes","preprocess","thresholds","config_hash"}
     if not required<=set(b) or set(b)-required-{"code_commit","environment_hash"}:fail(422,"INVALID_BUNDLE")
     validate_hash(b["config_hash"])
-    if not isinstance(b["version"],str) or not b["version"]:fail(422,"INVALID_VERSION")
-    if set(b["weights_hashes"])!={"pothole","lane","redaction"}:fail(422,"INVALID_WEIGHTS")
+    if not scalar_string(b["version"]):fail(422,"INVALID_VERSION")
+    if not isinstance(b["weights_hashes"],dict) or set(b["weights_hashes"])!={"pothole","lane","redaction"}:fail(422,"INVALID_WEIGHTS")
     for h in b["weights_hashes"].values():validate_hash(h)
+    if not isinstance(b["preprocess"],dict):fail(422,"INVALID_PREPROCESS")
+    if "code_commit" in b and not scalar_string(b["code_commit"]):fail(422,"INVALID_CODE_COMMIT")
+    if "environment_hash" in b:validate_hash(b["environment_hash"])
     t=b["thresholds"]
     try:
-        assert 0<=t["pothole_confidence"]<=1 and 0<=t["pothole_nms_iou"]<=1
-        assert 0<=t["single_frame_confidence"]<=1
-        assert 0<=t["lane_monitor"]<t["lane_good"]<=100
-        assert 0<=t["min_valid_ratio"]<=1 and 0<=t["min_segment_support_ratio"]<=1
-    except (AssertionError,KeyError,TypeError):fail(422,"INVALID_THRESHOLDS")
+        require(isinstance(t,dict))
+        require(all(numeric(t[k]) for k in ("pothole_confidence","pothole_nms_iou","single_frame_confidence","lane_monitor","lane_good","min_valid_ratio","min_segment_support_ratio")))
+        require(0<=t["pothole_confidence"]<=1 and 0<=t["pothole_nms_iou"]<=1)
+        require(0<=t["single_frame_confidence"]<=1)
+        require(0<=t["lane_monitor"]<t["lane_good"]<=100)
+        require(0<=t["min_valid_ratio"]<=1 and 0<=t["min_segment_support_ratio"]<=1)
+    except (AssertionError,ValueError,KeyError,TypeError):fail(422,"INVALID_THRESHOLDS")
     if any(x["version"]==b["version"] for x in store.list(p["org_id"],"bundle")):fail(409,"BUNDLE_VERSION_EXISTS")
     id=uid();store.create(id,p["org_id"],"bundle",b)
     return ok({"model_bundle_id":id,**b,"deployment_status":"manifest_registered_weights_not_verified"})
