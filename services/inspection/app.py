@@ -184,3 +184,32 @@ def detail(id:str,req:Request):
     except HTTPException as e:
         if e.status_code!=404:raise
     return ok(view(store.get(id,p["org_id"],"observation"),p))
+@app.patch("/api/v1/observations/{id}/review")
+async def review(id:str,req:Request):
+    p=principal(req);role(p,"admin","reviewer");raw=await req.json()
+    if "expected_version" not in raw:fail(428,"VERSION_REQUIRED")
+    try:b=ReviewPatch.model_validate(raw)
+    except ValidationError:fail(422,"VALIDATION_ERROR")
+    transitions={"unreviewed":{"confirmed","false_positive","recapture"},"recapture":{"confirmed","false_positive"},"confirmed":{"action_planned"},"action_planned":{"completed"}}
+    with store.tx() as s:
+        o=store.get(id,p["org_id"],"observation",s);c=canonical_case(o["case_id"],p["org_id"],s)
+        if c["id"]!=b.expected_case_id or c["version"]!=b.expected_version:fail(409,"VERSION_CONFLICT",current_version=c["version"])
+        if b.status and b.status!=c["status"] and b.status not in transitions.get(c["status"],set()) and not b.override_transition:fail(409,"STATE_CONFLICT")
+        data=payload(c);before={"status":c["status"],"priority":c["priority"]}
+        if b.status:data["status"]=b.status
+        if b.priority:data["priority"]=b.priority
+        data.update(reason=b.reason,updated_at=iso())
+        c=store.change(c["id"],p["org_id"],data,b.expected_version,s)
+        store.create(uid(),p["org_id"],"history",{"case_id":c["id"],"actor_id":p["sub"],"at":iso(),"from_status":before["status"],"to_status":c["status"],"from_priority":before["priority"],"to_priority":c["priority"],"reason":b.reason,"case_version":c["version"]},o["expires"],s)
+        store.audit(p,"case.review",c["id"],s)
+    return ok({"case_id":c["id"],"version":c["version"],"review":{"status":c["status"],"priority":c["priority"],"updated_at":c["updated_at"]}})
+@app.get("/api/v1/cases/{id}/history")
+def history(id:str,req:Request):
+    p=principal(req);role(p,"admin","reviewer","viewer");store.get(id,p["org_id"],"case")
+    return ok({"entries":[x for x in store.list(p["org_id"],"history") if x["case_id"]==id],"next_cursor":None})
+@app.get("/api/v1/summary")
+def summary(req:Request):
+    p=principal(req);role(p,"admin","reviewer","viewer")
+    items=[view(o,p) for o in store.list(p["org_id"],"observation")]
+    cases={v["case_id"]:v for v in items}.values()
+    return ok({"total":len(items),"pending":sum(v["review"]["status"]=="unreviewed" for v in cases),"completed":sum(v["review"]["status"]=="completed" for v in cases),"potholes":sum(v["type"]=="pothole" for v in items),"worn_lanes":sum((v.get("lane") or {}).get("grade")=="worn_candidate" for v in items),"unassessable":sum((v.get("lane") or {}).get("grade")=="unassessable" for v in items),"counts_unit":"observation","demo":any(v.get("demo") for v in items)})
