@@ -1,0 +1,12 @@
+{
+  "scope": "Frozen VAL-only508 manifest plus source code review; no TEST row/image/prediction/metric access",
+  "validation_manifest_sha256": "754958da4b13d1a80abcd40a64467342eb229f7df1b5e6e0e74132dc2963f7f8",
+  "validation_images": 508,
+  "ignore_bboxes_xywh_px_key_present": 0,
+  "nonempty_ignored_region_rows": 0,
+  "handling": "Whole original image omitted if ANY positive-area publisher invalid face annotation exists; valid publisher face GT retained, clipped to image bounds, >512GT entire image omitted. No ignore-region evaluation policy required for surviving release rows.",
+  "source_code": "scripts/improve_redaction_data.py candidate(face) clips bbox, skips zero/outside area, raises on b[7], rejects gtcount>512. Seed TRAIN/VAL came from v3 preparer with identical whole-image-invalid omission.",
+  "preparer_sha256": "3cc1a34d47c494940786ca74b2cf9ef3e1221c558eb0e78766a512a9939cc237",
+  "v3_preparer_sha256": "3bbd2a726233b267c3f6be68c8744825dae017e97712f698f2e721e08f60a94e",
+  "unknown_other_class_policy": "Singleton known_label_coverage; source evaluation_class only, not exhaustive two-class/global privacy coverage."
+}
