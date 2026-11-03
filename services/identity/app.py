@@ -1,3 +1,5 @@
+from services.contracts import UUIDString
+from services.contracts import UserCreate,UserPatch,DeviceCreate,DevicePatch,Reason
 
 import hashlib, os, secrets
 from argon2 import PasswordHasher
@@ -29,6 +31,7 @@ def login(b:Login):
     except VerificationError:fail(401,"INVALID_CREDENTIALS")
     token=secrets.token_urlsafe(32)
     store.create(digest(token),user["org_id"],"session",{"user_id":user["id"]},now()+1800)
+    store.audit({"sub":user["id"],"org_id":user["org_id"]},"auth.login",user["id"])
     return ok({"access_token":token,"token_type":"Bearer","expires_in":1800,"user":{"id":user["id"],"role":user["role"],"login":user["login"]}})
 @app.post("/internal/introspect")
 async def introspect(req:Request):
@@ -51,21 +54,22 @@ def me(req:Request):
 def logout(req:Request):
     p=principal(req)
     if p.get("session_id"):store.delete(p["session_id"],p["org_id"])
+    store.audit(p,"auth.logout",p["sub"])
     return Response(status_code=204)
 def public_user(x):return {k:x[k] for k in ("id","login","role","active")}
 @app.get("/api/v1/users")
 def users(req:Request):
     p=principal(req);role(p,"admin");return ok({"items":[public_user(x) for x in store.list(p["org_id"],"user")]})
 @app.post("/api/v1/users",status_code=201)
-async def create_user(req:Request):
-    p=principal(req);role(p,"admin");b=await req.json()
+async def create_user(req:Request,body:UserCreate):
+    p=principal(req);role(p,"admin");b=body.model_dump(exclude_unset=True,by_alias=True)
     if set(b)-{"login","password","role"} or not isinstance(b.get("login"),str) or not isinstance(b.get("password"),str) or not 1<=len(b["login"])<=254 or not 12<=len(b["password"])<=128 or b.get("role") not in ("admin","reviewer","viewer"):fail(422,"VALIDATION_ERROR")
     if any(x["login"]==b["login"] for x in store.list(p["org_id"],"user")):fail(409,"LOGIN_EXISTS")
     x=store.create(uid(),p["org_id"],"user",{"login":b["login"],"password_hash":ph.hash(b["password"]),"role":b["role"],"active":True})
     store.audit(p,"user.create",x["id"]);return ok(public_user(x))
 @app.patch("/api/v1/users/{id}")
-async def change_user(id:str,req:Request):
-    p=principal(req);role(p,"admin");b=await req.json()
+async def change_user(id:UUIDString,req:Request,body:UserPatch):
+    p=principal(req);role(p,"admin");b=body.model_dump(exclude_unset=True,by_alias=True)
     if not b or set(b)-{"role","active","password"} or ("role" in b and b["role"] not in ("admin","reviewer","viewer")) or ("active" in b and not isinstance(b["active"],bool)) or ("password" in b and (not isinstance(b["password"],str) or not 12<=len(b["password"])<=128)):fail(422,"VALIDATION_ERROR")
     with store.tx() as s:
         x=store.get(id,p["org_id"],"user",s)
@@ -83,15 +87,15 @@ async def change_user(id:str,req:Request):
 def devices(req:Request):
     p=principal(req);role(p,"admin","reviewer");return ok({"items":[{k:v for k,v in x.items() if k!="credential_id"} for x in store.list(p["org_id"],"device")]})
 @app.get("/internal/devices/{id}")
-def device_reference(id:str,req:Request):
+def device_reference(id:UUIDString,req:Request):
     p=principal(req)
     if p["role"]=="device" and p["sub"]!=id:fail(403,"FORBIDDEN")
     x=store.get(id,p["org_id"],"device")
     if not x["active"]:fail(403,"DEVICE_INACTIVE")
     return ok({"id":id,"name":x["name"],"active":x["active"]})
 @app.post("/api/v1/devices",status_code=201)
-async def new_device(req:Request):
-    p=principal(req);role(p,"admin");b=await req.json()
+async def new_device(req:Request,body:DeviceCreate):
+    p=principal(req);role(p,"admin");b=body.model_dump(exclude_unset=True,by_alias=True)
     if set(b)!={"name"} or not isinstance(b["name"],str) or not 1<=len(b["name"])<=100:fail(422,"VALIDATION_ERROR")
     id=uid();token=secrets.token_urlsafe(32);tid=digest(token)
     with store.tx() as s:
@@ -100,14 +104,14 @@ async def new_device(req:Request):
         store.audit(p,"device.create",id,s)
     return ok({"device_id":id,"device_token":token,"name":b["name"],"active":True})
 @app.patch("/api/v1/devices/{id}")
-async def update_device(id:str,req:Request):
-    p=principal(req);role(p,"admin");b=await req.json()
+async def update_device(id:UUIDString,req:Request,body:DevicePatch):
+    p=principal(req);role(p,"admin");b=body.model_dump(exclude_unset=True,by_alias=True)
     if not b or set(b)-{"name","active"} or ("active" in b and not isinstance(b["active"],bool)) or ("name" in b and (not isinstance(b["name"],str) or not 1<=len(b["name"])<=100)):fail(422,"VALIDATION_ERROR")
     x=store.get(id,p["org_id"],"device");payload={k:x[k] for k in ("name","active","credential_id")};payload.update(b)
-    x=store.change(id,p["org_id"],payload,x["version"]);return ok({k:v for k,v in x.items() if k!="credential_id"})
+    x=store.change(id,p["org_id"],payload,x["version"]);store.audit(p,"device.update",id);return ok({k:v for k,v in x.items() if k!="credential_id"})
 @app.post("/api/v1/devices/{id}/credentials")
-async def rotate(id:str,req:Request):
-    p=principal(req);role(p,"admin");b=await req.json()
+async def rotate(id:UUIDString,req:Request,body:Reason):
+    p=principal(req);role(p,"admin");b=body.model_dump(exclude_unset=True,by_alias=True)
     if set(b)!={"reason"} or not isinstance(b.get("reason"),str) or not 1<=len(b["reason"])<=500:fail(422,"REASON_REQUIRED")
     x=store.get(id,p["org_id"],"device");token=secrets.token_urlsafe(32);tid=digest(token)
     with store.tx() as s:
