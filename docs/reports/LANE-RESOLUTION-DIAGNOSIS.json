@@ -1,0 +1,25 @@
+{
+  "scope": "development_label_aliasing_diagnostic",
+  "model_accuracy_measurement": false,
+  "mathematical_upper_bound": false,
+  "manifest_sha256": "14c109f224b600c2b36398ca36e4b6eb9bb65410aaa0a03ac6b3dbe7b4c16f6e",
+  "samples": 899,
+  "test_images_used": 0,
+  "sizes": {
+    "512": {
+      "intersection": 14847925,
+      "union": 22509797,
+      "positive_images": 803,
+      "paint_disappeared_images": 0,
+      "nearest_label_roundtrip_iou": 0.6596205643258356
+    },
+    "1024": {
+      "intersection": 16296895,
+      "union": 21089685,
+      "positive_images": 803,
+      "paint_disappeared_images": 0,
+      "nearest_label_roundtrip_iou": 0.7727424567981931
+    }
+  },
+  "method": "Original publisher GT -> nearest low-resolution GT -> nearest original-resolution paint; ignore255 excluded"
+}

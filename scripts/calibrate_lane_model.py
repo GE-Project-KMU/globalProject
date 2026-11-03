@@ -10,29 +10,34 @@ from agent.dataset import validate_research_release
 from agent.train_lane import prepare_pair
 from agent.models import OnnxModel
 from scripts.evaluate_lane_model import confusion,metrics
+from agent.lane_metrics import PAINT_THRESHOLDS,threshold_confusions
 
 def calibrate(manifest_path,model_path,report_path):
     manifest_path,model_path=workspace_path(manifest_path,exists=True),workspace_path(model_path,exists=True)
     rows=json.loads(manifest_path.read_text(encoding="utf-8"));state=validate_research_release(rows)
     if not state["valid"]:raise ValueError("invalid_research_release")
     artifact=json.loads(model_path.read_text(encoding="utf-8"))
-    if not artifact.get("research_only") or artifact["dataset_release"]!="manifest-sha256:"+sha256(manifest_path):raise ValueError("research_provenance_mismatch")
+    pinned=sha256(manifest_path)
+    development=artifact.get("training_development_release_sha256")==pinned
+    if not artifact.get("research_only") or (artifact["dataset_release"]!="manifest-sha256:"+pinned and not development):raise ValueError("research_provenance_mismatch")
+    if development and any(row["split"] not in ("train","validation") for row in rows):raise ValueError("test_in_calibration_development_release")
+    if development and artifact["dataset_release"]!="manifest-sha256:"+sha256(workspace_path(artifact["source_release_path"],exists=True)):raise ValueError("full_release_changed")
     if artifact.get("threshold_calibration"):raise ValueError("threshold_already_frozen_create_new_model_version")
     weights=workspace_path(artifact["weights"],exists=True)
     if sha256(weights)!=artifact["sha256"]:raise ValueError("weights_hash_mismatch")
     model=OnnxModel(model_path);net=model.net
-    thresholds=[.1,.2,.3,.4,.5,.6,.7,.8,.85,.9,.925,.95,.975,.99]
+    width,height=artifact["input_size"]
+    if width!=height:raise ValueError("square_lane_calibration_input_required")
+    thresholds=list(PAINT_THRESHOLDS)
     counters={t:{"tp":0,"fp":0,"fn":0,"tn":0,"ignored":0} for t in thresholds}
     validation=sorted([r for r in rows if r["split"]=="validation"],key=lambda r:r["source_id"])
     if not validation:raise ValueError("validation_required")
     for row in validation:
-        pixels,_=prepare_pair(row["path"],row["mask_path"])
+        pixels,_=prepare_pair(row["path"],row["mask_path"],size=width)
         truth=cv2.imread(str(workspace_path(row["mask_path"])),cv2.IMREAD_GRAYSCALE)
-        h,w=truth.shape;scale=min(512/w,512/h);rh,rw=max(1,round(h*scale)),max(1,round(w*scale))
+        h,w=truth.shape;scale=min(width/w,height/h);rh,rw=max(1,round(h*scale)),max(1,round(w*scale))
         net.setInput(pixels[None]);logits=net.forward();delta=(logits[0,1]-logits[0,0])[:rh,:rw]
-        for threshold in thresholds:
-            predicted=cv2.resize((delta>math.log(threshold/(1-threshold))).astype(np.uint8),(w,h),interpolation=cv2.INTER_NEAREST)
-            c=confusion(truth,predicted)
+        for threshold,c in threshold_confusions(truth,delta,thresholds).items():
             for k,v in c.items():counters[threshold][k]+=v
     scores=[{"paint_threshold":t,**metrics(counters[t])} for t in thresholds]
     best=max(scores,key=lambda r:(r["paint_iou"] if r["paint_iou"] is not None else -1,-abs(r["paint_threshold"]-.5)))
