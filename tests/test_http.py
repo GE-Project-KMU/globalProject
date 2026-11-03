@@ -113,6 +113,139 @@ def setup(client, auth):
 def test_authentication_and_no_header_spoofing(client):
     assert client.get("/api/v1/observations").status_code == 401
     assert client.get("/api/v1/observations", headers={"Authorization": "Bearer invalid", "X-Road-Principal": '{"role":"admin"}'}).status_code == 401
+
+def test_gateway_and_domain_errors_have_safe_envelopes(client,auth):
+    cases=[("GET","/api/v1/users",{},401),("GET","/api/v1/users",{"Authorization":"Bearer invalid"},401),("GET","/not-a-route",{},404),("GET","/api/v1/not-a-route",auth,404),("DELETE","/api/v1/users",auth,405),("GET","/api/v1/audit-logs?limit=not-a-number",auth,422)]
+    for method,path,headers,status in cases:
+        response=client.request(method,path,headers=headers)
+        assert response.status_code==status
+        body=response.json()
+        assert "error" in body and "meta" in body and "detail" not in body
+        assert body["error"]["code"]
+        assert body["meta"]["request_id"]==response.headers["X-Request-ID"]
+
+def test_runs_audits_and_full_summary_contract(client,auth,setup):
+    runs=data(client.get("/api/v1/runs",headers=auth))["items"]
+    assert any(x["id"]==setup["run"]["run_id"] for x in runs)
+    assert client.get("/api/v1/runs?status=unknown",headers=auth).status_code==422
+    assert client.get("/api/v1/runs",headers=setup["dh"]).status_code==403
+    audit=data(client.get("/api/v1/audit-logs?limit=1000",headers=auth))["items"]
+    assert any(x["service"]=="analysis" and x["action"]=="profile.create" for x in audit)
+    assert all(set(x)=={"id","action","actor_hash","target_hash","at","service"} for x in audit)
+    assert all(len(x["actor_hash"])==64 and len(x["target_hash"])==64 for x in audit)
+    assert client.get("/api/v1/audit-logs",headers=setup["dh"]).status_code==403
+    summary=data(client.get("/api/v1/summary",headers=auth))
+    assert isinstance(summary["trend"],list) and summary["trend_counts_unit"]=="case"
+    assert client.get("/api/v1/summary",headers=auth,params={"from":utc(),"to":utc(-10)}).status_code==422
+
+def test_success_request_ids_match_response_headers(client,auth):
+    for path in ("/api/v1/me","/api/v1/summary","/api/v1/audit-logs","/api/v1/system/status"):
+        response=client.get(path,headers=auth)
+        assert response.status_code==200
+        assert response.json()["meta"]["request_id"]==response.headers["X-Request-ID"]
+
+@pytest.mark.parametrize("path",["/users/invalid","/devices/invalid","/profiles/invalid","/model-bundles/invalid","/runs/invalid","/observations/invalid","/cases/invalid/history","/analysis/jobs/invalid"])
+def test_uuid_path_validation_is_422(client,auth,path):
+    method="PATCH" if path.startswith(("/users/","/devices/")) else "GET"
+    response=client.request(method,"/api/v1"+path,headers=auth,**({"json":{"active":False}} if method=="PATCH" else {}))
+    assert response.status_code==422
+
+def test_boolean_attestations_do_not_accept_integer_one(client,setup):
+    import copy
+    run=copy.deepcopy(setup["run"]);run["run_id"]=str(uuid4());run["precheck"]["camera_preview_ok"]=1
+    assert client.post("/api/v1/runs",headers=setup["dh"],json=run).status_code==422
+    observation=copy.deepcopy(setup["observation"]);observation.update(observation_id=str(uuid4()),event_id=str(uuid4()));observation["image"]["redacted"]=1
+    assert client.post("/api/v1/observations",headers=setup["dh"],json=observation).status_code==422
+
+def test_immutable_manifest_review_metadata_and_required_provenance(client,auth,setup):
+    me=data(client.get("/api/v1/me",headers=auth))
+    profile=data(client.get("/api/v1/profiles/"+setup["profile_id"],headers=auth))
+    assert profile["id"]==profile["profile_id"]==setup["profile_id"]
+    assert profile["calibrated_by"]==me["sub"]
+    assert datetime.fromisoformat(profile["created_at"].replace("Z","+00:00")).tzinfo
+    listing=data(client.get("/api/v1/profiles",headers=auth))
+    assert any(x["id"]==setup["profile_id"] for x in listing["items"])
+    assert isinstance(listing["quarantined_count"],int)
+    bundles=data(client.get("/api/v1/model-bundles",headers=auth))["items"]
+    bundle=next(x for x in bundles if x["version"]==setup["bundle"]["version"])
+    assert bundle["id"]==bundle["model_bundle_id"] and bundle["created_at"]
+    for field in ("code_commit","environment_hash"):
+        body={**setup["bundle"],"version":"missing-provenance-"+uuid4().hex};body.pop(field)
+        assert client.post("/api/v1/model-bundles",headers=auth,json=body).status_code==422
+
+def test_review_version_null_is_422_and_missing_is_428(client,auth,setup):
+    body={"expected_case_id":str(uuid4()),"reason":"synthetic validation","status":"confirmed"}
+    path="/api/v1/observations/"+str(uuid4())+"/review"
+    assert client.patch(path,headers=auth,json=body).status_code==428
+    assert client.patch(path,headers=auth,json={**body,"expected_version":None}).status_code==422
+
+def test_typed_openapi_contracts(client,auth):
+    schema=client.get("/openapi.json",headers=auth).json()
+    for path,method in [("/users","post"),("/users/{id}","patch"),("/devices","post"),("/profiles","post"),("/model-bundles","post"),("/runs","post"),("/runs/{id}","patch"),("/runs/{id}/path","put"),("/observations","post"),("/observations/{id}/review","patch"),("/duplicate-links","post"),("/analysis/jobs","post")]:
+        operation=schema["paths"]["/api/v1"+path][method]
+        assert operation["requestBody"]["content"]["application/json"]["schema"],path
+        assert any(response.get("content",{}).get("application/json",{}).get("schema",{}).get("$ref") for status,response in operation["responses"].items() if status.startswith("2")),path
+    assert "/api/v1/audit-logs" in schema["paths"]
+
+def test_analysis_job_authorization_and_missing_config(client,auth,setup):
+    bundle=next(x for x in data(client.get("/api/v1/model-bundles",headers=auth))["items"] if x["version"]==setup["bundle"]["version"])
+    body={"run_id":setup["run"]["run_id"],"model_bundle_id":bundle["id"],"prepared_config_id":str(uuid4())}
+    assert client.post("/api/v1/analysis/jobs",headers=auth,json=body).status_code==404
+    assert client.post("/api/v1/analysis/jobs",headers=setup["dh"],json=body).status_code==403
+    assert client.post("/api/v1/analysis/jobs",headers=auth,json={**body,"prepared_config_id":"../secret"}).status_code==422
+    assert isinstance(data(client.get("/api/v1/analysis/jobs",headers=auth))["items"],list)
+
+def test_analysis_job_executes_real_cli_and_blocks_missing_models(client,auth,setup):
+    bundle=next(x for x in data(client.get("/api/v1/model-bundles",headers=auth))["items"] if x["version"]==setup["bundle"]["version"])
+    identifier=str(uuid4());assets=ROOT/".cache"/"bridge-tests"/identifier;assets.mkdir(parents=True)
+    prepared=ROOT/"data"/"agent-jobs"/"prepared";prepared.mkdir(parents=True,exist_ok=True)
+    config_path=prepared/(identifier+".json")
+    profile={**setup["profile"],"profile_id":setup["profile_id"],"calibrated_by":"synthetic-contract-only","measurement":{"bev_size":[64,450],"meters_per_pixel":.01,"lane_tracks":[]}}
+    local_bundle={**setup["bundle"],"model_bundle_id":bundle["id"],**{k:str(assets/("absent-"+k+".json")) for k in ("pothole","lane","redaction")}}
+    run={**setup["run"],"source_kind":"uvc_stereo","expires_at":utc(100),"chunks":[]}
+    for name,value in (("profile",profile),("bundle",local_bundle),("run",run)):(assets/(name+".json")).write_text(json.dumps(value),encoding="utf-8")
+    config={"run_id":setup["run"]["run_id"],"device_id":setup["run"]["device_id"],"profile_id":setup["profile_id"],"model_bundle_id":bundle["id"],"profile_path":str(assets/"profile.json"),"bundle_path":str(assets/"bundle.json"),"run_manifest":str(assets/"run.json"),"output":str(ROOT/"data"/"agent-jobs"/"results"/identifier)}
+    config_path.write_text(json.dumps(config),encoding="utf-8")
+    try:
+        job=data(client.post("/api/v1/analysis/jobs",headers=auth,json={"run_id":run["run_id"],"model_bundle_id":bundle["id"],"prepared_config_id":identifier}),202)
+        deadline=time.monotonic()+20
+        while time.monotonic()<deadline:
+            result=data(client.get("/api/v1/analysis/jobs/"+job["id"],headers=auth))
+            if result["status"] not in ("queued","running"):break
+            time.sleep(.1)
+        assert result["status"]=="blocked" and result["reason"]=="MODEL_NOT_READY"
+        assert result["observation_count"] is None
+        assert "result_path" not in result and "prepared_config" not in result
+    finally:
+        config_path.unlink(missing_ok=True)
+
+def test_lane_overlay_schema_rejects_invalid_rle(client,auth,setup):
+    import copy
+    body=copy.deepcopy(setup["observation"])
+    body.update(observation_id=str(uuid4()),event_id=str(uuid4()),type="lane_segment",pothole=None)
+    body["lane"]={"segment_id":str(uuid4()),"estimated_length_m":None,"retention_pct":None,"grade":"unassessable","color":"unknown","line_type":"unknown","valid_area_ratio":None,"segment_support_ratio":None,"outline_supported":False,"patch_ids":[],"unassessable_reason":"synthetic unavailable","paint_mask_rle":{"size":[2,2],"counts":[1,2]}}
+    assert client.post("/api/v1/observations",headers=setup["dh"],json=body).status_code==422
+    body["lane"]["paint_mask_rle"]={"size":[2,2],"counts":[0,4]}
+    body["lane"]["outline_polygon_px"]=[[1,1],[2,1],[2,2]]
+    result=data(client.post("/api/v1/observations",headers=setup["dh"],json=body),201)
+    assert result["lane"]["paint_mask_rle"]["counts"]==[0,4]
+
+def test_duplicate_approval_and_revoke_append_case_history(client,auth,setup):
+    import copy
+    observations=[]
+    for _ in range(2):
+        body=copy.deepcopy(setup["observation"]);body.update(observation_id=str(uuid4()),event_id=str(uuid4()))
+        observations.append(data(client.post("/api/v1/observations",headers=setup["dh"],json=body),201))
+    first,second=observations
+    link=data(client.post("/api/v1/duplicate-links",headers=auth,json={"source_observation_id":first["id"],"target_observation_id":second["id"],"decision":"approved","source_version":first["case_version"],"target_version":second["case_version"],"reason":"synthetic human comparison"}),201)
+    for obs in observations:
+        entries=data(client.get("/api/v1/cases/"+obs["case_id"]+"/history",headers=auth))["entries"]
+        assert any(x.get("action")=="duplicate.approve" for x in entries)
+    data(client.patch("/api/v1/duplicate-links/"+link["id"],headers=auth,json={"decision":"revoked","expected_version":link["version"],"reason":"synthetic distinct defects"}))
+    for obs in observations:
+        entries=data(client.get("/api/v1/cases/"+obs["case_id"]+"/history",headers=auth))["entries"]
+        assert any(x.get("action")=="duplicate.revoke" for x in entries)
+    assert data(client.get("/api/v1/observations/"+first["id"],headers=auth))["case_id"]==first["case_id"]
     bad = client.post("/api/v1/auth/login", json={"org_code": "demo", "login": "admin@road.local", "password": "wrong-password"})
     assert bad.status_code == 401
     assert "password" not in bad.text.lower() or "wrong-password" not in bad.text
