@@ -41,7 +41,7 @@ class EncryptedStore:
             os.fsync(stream.fileno())
         temporary.replace(target)
         path.unlink()
-        return {"path": str(target.relative_to(workspace_path("."))), "sha256": sha256(target),
+        return {"path": target.relative_to(workspace_path(".")).as_posix(), "sha256": sha256(target),
                 "encrypted": True, "aad": path.name}
 
     def decrypt(self, source, destination):
@@ -89,9 +89,7 @@ def record(source, output="data/agent/runs", *, seconds=60, chunk_seconds=30,
                 "warnings": ["Active encoder files require an encrypted OS volume; completed chunks use AES-GCM."]}
     writers, pts, nmea, chunk_start = [], [], [], 0
     serial = None
-    if serial_port:
-        import serial as serial_module
-        serial = serial_module.Serial(serial_port, baudrate=115200, timeout=0)
+    serial_buffer = ""
 
     def finish_chunk():
         nonlocal writers, pts, nmea
@@ -110,6 +108,9 @@ def record(source, output="data/agent/runs", *, seconds=60, chunk_seconds=30,
 
     elapsed = time.monotonic()
     try:
+        if serial_port:
+            import serial as serial_module
+            serial = serial_module.Serial(serial_port, baudrate=115200, timeout=0)
         while True:
             if camera and time.monotonic() - elapsed >= seconds:
                 break
@@ -138,7 +139,10 @@ def record(source, output="data/agent/runs", *, seconds=60, chunk_seconds=30,
                         "captured_at": (start + timedelta(seconds=position)).isoformat(),
                         "monotonic_seconds": time.monotonic()})
             if serial and serial.in_waiting:
-                for line in serial.read(serial.in_waiting).decode("ascii", errors="replace").splitlines():
+                serial_buffer += serial.read(serial.in_waiting).decode("ascii", errors="replace")
+                lines = serial_buffer.split("\n")
+                serial_buffer = lines.pop()
+                for line in lines:
                     nmea.append({"sentence": line, "received_at": utcnow().isoformat()})
             manifest["frames"] += 1
             if len(pts) >= max(1, round(fps * chunk_seconds)):

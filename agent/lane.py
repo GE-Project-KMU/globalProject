@@ -1,5 +1,6 @@
 """Measurement from explicit outline/gap/paint/valid masks, not guessed geometry."""
 import numpy as np
+import uuid
 from .paths import finite
 
 
@@ -65,3 +66,29 @@ def aggregate_segment(patches, *, segment_support_ratio, estimated_length_m):
         return base | {"unassessable_reason": "no_valid_patch"}
     ratio = 100 * sum(p["paint_area"] for p in accepted) / area
     return base | {"retention_pct": ratio, "grade": grade(ratio)}
+
+
+def api_lane(result, *, segment_id, color="unknown", line_type="unknown", outline_supported=False,
+             valid_area_ratio=None):
+    """Map measurement to the strict inspection service contract, without extra debug keys."""
+    segment_id = str(uuid.UUID(segment_id))
+    patch_ids = [str(uuid.UUID(value)) for value in result.get("patch_ids", [])]
+    if len(set(patch_ids)) != len(patch_ids):
+        raise ValueError("duplicate_patch_ids")
+    if color not in ("white", "yellow", "unknown") or line_type not in ("solid", "dashed", "unknown"):
+        raise ValueError("invalid_lane_type")
+    answer = {"segment_id": segment_id, "estimated_length_m": result.get("estimated_length_m"),
+              "retention_pct": result.get("retention_pct"), "grade": result.get("grade", "unassessable"),
+              "color": color, "line_type": line_type, "valid_area_ratio": valid_area_ratio,
+              "segment_support_ratio": result.get("segment_support_ratio"), "outline_supported": bool(outline_supported),
+              "patch_ids": patch_ids, "unassessable_reason": result.get("unassessable_reason")}
+    evidence = (outline_supported and valid_area_ratio is not None and .7 <= valid_area_ratio <= 1
+                and answer["segment_support_ratio"] is not None and .8 <= answer["segment_support_ratio"] <= 1
+                and answer["estimated_length_m"] is not None and answer["estimated_length_m"] > 0
+                and patch_ids and color != "unknown" and line_type != "unknown")
+    if answer["grade"] != "unassessable" and not evidence:
+        answer.update(retention_pct=None, grade="unassessable", unassessable_reason="missing_segment_evidence")
+    if answer["grade"] == "unassessable":
+        answer["retention_pct"] = None
+        answer["unassessable_reason"] = answer["unassessable_reason"] or "missing_segment_evidence"
+    return answer
