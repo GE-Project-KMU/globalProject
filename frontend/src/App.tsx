@@ -27,6 +27,11 @@ import Reports from "./pages/Reports";
 import Duplicates from "./pages/Duplicates";
 import ServiceStatus from "./pages/ServiceStatus";
 import MediaReview from "./pages/MediaReview";
+import Accounts from "./pages/Accounts";
+import Devices from "./pages/Devices";
+import Registry from "./pages/Registry";
+import PrivacyRequests from "./pages/PrivacyRequests";
+import { Runs, Audit, AnalysisStatus } from "./pages/Operations";
 
 const navItems = [
   { id: "overview", label: "점검 개요", icon: LayoutDashboard },
@@ -36,6 +41,14 @@ const navItems = [
   { id: "media", label: "사진 공유 검수", icon: ImagePlus },
   { id: "reports", label: "보고서", icon: FileText },
   { id: "settings", label: "서비스 상태", icon: Settings },
+  { id: "runs", label: "주행 기록", icon: Route },
+  { id: "analysis", label: "분석 운영", icon: Settings },
+  { id: "profiles", label: "장착 프로파일", icon: Settings },
+  { id: "models", label: "모델 버전", icon: Settings },
+  { id: "devices", label: "수집 기기", icon: Settings },
+  { id: "accounts", label: "계정 관리", icon: ShieldCheck },
+  { id: "privacy", label: "개인정보 요청", icon: ShieldCheck },
+  { id: "audit", label: "감사기록", icon: ShieldCheck },
 ];
 
 export default function App() {
@@ -55,6 +68,7 @@ export default function App() {
     [type, setType] = useState(""),
     [status, setStatus] = useState(""),
     [quality, setQuality] = useState(""),
+    [period, setPeriod] = useState({ from: "", to: "", bbox: "" }),
     [nextCursor, setNextCursor] = useState<string | null>(null),
     [moreLoading, setMoreLoading] = useState(false);
   const logout = useCallback(() => {
@@ -75,9 +89,15 @@ export default function App() {
     if (type) q.set("type", type);
     if (status) q.set("review_status", status);
     if (quality) q.set("quality", quality);
+    if (period.from) q.set("from", new Date(period.from).toISOString());
+    if (period.to) q.set("to", new Date(period.to).toISOString());
+    if (period.bbox) q.set("bbox", period.bbox);
     Promise.all([
       request<ListResult>(token, `/observations?${q}`),
-      request<Summary>(token, "/summary"),
+      request<Summary>(
+        token,
+        `/summary?${new URLSearchParams(Object.fromEntries([...(period.from ? [["from", new Date(period.from).toISOString()]] : []), ...(period.to ? [["to", new Date(period.to).toISOString()]] : [])]))}`,
+      ),
     ])
       .then(([d, s]) => {
         setItems(d.items || []);
@@ -92,7 +112,7 @@ export default function App() {
         setError(e.message);
       })
       .finally(() => setLoading(false));
-  }, [token, type, status, quality, logout]);
+  }, [token, type, status, quality, period, logout]);
   useEffect(load, [load]);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 700px)");
@@ -110,6 +130,9 @@ export default function App() {
       if (type) q.set("type", type);
       if (status) q.set("review_status", status);
       if (quality) q.set("quality", quality);
+      if (period.from) q.set("from", new Date(period.from).toISOString());
+      if (period.to) q.set("to", new Date(period.to).toISOString());
+      if (period.bbox) q.set("bbox", period.bbox);
       const d = await request<ListResult>(token, `/observations?${q}`);
       setItems((x) => [
         ...x,
@@ -144,6 +167,7 @@ export default function App() {
     setStatus("");
     setQuality("");
     setSearch("");
+    setPeriod({ from: "", to: "", bbox: "" });
   };
   return (
     <div className="workspace">
@@ -174,20 +198,29 @@ export default function App() {
         </div>
         <p className="nav-caption">WORKSPACE</p>
         <nav aria-label="주 메뉴">
-          {navItems.map((n) => (
-            <button
-              key={n.id}
-              className={page === n.id ? "active" : ""}
-              onClick={() => {
-                setPage(n.id);
-                setMobile(false);
-              }}
-            >
-              <n.icon size={18} />
-              {n.label}
-              {page === n.id && <ChevronRight size={15} />}
-            </button>
-          ))}
+          {navItems
+            .filter(
+              (n) =>
+                !(
+                  ["accounts", "privacy", "audit"].includes(n.id) &&
+                  user.role !== "admin"
+                ) &&
+                !(["devices", "runs"].includes(n.id) && user.role === "viewer"),
+            )
+            .map((n) => (
+              <button
+                key={n.id}
+                className={page === n.id ? "active" : ""}
+                onClick={() => {
+                  setPage(n.id);
+                  setMobile(false);
+                }}
+              >
+                <n.icon size={18} />
+                {n.label}
+                {page === n.id && <ChevronRight size={15} />}
+              </button>
+            ))}
         </nav>
         <div className="sidebar-bottom">
           <div className="privacy-mini">
@@ -278,6 +311,19 @@ export default function App() {
                         "개인정보를 확인하고 승인된 사진만 서버에 공유하세요.",
                       reports: "점검과 조치 이력을 필요한 형식으로 내보내세요.",
                       settings: "각 서비스의 연결과 운영 상태를 확인하세요.",
+                      runs: "주행별 사전 점검과 경로·위치 품질을 확인하세요.",
+                      analysis:
+                        "로컬 취득과 모델 분석의 실제 준비 상태를 확인하세요.",
+                      profiles:
+                        "차종별 ZED 2i 장착 정보와 실측 보정값을 관리하세요.",
+                      models:
+                        "재현 가능한 가중치·전처리·임계값 버전을 등록하세요.",
+                      devices:
+                        "기관 수집 기기의 활성 상태와 자격증명을 관리하세요.",
+                      accounts: "사용자 역할과 계정 접근을 관리하세요.",
+                      privacy:
+                        "열람·정정·삭제 요청의 접수와 처리 결과를 기록하세요.",
+                      audit: "기관 내 중요 변경의 최소 감사기록을 조회하세요.",
                     } as any
                   )[page]
                 }
@@ -323,6 +369,8 @@ export default function App() {
               status={status}
               setStatus={setStatus}
               quality={quality}
+              period={period}
+              setPeriod={setPeriod}
               setQuality={setQuality}
               clear={clear}
               loading={loading}
@@ -333,9 +381,41 @@ export default function App() {
             />
           )}
           {page === "duplicates" && <Duplicates token={token} user={user} />}{" "}
-          {page === "reports" && <Reports token={token} />}{" "}
+          {page === "reports" && (
+            <Reports
+              token={token}
+              initialFilters={{
+                ...period,
+                type,
+                review_status: status,
+                quality,
+              }}
+            />
+          )}{" "}
           {page === "settings" && <ServiceStatus token={token} />}{" "}
           {page === "media" && <MediaReview token={token} user={user} />}
+          {page === "accounts" && <Accounts token={token} user={user} />}
+          {page === "devices" && <Devices token={token} user={user} />}
+          {page === "profiles" && (
+            <Registry
+              key="profiles"
+              token={token}
+              user={user}
+              kind="profiles"
+            />
+          )}
+          {page === "models" && (
+            <Registry
+              key="models"
+              token={token}
+              user={user}
+              kind="model-bundles"
+            />
+          )}
+          {page === "privacy" && <PrivacyRequests token={token} user={user} />}
+          {page === "runs" && <Runs token={token} />}
+          {page === "audit" && <Audit token={token} user={user} />}
+          {page === "analysis" && <AnalysisStatus token={token} user={user} />}
           <footer className="page-footer">
             <span>
               <ShieldCheck size={14} />
