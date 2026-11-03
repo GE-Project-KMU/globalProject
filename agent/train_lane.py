@@ -8,10 +8,12 @@ import json
 import os
 import random
 import sys
+import shutil
 import cv2
 import numpy as np
 from .dataset import validate_release
 from .paths import ROOT, workspace_path, atomic_json, sha256
+from .governance import begin_training,register_asset,link_model
 
 
 def prepare_pair(image_path, mask_path, size=512):
@@ -31,6 +33,25 @@ def prepare_pair(image_path, mask_path, size=512):
     return pixels.transpose(2, 0, 1), labels.astype(np.int64)
 
 
+def stage_lane_pairs(output,manifest_path,rows):
+    output=workspace_path(output)
+    provenance_path,provenance=begin_training(output,manifest_path,rows,"lane")
+    copied=[]
+    for row in rows:
+        folder=output/"samples"/row["sample_id"];folder.mkdir(parents=True,exist_ok=True)
+        image=folder/("image"+workspace_path(row["path"]).suffix.lower());mask=folder/"mask.png"
+        try:
+            shutil.copyfile(workspace_path(row["path"],exists=True),image)
+            shutil.copyfile(workspace_path(row["mask_path"],exists=True),mask)
+        except OSError:
+            image.unlink(missing_ok=True);mask.unlink(missing_ok=True)
+            raise
+        provenance["assets"].append(register_asset(provenance,row,[image,mask]))
+        atomic_json(provenance_path,provenance)
+        copied.append(row|{"path":str(image),"mask_path":str(mask)})
+    return copied,provenance_path
+
+
 def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001, seed=2026):
     if epochs < 1 or batch_size < 2 or not 0 < learning_rate < 1:
         raise ValueError("positive_epochs_batch_at_least_two_and_valid_lr_required")
@@ -46,7 +67,12 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
     for row in train_rows + val_rows:
         if sha256(workspace_path(row["mask_path"], exists=True)) != row["mask_sha256"]:
             raise ValueError("mask_hash_mismatch")
+    copied,provenance_path=stage_lane_pairs(output,manifest_path,train_rows+val_rows)
+    train_rows=[row for row in copied if row["split"]=="train"]
+    val_rows=[row for row in copied if row["split"]=="validation"]
     os.environ.setdefault("TORCH_HOME", str(ROOT / ".cache" / "torch"))
+    os.environ.setdefault("CUDA_CACHE_PATH",str(ROOT/".cache/cuda"))
+    os.environ.setdefault("XDG_CACHE_HOME",str(ROOT/".cache"))
     try:
         import torch
         import torchvision
@@ -114,7 +140,10 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
                 "dataset_release": "manifest-sha256:" + sha256(manifest_path), "input_size": [512, 512],
                 "mean": [.485, .456, .406], "std": [.229, .224, .225], "production_approved": False,
                 "validation_paint_iou": best, "test_split_used": False}
+    artifact.update(data_revoked=False,needs_revalidation=False,source_release_path=manifest_path.relative_to(ROOT).as_posix(),
+                    training_provenance=provenance_path.relative_to(ROOT).as_posix())
     atomic_json(output / "lane.json", artifact)
+    link_model(provenance_path,output/"lane.json")
     return artifact
 
 
