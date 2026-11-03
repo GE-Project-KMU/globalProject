@@ -77,9 +77,11 @@ def validate_annotation(sample):
     return errors
 
 
-def validate_release(samples, *, now=None):
+def validate_release(samples, *, now=None, purpose="deployment"):
     errors, groups, identifiers = [], defaultdict(set), set()
     now = now or datetime.now(timezone.utc)
+    if purpose not in ("deployment","offline_research"):
+        raise ValueError("unsupported_release_purpose")
     if not isinstance(samples, list):
         return {"valid": False, "samples": 0, "errors": [{"code": "release_must_be_sample_list"}]}
     for sample in samples:
@@ -104,8 +106,21 @@ def validate_release(samples, *, now=None):
             groups[token].add(sample.get("split"))
         if sample.get("split") not in ("train", "validation", "test"):
             errors.append({"sample_id": sample_id, "code": "invalid_split"})
-        if sample.get("privacy_status") != "approved" or sample.get("qc_status") != "qc_passed":
-            errors.append({"sample_id": sample_id, "code": "approval_or_qc_missing"})
+        if purpose=="deployment":
+            if sample.get("privacy_status") != "approved" or sample.get("qc_status") != "qc_passed" or sample.get("release_scope")=="offline_research":
+                errors.append({"sample_id": sample_id, "code": "approval_or_qc_missing"})
+        else:
+            if (sample.get("privacy_status")!="restricted_research" or sample.get("qc_status")!="publisher_annotations_machine_checked"
+                    or sample.get("release_scope")!="offline_research" or sample.get("human_privacy_reviewed") is not False
+                    or sample.get("not_for_deployment") is not True):
+                errors.append({"sample_id":sample_id,"code":"research_scope_required"})
+            try:
+                evidence=workspace_path(sample["license_evidence_path"],exists=True)
+                if sha256(evidence)!=sample["license_evidence_sha256"]:raise ValueError()
+                policy=json.loads(evidence.read_text(encoding="utf-8"))
+                if policy.get("research_allowed") is not True or not policy.get("license_id") or not policy.get("source_url") or not policy.get("license_url"):raise ValueError()
+            except (KeyError,ValueError,TypeError,FileNotFoundError):
+                errors.append({"sample_id":sample_id,"code":"research_license_evidence_missing"})
         if not sample.get("allowed_use"):
             errors.append({"sample_id": sample_id, "code": "usage_conditions_missing"})
         try:
@@ -120,6 +135,10 @@ def validate_release(samples, *, now=None):
         if len(splits) > 1:
             errors.append({"group": key, "code": "split_leakage"})
     return {"valid": not errors, "samples": len(samples), "errors": errors}
+
+def validate_research_release(samples, *, now=None):
+    """Publisher labels + machine checks do not impersonate deployment approvals."""
+    return validate_release(samples,now=now,purpose="offline_research")
 
 
 def split_connected(samples, seed=2026):
