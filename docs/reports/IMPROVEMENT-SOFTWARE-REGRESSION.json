@@ -1,12 +1,12 @@
 {
   "format": "model-improvement-software-regression-v1",
-  "scope": "Software checks while model training is still running; no final model accuracy or field acceptance claim",
-  "tested_source_commit": "ba468762da4ea0239811c7bcd8f9c30630e4e5f7",
+  "scope": "Final software regression after all model training/evaluation writers stopped; no field acceptance claim",
+  "tested_source_commit": "9670abe22c5a368901c28552a94338cb56bb44c8",
   "local_backend": {
-    "passed": 287,
+    "passed": 383,
     "failed": 0,
     "differential_subtests_passed": 189,
-    "elapsed_seconds": 57.44,
+    "elapsed_seconds": 57.21,
     "live_http_methods_checked": [
       "GET",
       "POST",
@@ -29,13 +29,14 @@
     "successful_rerun_used_project_local_browser_path": true
   },
   "ubuntu_ci": {
-    "url": "https://github.com/GE-Project-KMU/globalProject/actions/runs/41737157665",
+    "url": "https://github.com/GE-Project-KMU/globalProject/actions/runs/41742146998",
     "conclusion": "success",
     "jobs": {
       "Python / live HTTP / vision": "success",
       "PostgreSQL / PostGIS migrations and HTTP": "success",
       "TypeScript / build / Chromium UI": "success"
-    }
+    },
+    "head_sha": "9670abe22c5a368901c28552a94338cb56bb44c8"
   },
   "model_weights_or_raw_data_pushed": false,
   "final_model_accuracy_evaluated_by_this_report": false,
