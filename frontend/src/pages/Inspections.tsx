@@ -4,6 +4,7 @@ import { id, date, typeName, statusLabels } from "../labels";
 import { Badge, Empty } from "../components/UI";
 import ObservationMap from "../components/ObservationMap";
 import ObservationTable from "../components/ObservationTable";
+import { useState } from "react";
 interface Props {
   page: string;
   items: Observation[];
@@ -16,6 +17,8 @@ interface Props {
   setStatus: (v: string) => void;
   quality: string;
   setQuality: (v: string) => void;
+  period: { from: string; to: string; bbox: string };
+  setPeriod: (v: { from: string; to: string; bbox: string }) => void;
   clear: () => void;
   loading: boolean;
   onSelect: (o: Observation) => void;
@@ -35,6 +38,8 @@ export default function Inspections({
   setStatus,
   quality,
   setQuality,
+  period,
+  setPeriod,
   clear,
   loading,
   onSelect,
@@ -42,6 +47,8 @@ export default function Inspections({
   moreLoading,
   more,
 }: Props) {
+  const [draft, setDraft] = useState(period),
+    [filterError, setFilterError] = useState("");
   return (
     <section className="panel inspection-panel">
       <div className="panel-heading">
@@ -113,6 +120,94 @@ export default function Inspections({
           </button>
         )}
       </div>
+      <details className="advanced-filters">
+        <summary>
+          기간·구역 필터
+          {period.from || period.to || period.bbox ? " · 적용 중" : ""}
+        </summary>
+        <form
+          className="management-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setFilterError("");
+            if (
+              draft.from &&
+              draft.to &&
+              new Date(draft.from) >= new Date(draft.to)
+            ) {
+              setFilterError("종료 시각은 시작 시각보다 뒤여야 합니다.");
+              return;
+            }
+            if (draft.bbox) {
+              const values = draft.bbox.split(",").map(Number);
+              if (
+                values.length !== 4 ||
+                values.some((x) => !Number.isFinite(x)) ||
+                values[0] < -180 ||
+                values[2] > 180 ||
+                values[1] < -90 ||
+                values[3] > 90 ||
+                values[0] > values[2] ||
+                values[1] > values[3]
+              ) {
+                setFilterError(
+                  "구역은 서경도,남위도,동경도,북위도 순의 유효한 좌표 4개를 입력하세요.",
+                );
+                return;
+              }
+              if (quality === "unavailable") {
+                setFilterError(
+                  "위치 없음 필터와 좌표 구역은 함께 적용할 수 없습니다.",
+                );
+                return;
+              }
+            }
+            setPeriod({ ...draft });
+          }}
+        >
+          <div className="form-grid">
+            <label>
+              촬영 시작 (현지 시각)
+              <input
+                type="datetime-local"
+                value={draft.from}
+                onChange={(e) => setDraft({ ...draft, from: e.target.value })}
+              />
+            </label>
+            <label>
+              촬영 종료 (미포함)
+              <input
+                type="datetime-local"
+                value={draft.to}
+                onChange={(e) => setDraft({ ...draft, to: e.target.value })}
+              />
+            </label>
+          </div>
+          <label>
+            구역 WGS84 경계 (서경도,남위도,동경도,북위도)
+            <input
+              value={draft.bbox}
+              placeholder="126.9,37.5,127.1,37.7"
+              onChange={(e) => setDraft({ ...draft, bbox: e.target.value })}
+            />
+          </label>
+          {filterError && <p role="alert">{filterError}</p>}
+          <div className="form-actions">
+            <button className="button secondary">기간·구역 적용</button>
+            <button
+              type="button"
+              className="button secondary"
+              onClick={() => {
+                setDraft({ from: "", to: "", bbox: "" });
+                setPeriod({ from: "", to: "", bbox: "" });
+                setFilterError("");
+              }}
+            >
+              기간·구역 해제
+            </button>
+          </div>
+        </form>
+      </details>
       {loading ? (
         <div className="loading">
           <LoaderCircle className="spin" size={21} />

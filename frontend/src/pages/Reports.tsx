@@ -8,17 +8,44 @@ import {
 } from "lucide-react";
 import { download, request } from "../api";
 import { ErrorBox } from "../components/UI";
+import { statusLabels } from "../labels";
 
-export default function Reports({ token }: { token: string }) {
+export default function Reports({
+  token,
+  initialFilters = {},
+}: {
+  token: string;
+  initialFilters?: Record<string, string>;
+}) {
   const [format, setFormat] = useState("csv"),
     [busy, setBusy] = useState(false),
     [job, setJob] = useState<any>(null),
     [error, setError] = useState("");
+  const [filters, setFilters] =
+      useState<Record<string, string>>(initialFilters),
+    [jobFormat, setJobFormat] = useState("csv");
   async function create() {
     setBusy(true);
     setError("");
     try {
-      const d = await request<any>(token, `/reports?format=${format}`);
+      if (
+        filters.from &&
+        filters.to &&
+        new Date(filters.from) >= new Date(filters.to)
+      )
+        throw new Error("종료 시각은 시작 시각보다 뒤여야 합니다.");
+      const query = new URLSearchParams({ format });
+      for (const [key, value] of Object.entries(filters)) {
+        if (value)
+          query.set(
+            key,
+            ["from", "to"].includes(key)
+              ? new Date(value).toISOString()
+              : value,
+          );
+      }
+      const d = await request<any>(token, `/reports?${query}`);
+      setJobFormat(format);
       setJob(d);
       if (d.status === "succeeded" || d.download_path) {
         await download(
@@ -58,6 +85,85 @@ export default function Reports({ token }: { token: string }) {
           포트홀은 점검 건, 차선은 관측 구간으로 구분해 집계합니다.
         </p>
         {error && <ErrorBox message={error} />}
+        <details className="report-filters" open>
+          <summary>출력 조회 조건 · 현재 점검 필터에서 가져옴</summary>
+          <div className="management-form">
+            <div className="form-grid">
+              {[
+                ["from", "촬영 시작"],
+                ["to", "촬영 종료 (미포함)"],
+              ].map(([key, label]) => (
+                <label key={key}>
+                  {label}
+                  <input
+                    type="datetime-local"
+                    value={filters[key] || ""}
+                    onChange={(e) =>
+                      setFilters({ ...filters, [key]: e.target.value })
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+            <label>
+              보고서 관측 종류
+              <select
+                value={filters.type || ""}
+                onChange={(e) =>
+                  setFilters({ ...filters, type: e.target.value })
+                }
+              >
+                <option value="">모든 종류</option>
+                <option value="pothole">포트홀</option>
+                <option value="lane_segment">차선 구간</option>
+              </select>
+            </label>
+            <label>
+              보고서 검토 상태
+              <select
+                value={filters.review_status || ""}
+                onChange={(e) =>
+                  setFilters({ ...filters, review_status: e.target.value })
+                }
+              >
+                <option value="">모든 상태</option>
+                {Object.entries(statusLabels).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              보고서 위치 품질
+              <select
+                value={filters.quality || ""}
+                onChange={(e) =>
+                  setFilters({ ...filters, quality: e.target.value })
+                }
+              >
+                <option value="">모든 품질</option>
+                <option value="valid">유효</option>
+                <option value="degraded">저하</option>
+                <option value="unavailable">없음</option>
+              </select>
+            </label>
+            <label>
+              보고서 구역 WGS84 경계
+              <input
+                value={filters.bbox || ""}
+                onChange={(e) =>
+                  setFilters({ ...filters, bbox: e.target.value })
+                }
+                placeholder="서경도,남위도,동경도,북위도"
+              />
+            </label>
+            <p>
+              기간 최대 90일, 최대 10,000개 대표 점검 건. 텍스트 검색은 출력
+              조건에 포함되지 않습니다.
+            </p>
+          </div>
+        </details>
         <label>
           내보내기 형식
           <select value={format} onChange={(e) => setFormat(e.target.value)}>
@@ -108,7 +214,7 @@ export default function Reports({ token }: { token: string }) {
                     token,
                     job.download_path ||
                       `/reports/${job.job_id || job.id}/download`,
-                    `road-insight.${format}`,
+                    `road-insight.${jobFormat}`,
                   ).catch((e) => setError(e.message))
                 }
               >
