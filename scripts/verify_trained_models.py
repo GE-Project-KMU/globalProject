@@ -211,8 +211,10 @@ def verify(args):
     from agent.models import OnnxModel
     cv2.setNumThreads(2)
     if args.image:
-        image=cv2.imread(str(scoped(args.image)))
+        image_bytes=scoped(args.image).read_bytes()
+        image=cv2.imdecode(np.frombuffer(image_bytes,np.uint8),cv2.IMREAD_COLOR)
         if image is None:raise ValueError("image_decode_failed")
+        result["image_sha256"]=hashlib.sha256(image_bytes).hexdigest()
     else:
         image=np.random.default_rng(2026).integers(0,256,(240,400,3),dtype=np.uint8)
     from scripts.setup_training import environment

@@ -1,0 +1,15 @@
+{
+  "format": "validation-image-decode-contract-v1",
+  "scope": "Bind verifier image SHA to the exact bytes decoded, retaining existing image preprocessing",
+  "runtime_python": "3.14.7",
+  "opencv": "5.0.0",
+  "methods": ["cv2.imread default color", "cv2.imdecode from the hash-bound bytes with IMREAD_COLOR"],
+  "validation": {
+    "lane": {"images": 100, "decoded_pixels_differ": 0},
+    "redaction": {"images": 508, "decoded_pixels_differ": 0}
+  },
+  "all_pinned_source_image_hashes_matched": true,
+  "test_images_opened": 0,
+  "raw_images_or_per_image_identifiers_in_report": false,
+  "model_accuracy_claimed": false
+}
