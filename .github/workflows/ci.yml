@@ -1,0 +1,125 @@
+name: RoadWatch checks
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**', 'chore/**', 'test/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-contracts:
+    name: Python / live HTTP / vision
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+      PYTHONPYCACHEPREFIX: ${{ github.workspace }}/.cache/pycache
+      ROAD_ENV: development
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Prepare workspace-only caches
+        run: |
+          mkdir -p .cache/tmp .cache/pip data
+          echo "TMPDIR=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+          echo "TEMP=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+          echo "TMP=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - name: Install project Python environment
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -r requirements.txt
+          .venv/bin/python -m pip install -r requirements-vision.txt
+      - name: Start isolated domain services
+        run: .venv/bin/python scripts/manage.py start --timeout 90
+      - name: Test live HTTP contracts and local vision tooling
+        run: .venv/bin/python -m pytest tests/test_http.py tests/test_vision.py -q --tb=short --junitxml=data/backend-junit.xml
+      - name: Summarize without secrets or raw payloads
+        if: always()
+        run: |
+          if [ -x .venv/bin/python ]; then .venv/bin/python scripts/ci_summarize.py; fi
+      - name: Upload sanitized failure summary only
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-sanitized-summary
+          path: .cache/ci-artifacts/summary.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Stop only owned service processes
+        if: always()
+        run: |
+          if [ -f data/processes.json ] && [ -x .venv/bin/python ]; then .venv/bin/python scripts/manage.py stop; fi
+
+  frontend-ui:
+    name: TypeScript / build / Chromium UI
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+      npm_config_cache: ${{ github.workspace }}/.cache/npm
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/playwright
+      PLAYWRIGHT_JUNIT_OUTPUT_FILE: ${{ github.workspace }}/data/frontend-junit.xml
+      PYTHONPYCACHEPREFIX: ${{ github.workspace }}/.cache/pycache
+      ROAD_ENV: development
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Prepare workspace-only caches
+        run: |
+          mkdir -p .cache/tmp .cache/pip .cache/npm .cache/playwright data
+          echo "TMPDIR=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+          echo "TEMP=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+          echo "TMP=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Install project environments
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -r requirements.txt
+          npm --prefix frontend ci
+      - name: TypeScript and production build
+        run: npm --prefix frontend run build
+      - name: Install Chromium into workspace cache
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Start services and synthetic UI records
+        run: |
+          .venv/bin/python scripts/manage.py start --frontend --timeout 90
+          .venv/bin/python scripts/seed_demo.py
+      - name: Run isolated UI and real-gateway browser scenarios
+        working-directory: frontend
+        run: npm run test:e2e -- --reporter=line,junit
+      - name: Summarize without screenshots, traces or credentials
+        if: always()
+        run: |
+          if [ -x .venv/bin/python ]; then .venv/bin/python scripts/ci_summarize.py; fi
+      - name: Upload sanitized failure summary only
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-sanitized-summary
+          path: .cache/ci-artifacts/summary.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Stop only owned service processes
+        if: always()
+        run: |
+          if [ -f data/processes.json ] && [ -x .venv/bin/python ]; then .venv/bin/python scripts/manage.py stop; fi
