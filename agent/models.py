@@ -50,6 +50,9 @@ def readiness(manifest_path):
             value = manifest.get(field, .35 if field == "confidence" else .5)
             if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1:
                 raise ValueError("invalid_" + field)
+        if "paint_threshold" in manifest:
+            threshold=manifest["paint_threshold"]
+            if type(threshold) not in (int,float) or not math.isfinite(threshold) or not 0<threshold<1:raise ValueError("invalid_paint_threshold")
         try:
             cv2.dnn.readNetFromONNX(str(weights))
         except cv2.error as exc:
@@ -100,13 +103,13 @@ class OnnxModel:
             blob = ((image - mean) / std).transpose(2, 0, 1)[None].astype(np.float32)
         self.net.setInput(blob)
         output = self.net.forward()
-        if not np.isfinite(output).all(): raise ModelNotReady("non_finite_model_output")
         if not np.isfinite(output).all():
             raise ModelNotReady("non_finite_model_output")
         if task == "lane":
             if output.ndim != 4 or output.shape[0] != 1 or output.shape[1] != 2:
                 raise ModelNotReady("lane_output_must_be_N_2_H_W_logits")
-            mask = np.argmax(output[0], axis=0).astype(np.uint8)
+            threshold=self.manifest.get("paint_threshold",.5)
+            mask = ((output[0,1]-output[0,0])>math.log(threshold/(1-threshold))).astype(np.uint8)
             crop_h = max(1, round(resized.shape[0] * mask.shape[0] / height))
             crop_w = max(1, round(resized.shape[1] * mask.shape[1] / width))
             mask = mask[:crop_h, :crop_w]

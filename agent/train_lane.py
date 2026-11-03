@@ -11,7 +11,7 @@ import sys
 import shutil
 import cv2
 import numpy as np
-from .dataset import validate_release
+from .dataset import validate_release,validate_research_release
 from .paths import ROOT, workspace_path, atomic_json, sha256
 from .governance import begin_training,register_asset,link_model
 
@@ -52,12 +52,12 @@ def stage_lane_pairs(output,manifest_path,rows):
     return copied,provenance_path
 
 
-def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001, seed=2026):
+def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001, seed=2026,research=False,pretrained=False):
     if epochs < 1 or batch_size < 2 or not 0 < learning_rate < 1:
         raise ValueError("positive_epochs_batch_at_least_two_and_valid_lr_required")
     manifest_path, output = workspace_path(manifest_path, exists=True), workspace_path(output)
     rows = json.loads(manifest_path.read_text(encoding="utf-8"))
-    validation = validate_release(rows)
+    validation = (validate_research_release if research else validate_release)(rows)
     if not validation["valid"]:
         raise ValueError("dataset_release_validation_failed:" + json.dumps(validation["errors"]))
     train_rows = [row for row in rows if row["split"] == "train"]
@@ -89,10 +89,29 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
             pixels, labels = prepare_pair(row["path"], row["mask_path"])
             return torch.from_numpy(pixels), torch.from_numpy(labels)
 
-    model = torchvision.models.segmentation.deeplabv3_mobilenet_v3_large(
-        weights=None, weights_backbone=None, num_classes=2, aux_loss=False).to(device)
+    torch.set_num_threads(min(4,os.cpu_count() or 1))
+    if device=="cuda":torch.backends.cudnn.benchmark=True
+    if pretrained:
+        # Generic scene features initialize the encoder; only the actual target
+        # masks below teach paint. VOC classes never stand in for paint labels.
+        model=torchvision.models.segmentation.deeplabv3_mobilenet_v3_large(weights="DEFAULT")
+        model.classifier[-1]=torch.nn.Conv2d(model.classifier[-1].in_channels,2,kernel_size=1)
+        model.aux_classifier=None
+    else:
+        model = torchvision.models.segmentation.deeplabv3_mobilenet_v3_large(
+            weights=None, weights_backbone=None, num_classes=2, aux_loss=False)
+    model=model.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-    criterion = torch.nn.CrossEntropyLoss(ignore_index=255)
+    # Fixed training-only class weights address sparse paint; no holdout pixels
+    # participate in sampling, class balance, checkpoint choice or thresholds.
+    paint_pixels=valid_pixels=0
+    for row in train_rows:
+        labels=cv2.imread(str(workspace_path(row["mask_path"])),cv2.IMREAD_GRAYSCALE)
+        paint_pixels+=int((labels==1).sum());valid_pixels+=int((labels!=255).sum())
+    if paint_pixels==0:raise ValueError("training_has_no_paint")
+    paint_weight=min(12.,max(1.,((valid_pixels-paint_pixels)/paint_pixels)**.5))
+    criterion = torch.nn.CrossEntropyLoss(ignore_index=255,weight=torch.tensor([1.,paint_weight],device=device))
+    scaler=torch.amp.GradScaler("cuda",enabled=device=="cuda")
     loader = torch.utils.data.DataLoader(Pairs(train_rows), batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
     val_loader = torch.utils.data.DataLoader(Pairs(val_rows), batch_size=1, num_workers=0)
     output.mkdir(parents=True, exist_ok=True)
@@ -105,9 +124,10 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
                 continue
             pixels, labels = pixels.to(device), labels.to(device)
             optimizer.zero_grad(set_to_none=True)
-            loss = criterion(model(pixels)["out"], labels)
+            with torch.amp.autocast(device_type=device,enabled=device=="cuda"):
+                loss = criterion(model(pixels)["out"], labels)
             if not torch.isfinite(loss): raise RuntimeError("non_finite_training_loss")
-            loss.backward(); optimizer.step(); losses.append(float(loss.detach()))
+            scaler.scale(loss).backward();scaler.step(optimizer);scaler.update(); losses.append(float(loss.detach()))
         if not losses: raise ValueError("no_valid_training_pixels")
         model.eval(); intersection = union = 0
         with torch.no_grad():
@@ -120,10 +140,11 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
         if not union: raise ValueError("validation_has_no_paint_union")
         metric = intersection / union
         history.append({"epoch": epoch + 1, "loss": sum(losses) / len(losses), "validation_paint_iou": metric})
+        print(json.dumps(history[-1]),flush=True)
         if metric > best:
             best = metric
             torch.save(model.state_dict(), checkpoint)
-        atomic_json(output / "training.json", {"seed": seed, "device": device, "manifest_sha256": sha256(manifest_path),
+        atomic_json(output / "training.json", {"seed": seed, "device": device, "manifest_sha256": sha256(manifest_path),"pretrained_initialization":pretrained,"research_only":research,"paint_loss_weight":paint_weight,
                     "torch": torch.__version__, "torchvision": torchvision.__version__, "history": history,
                     "test_split_used": False, "production_approved": False})
     model.load_state_dict(torch.load(checkpoint, map_location=device, weights_only=True)); model.eval().cpu()
@@ -140,6 +161,9 @@ def train(manifest_path, output, *, epochs=30, batch_size=2, learning_rate=.0001
                 "dataset_release": "manifest-sha256:" + sha256(manifest_path), "input_size": [512, 512],
                 "mean": [.485, .456, .406], "std": [.229, .224, .225], "production_approved": False,
                 "validation_paint_iou": best, "test_split_used": False}
+    artifact.update(research_only=research,source_licenses=sorted({row.get("allowed_use","") for row in rows}),
+                    independent_route_verified=all(row.get("independent_route_verified",False) for row in rows),
+                    project_acceptance_eligible=not research)
     artifact.update(data_revoked=False,needs_revalidation=False,source_release_path=manifest_path.relative_to(ROOT).as_posix(),
                     training_provenance=provenance_path.relative_to(ROOT).as_posix())
     atomic_json(output / "lane.json", artifact)
@@ -153,10 +177,12 @@ def main():
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--learning-rate", type=float, default=.0001)
+    parser.add_argument("--research",action="store_true")
+    parser.add_argument("--pretrained",action="store_true")
     args = parser.parse_args()
     try:
         print(json.dumps(train(args.manifest, args.output, epochs=args.epochs, batch_size=args.batch_size,
-                               learning_rate=args.learning_rate), ensure_ascii=False, indent=2))
+                               learning_rate=args.learning_rate,research=args.research,pretrained=args.pretrained), ensure_ascii=False, indent=2))
         return 0
     except (ValueError, RuntimeError, OSError, KeyError) as exc:
         print(json.dumps({"status": "training_blocked", "reason": str(exc)}, ensure_ascii=False))
