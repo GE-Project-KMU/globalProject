@@ -1,15 +1,16 @@
 {
   "format": "model-improvement-software-regression-v1",
   "scope": "Software checks while model training is still running; no final model accuracy or field acceptance claim",
-  "tested_source_commit": "abede0590f477e53d98a11b2eeca254be426bd1d",
+  "tested_source_commit": "82b3b65df45a8233295247a5cc4a847bc7d795f3",
   "local_backend": {
-    "passed": 244,
+    "passed": 275,
     "failed": 0,
     "differential_subtests_passed": 189,
-    "elapsed_seconds": 61.0,
+    "elapsed_seconds": 54.77,
     "live_http_methods_checked": ["GET", "POST", "PATCH", "PUT", "DELETE"],
     "expected_error_response_paths_checked": true,
-    "new_server_error_lines": 0
+    "new_server_error_lines": 0,
+    "new_http_5xx_responses": 0
   },
   "local_frontend": {
     "typescript_and_production_build_passed": true,
@@ -22,7 +23,7 @@
     "successful_rerun_used_project_local_browser_path": true
   },
   "ubuntu_ci": {
-    "url": "https://github.com/GE-Project-KMU/globalProject/actions/runs/41700518425",
+    "url": "https://github.com/GE-Project-KMU/globalProject/actions/runs/41717541527",
     "conclusion": "success",
     "jobs": {
       "Python / live HTTP / vision": "success",
