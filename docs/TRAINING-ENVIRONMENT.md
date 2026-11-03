@@ -32,11 +32,35 @@ Windows 최초 구성:
 
 실제 고정된 Windows 패키지를 재현할 때는 bootstrap 후 `run -m pip install -r requirements-training-lock-windows311.txt`를 사용할 수 있다. Linux에서는 프로젝트 안의 Python3.11 venv에 직접 의존성 파일을 설치한다. Windows 전용 전이 의존성을 담은 lock은 Linux 환경에 그대로 적용하지 않는다.
 
-`scripts.setup_training.environment()` 또는 `setup_training.py run ...`은 TEMP/TMP/TMPDIR, pip, Torch, CUDA, Hugging Face, XDG, matplotlib, Python bytecode, W&B 캐시를 모두 프로젝트 `.cache/training` 아래에 둔다. 사용자 site-packages와 전역 pip 설정을 사용하지 않는다. 학습 시작 후에는 다른 작업이 같은 환경에서 pip 설치·업그레이드를 동시에 수행하지 않는다. GPU 학습은 차선·포트홀·비식별 모델이 순차적으로 사용한다.
+## Linux에서 다시 구성
+
+앱의 `.venv`를 Linux용으로 먼저 준비하고, 사용할 Python3.11과 호환되는 NVIDIA 드라이버가 호스트에 이미 있어야 한다. 아래 절차는 드라이버나 시스템 CUDA Toolkit을 설치하지 않는다. Windows의 `.venv`·`.venv-training` 디렉터리를 복사하지 않고 프로젝트 내부에 Linux 환경을 새로 만든다. Windows 전용 `bootstrap`은 실행하지 않는다.
+
+```bash
+# 프로젝트 루트에서 실행
+export TMPDIR="$PWD/.cache/training/tmp"
+export TEMP="$TMPDIR"
+export TMP="$TMPDIR"
+export PYTHONPYCACHEPREFIX="$PWD/.cache/training/pycache"
+mkdir -p "$TMPDIR" "$PYTHONPYCACHEPREFIX"
+python3.11 -m venv .venv-training
+.venv/bin/python scripts/setup_training.py install
+.venv/bin/python scripts/setup_training.py run -m pip check
+```
+
+Linux의 `setup_training.py install/run`은 프로젝트의 `.venv-training/bin/python`을 사용하며, Windows에서는 `.venv-training/python.exe`를 사용한다. 학습 실행도 Linux에서는 `.venv/bin/python scripts/setup_training.py run ...` 형식으로 호출한다. 직접 호출할 때의 학습 인터프리터는 `.venv-training/bin/python`이며 캐시 환경은 `scripts.setup_training.environment()`와 동일하게 적용해야 한다.
+
+Linux GPU 학습과 위 Linux 설치 절차는 이 작업에서 실행하지 않았다. 현재 CUDA·메모리·수치 일치 증거는 문서에 기재한 Windows/RTX2080Ti 환경의 결과다. Linux에서 재현한 후에는 해당 환경의 의존성 확인과 수치 검증 결과를 별도로 남겨야 한다. 검출기 학습은 CUDA가 필요하며, CPU 추론 검증의 성공을 GPU 학습 환경 확인으로 대신하지 않는다.
+
+## 공통 실행 원칙
+
+`scripts.setup_training.environment()` 또는 `setup_training.py run ...`은 TEMP/TMP/TMPDIR, pip, Torch, CUDA, Hugging Face, XDG, matplotlib, Python bytecode, W&B 캐시를 모두 프로젝트 `.cache/training` 아래에 둔다. 사용자 site-packages와 전역 pip 설정을 사용하지 않는다. 학습 시작 후에는 다른 작업이 같은 환경에서 pip 설치·업그레이드를 동시에 수행하지 않는다. 현재 차선·포트홀·비식별 모델은 GPU 메모리 합계 9GiB 이하를 확인하며 병렬 학습했다. 공유 GPU의 학습 시간을 단일 모델 추론 성능으로 해석하지 않는다.
 
 공식 YOLOX 소스는 `.cache/vendor/YOLOX`에 있으며 commit `6ddff4824372906469a7fae2dc3206c7aa4bbaee`를 기록했다. [공식 소스 의존성](https://github.com/Megvii-BaseDetection/YOLOX/blob/6ddff4824372906469a7fae2dc3206c7aa4bbaee/requirements.txt)을 바탕으로 필요한 wheel을 설치했다. 임의 CUDA 확장을 컴파일하지 않고 공식 모델·손실 함수를 가져오는 단일 GPU 학습 루프를 사용한다. 소스 체크아웃에서는 `get_exp(exp_file=.../exps/default/yolox_nano.py)`를 사용한다. 기본 이름으로 찾는 패키지 복사본은 setup.py 설치 전에는 존재하지 않는다. 단순 ONNX 내보내기는 onnx-simplifier를 요구하지 않는다.
 
 학습 CLI 예시(실제 승인/연구 데이터 release를 지정):
+
+아래 출력 경로는 아직 완료 모델이 없는 새 폴더여야 한다. 기존 완료 모델을 덮어쓰지 말고 재학습마다 새 버전 폴더를 사용한다.
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\setup_training.py run -m agent.train_lane data\datasets\release.json data\training\lane --epochs 30 --batch-size 4 --pretrained --research

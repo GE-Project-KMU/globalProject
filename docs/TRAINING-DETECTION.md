@@ -34,6 +34,8 @@ WIDER에는 얼굴만, CCPD에는 번호판만 알려진 정답이 있다. 다�
 
 모든 다운로드·Python·캐시는 프로젝트 내부에 둔다. Windows에는 프로젝트 내부 Python3.11.9/PyTorch2.7.1+cu126/torchvision0.22.1 환경을 사용하고, Ubuntu는 같은 고정 패키지로 별도 환경을 만든다. RTX2080Ti sm75의 실제 CUDA forward/backward는 환경 보고서에 기록됐다. OS 전역 CUDA/드라이버를 설치하지 않는다.
 
+이 명령은 새 출력 폴더를 사용하는 최초 실행 예시다. 완료된 `best.pt`·ONNX·manifest·평가 기록이 있는 폴더를 덮어쓰지 않으며, 재학습할 때는 다른 모델 버전 경로를 지정한다. Linux의 Python3.11 venv 구성과 실행 경로는 [학습 환경의 Linux 절차](TRAINING-ENVIRONMENT.md#linux에서-다시-구성)를 따른다. 이 작업에서 Linux GPU 학습을 실행한 것은 아니며 Windows 학습 환경 디렉터리를 Ubuntu로 복사해 재사용하지 않는다.
+
 ```powershell
 # 초기 학습 환경 준비: 프로젝트 문서의 requirements-training과 setup_training 절차
 .\.venv\Scripts\python.exe scripts\setup_training.py bootstrap

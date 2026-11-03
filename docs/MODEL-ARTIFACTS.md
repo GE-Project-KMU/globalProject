@@ -8,7 +8,7 @@
 .\.venv\Scripts\python.exe scripts\verify_trained_models.py data\training\lane-rtk-v1\lane.json --metadata-only
 ```
 
-완료 manifest가 존재할 때만 실행한다. metadata-only는 ONNX와 checkpoint를 열지 않는다. research_only=true, production_approved=false, project_acceptance_eligible=false, source_licenses, train/validation/test 비어 있지 않은 분할, 원래 release와 provenance의 SHA256, 학습 자료의 만료·철회 상태를 검사한다. provenance에 test 자료가 포함되면 거부한다. 이 단계 결과의 weight_hash_verified는 false다.
+완료 manifest가 존재할 때만 실행한다. metadata-only는 ONNX와 checkpoint를 열지 않는다. research_only=true, production_approved=false, project_acceptance_eligible=false, source_licenses, train/validation/test 비어 있지 않은 분할을 확인한다. 원래 release 파일의 SHA256을 계산해 manifest의 dataset_release 및 provenance의 release_sha256과 대조하고, provenance에 기록된 학습 분할·만료·철회 상태를 검사한다. provenance에 test 자료가 포함되면 거부한다. 이 설명은 provenance 파일 자체의 별도 고정 SHA256 검증을 뜻하지 않는다. 이 단계 결과의 weight_hash_verified는 false다.
 
 ## 실제 런타임 비교
 
