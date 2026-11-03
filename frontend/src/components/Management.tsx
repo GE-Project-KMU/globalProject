@@ -5,6 +5,7 @@ import { Empty, ErrorBox } from "./UI";
 export function useCollection(token: string, path: string, enabled = true) {
   const [items, setItems] = useState<any[]>([]),
     [busy, setBusy] = useState(false),
+    [quarantinedCount, setQuarantinedCount] = useState(0),
     [error, setError] = useState("");
   const load = useCallback(async () => {
     if (!enabled) return;
@@ -13,6 +14,12 @@ export function useCollection(token: string, path: string, enabled = true) {
     try {
       const data = await request<any>(token, path);
       setItems(data.items || []);
+      setQuarantinedCount(
+        Number.isSafeInteger(data.quarantined_count) &&
+          data.quarantined_count > 0
+          ? data.quarantined_count
+          : 0,
+      );
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -22,7 +29,7 @@ export function useCollection(token: string, path: string, enabled = true) {
   useEffect(() => {
     void load();
   }, [load]);
-  return { items, busy, error, load, setError };
+  return { items, busy, error, load, setError, quarantinedCount };
 }
 export function Collection({
   title,

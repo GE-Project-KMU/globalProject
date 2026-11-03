@@ -265,6 +265,8 @@ test("management accounts, devices and immutable registries use actual API bodie
   await page.getByLabel("모델 manifest JSON").fill(
     JSON.stringify({
       version: "fixture-v1",
+      code_commit: "fixture-code-commit",
+      environment_hash: "c".repeat(64),
       weights_hashes: {},
       preprocess: {},
       thresholds: {},
@@ -523,4 +525,75 @@ test("public demo report sends explicit true only when selected", async ({
   await expect
     .poll(() => calls.filter((x) => x.p === "/reports").at(-1)?.query)
     .toContain("public_demo=true");
+});
+
+test("registry shows quarantine count without exposing invalid legacy settings and requires model lineage", async ({
+  page,
+}) => {
+  const calls = await setup(page);
+  let quarantined = 2;
+  await page.route("**/api/v1/profiles", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: {
+          items: [
+            {
+              id: "valid-profile",
+              name: "검증된 이전 프로파일",
+              version: 1,
+              camera_serial: "verified-camera",
+              lens_label: "verified-lens",
+            },
+          ],
+          quarantined_count: quarantined,
+        },
+      }),
+    });
+  });
+  await nav(page, "장착 프로파일");
+  await expect(
+    page.getByText(
+      "검증 기준을 충족하지 않는 이전 설정 2건을 격리했습니다. 새 버전으로 다시 등록하세요.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "검증된 이전 프로파일 · v1",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.locator(".management-list article")).toHaveCount(1);
+  await expect(page.getByText("legacy-invalid-sensitive-value")).toHaveCount(0);
+  quarantined = 0;
+  await page.getByRole("button", { name: "새로고침", exact: true }).click();
+  await expect(
+    page.getByText("검증 기준을 충족하지 않는 이전 설정", { exact: false }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", {
+      name: "검증된 이전 프로파일 · v1",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await nav(page, "모델 버전");
+  await page
+    .getByLabel("모델 manifest JSON")
+    .fill(
+      JSON.stringify({
+        version: "missing-lineage",
+        weights_hashes: {},
+        preprocess: {},
+        thresholds: {},
+        config_hash: "a".repeat(64),
+      }),
+    );
+  await page.getByRole("button", { name: "새 버전 등록" }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "code_commit, environment_hash",
+  );
+  expect(
+    calls.some((x) => x.p === "/model-bundles" && x.method === "POST"),
+  ).toBeFalsy();
 });

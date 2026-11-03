@@ -23,6 +23,8 @@ const fields: Record<string, string[]> = {
     "preprocess",
     "thresholds",
     "config_hash",
+    "code_commit",
+    "environment_hash",
   ],
 };
 export default function Registry({
@@ -73,6 +75,12 @@ export default function Registry({
   }
   return (
     <>
+      {state.quarantinedCount > 0 && (
+        <p className="notice" role="status">
+          검증 기준을 충족하지 않는 이전 설정 {state.quarantinedCount}건을
+          격리했습니다. 새 버전으로 다시 등록하세요.
+        </p>
+      )}
       <Collection
         title={profile ? "장착·보정 프로파일" : "모델 버전 레지스트리"}
         description={
@@ -126,7 +134,7 @@ export default function Registry({
                 전처리 설정. thresholds: pothole_confidence, pothole_nms_iou,
                 single_frame_confidence, lane_monitor, lane_good,
                 min_valid_ratio, min_segment_support_ratio.
-                code_commit·environment_hash도 함께 기록하세요.
+                code_commit·environment_hash는 필수 항목입니다.
               </p>
             )}
           </details>
