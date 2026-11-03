@@ -1,0 +1,181 @@
+{
+  "source_licenses": [
+    {
+      "research_allowed": true,
+      "license_id": "CC-BY-NC-ND-4.0",
+      "source_url": "https://huggingface.co/datasets/CUHK-CSE/wider_face",
+      "source_revision": "db171f1b7fedf4d3453e81297ff02f9915356d19",
+      "license_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+      "primary_homepage": "https://shuoyang1213.me/WIDERFACE/index.html",
+      "card_sha256": "785b34edc837b2a0049840d9e1fdf798d382b5d418f16d2e264cec1637a1d292",
+      "restriction": "Private non-commercial research only; no dataset adaptations or model release claimed permitted."
+    },
+    {
+      "research_allowed": true,
+      "license_id": "MIT",
+      "source_url": "https://github.com/detectRecog/CCPD",
+      "license_url": "https://github.com/detectRecog/CCPD/blob/master/LICENSE",
+      "readme_sha256": "330723a69d0a960cfe1778727321146ff02643025e61ea92199bf0f16461c198",
+      "decision": "Publisher explicitly applies MIT to dataset; local research only, no human privacy/vehicle-owner consent claim."
+    }
+  ],
+  "source_archive_records": {
+    "wider_face_split.zip": {
+      "source_url": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/db171f1b7fedf4d3453e81297ff02f9915356d19/data/wider_face_split.zip",
+      "sha256": "c7561e4f5e7a118c249e0a5c5c902b0de90bbf120d7da9fa28d99041f68a8a5c",
+      "bytes": 3591642,
+      "downloaded_at": "2026-11-03T16:55:19.285502+00:00",
+      "expires_at": "2026-11-10T16:55:19.285523+00:00"
+    },
+    "WIDER_train.zip": {
+      "source_url": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/db171f1b7fedf4d3453e81297ff02f9915356d19/data/WIDER_train.zip",
+      "sha256": "e23b76129c825cafae8be944f65310b2e1ba1c76885afe732f179c41e5ed6d59",
+      "bytes": 1465602149,
+      "downloaded_at": "2026-11-03T16:55:46.503067+00:00",
+      "expires_at": "2026-11-10T16:55:46.503079+00:00"
+    },
+    "WIDER_val.zip": {
+      "source_url": "https://huggingface.co/datasets/CUHK-CSE/wider_face/resolve/db171f1b7fedf4d3453e81297ff02f9915356d19/data/WIDER_val.zip",
+      "sha256": "f9efbd09f28c5d2d884be8c0eaef3967158c866a593fc36ab0413e4b2a58a17a",
+      "bytes": 362752168,
+      "downloaded_at": "2026-11-03T16:55:52.647675+00:00",
+      "expires_at": "2026-11-10T16:55:52.647686+00:00"
+    },
+    "CCPD2020.zip": {
+      "source_url": "https://drive.usercontent.google.com/download?id=1m8w1kFxnCEiqz_-t2vTcgrgqNIv986PR&export=download&confirm=t&uuid=404c01ca-d865-4e2e-aa11-36e79f8fd297",
+      "sha256": "7ce77266d2fa216e1903df47be800b25fa1f408b985920dbb5e15bc6cfd72271",
+      "bytes": 907711344,
+      "downloaded_at": "2026-11-03T16:56:15.369360+00:00",
+      "expires_at": "2026-11-10T16:56:15.369371+00:00"
+    }
+  },
+  "count": 2308,
+  "counts": {
+    "train:face": 800,
+    "train:license_plate": 800,
+    "validation:face": 200,
+    "validation:license_plate": 108,
+    "test:face": 200,
+    "test:license_plate": 200
+  },
+  "object_counts": {
+    "face": 1309,
+    "license_plate": 1108
+  },
+  "face_event_split": {
+    "53--Raid": "validation",
+    "52--Photographers": "validation",
+    "1--Handshaking": "validation",
+    "35--Basketball": "validation",
+    "57--Angler": "validation",
+    "11--Meeting": "validation",
+    "39--Ice_Skating": "validation",
+    "45--Balloonist": "validation",
+    "4--Dancing": "validation",
+    "12--Group": "test",
+    "47--Matador_Bullfighter": "test",
+    "33--Running": "test",
+    "29--Students_Schoolkids": "test",
+    "26--Soldier_Drilling": "test",
+    "56--Voter": "test",
+    "30--Surgeons": "test",
+    "17--Ceremony": "test",
+    "49--Greeting": "test",
+    "24--Soldier_Firing": "train",
+    "28--Sports_Fan": "train",
+    "18--Concerts": "train",
+    "10--People_Marching": "train",
+    "61--Street_Battle": "train",
+    "23--Shoppers": "train",
+    "3--Riot": "train",
+    "36--Football": "train",
+    "31--Waiter_Waitress": "train",
+    "51--Dresses": "train",
+    "19--Couple": "train",
+    "16--Award_Ceremony": "train",
+    "2--Demonstration": "train",
+    "20--Family_Group": "train",
+    "8--Election_Campain": "train",
+    "5--Car_Accident": "train",
+    "6--Funeral": "train",
+    "48--Parachutist_Paratrooper": "train",
+    "58--Hockey": "train",
+    "25--Soldier_Patrol": "train",
+    "9--Press_Conference": "train",
+    "13--Interview": "train",
+    "55--Sports_Coach_Trainer": "train",
+    "0--Parade": "train",
+    "22--Picnic": "train",
+    "34--Baseball": "train",
+    "42--Car_Racing": "train",
+    "37--Soccer": "train",
+    "50--Celebration_Or_Party": "train",
+    "54--Rescue": "train",
+    "41--Swimming": "train",
+    "32--Worker_Laborer": "train",
+    "40--Gymnastics": "train",
+    "44--Aerobics": "train",
+    "43--Row_Boat": "train",
+    "21--Festival": "train",
+    "14--Traffic": "train",
+    "59--people--driving--car": "train",
+    "46--Jockey": "train",
+    "7--Cheering": "train",
+    "38--Tennis": "train",
+    "27--Spa": "train",
+    "15--Stock_Market": "train"
+  },
+  "face_event_groups": 61,
+  "plate_identity_cross_split_groups_excluded": 890,
+  "cross_split_duplicate_cluster_members_removed": 0,
+  "removed_crop_sample_ids": [],
+  "rejected": {
+    "ValueError:no_valid_sufficient_face": 87,
+    "ValueError:invalid_publisher_plate_bbox": 1
+  },
+  "release_sha256": "6f8c15e9acb418cfeb842fa34f753af05023596a20e4ebf591dc19d02376736b",
+  "release_validation": {
+    "valid": true,
+    "samples": 2308,
+    "errors": []
+  },
+  "human_privacy_reviewed": false,
+  "project_acceptance_eligible": false,
+  "redistribution_policy": "WIDER-derived crops and learned artifacts remain private non-commercial research. No adapted image redistribution, artifact license clearance, privacy consent, B2G commercial permission or performance acceptance is claimed. CCPD MIT notices retained; third-party personality/privacy rights unaffected.",
+  "coverage_limitation": "Crops reduce obvious unlabeled other-class negatives but neither dataset exhaustively labels both face and plate classes. Cropped test is not a full-scene masking recall evaluation; source or identity independence beyond publisher events/hashed plate identity and duplicate filters is unverified.",
+  "split_policy": "Seed2026 whole WIDER event-category groups; CCPD original split with every cross-split hashed-plate-identity removed before sampling. Original source IDs preserved. Connected exactSHA and 64bit source-dHash Hamming<=3 crossing all selected splits remove ALL cluster members. Choices are frozen before training, no model outputs used.",
+  "release_path": "data/training/research-redaction/release.json",
+  "script_sha256": "d652c43373cfdf09af0c581cb3b2f0a92304811be979df4d9a8ccdd61175633a",
+  "source_files_not_committed": true,
+  "source_attributions": [
+    {
+      "dataset": "WIDER FACE",
+      "authors": [
+        "Shuo Yang",
+        "Ping Luo",
+        "Chen Change Loy",
+        "Xiaoou Tang"
+      ],
+      "citation": "WIDER FACE: A Face Detection Benchmark, CVPR 2016",
+      "source_url": "https://huggingface.co/datasets/CUHK-CSE/wider_face",
+      "license_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+      "changes": "Private face crops; bbox coordinates clipped/translated; original source identity retained. No adapted images shared."
+    },
+    {
+      "dataset": "CCPD2020 (CCPD-Green)",
+      "authors": [
+        "Zhenbo Xu",
+        "Wei Yang",
+        "Ajin Meng",
+        "Nanxue Lu",
+        "Huan Huang"
+      ],
+      "citation": "Towards End-to-End License Plate Detection and Recognition: A Large Dataset and Baseline, ECCV 2018",
+      "source_url": "https://github.com/detectRecog/CCPD",
+      "license_url": "https://github.com/detectRecog/CCPD/blob/master/LICENSE",
+      "copyright": "Copyright (c) 2017 CCPD",
+      "changes": "Private plate bbox crops; translated detection labels; encoded plate identities hashed for grouping, not recognized or exported."
+    }
+  ],
+  "integrity_limit": "Local acquisition SHA256 and byte counts verified against downloader records; selected ZIP member CRC verified by zipfile. No independent publisher-provided full-archive checksum is claimed."
+}

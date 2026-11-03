@@ -1,0 +1,46 @@
+{
+  "manifest_path": "data/training/research-redaction/fullscene-test.json",
+  "manifest_sha256": "494964f4b48afec828d4dcb06cbe5c4c10024ae00fa573fd0a135abe1c026584",
+  "frozen_crop_release_sha256": "6f8c15e9acb418cfeb842fa34f753af05023596a20e4ebf591dc19d02376736b",
+  "count": 400,
+  "images_by_known_class": {
+    "face": 200,
+    "license_plate": 200
+  },
+  "all_valid_publisher_objects_by_class": {
+    "face": 1328,
+    "license_plate": 200
+  },
+  "ignored_face_boxes": 1,
+  "validation": {
+    "valid": true,
+    "samples": 400,
+    "errors": []
+  },
+  "selection": "Exactly the original source images underlying the already frozen crop test rows, without extra selection or split changes. No model outputs examined.",
+  "evaluation_protocol": "Evaluate only evaluation_class per image; retain ALL valid publisher boxes including small and partly visible faces. Ignore publisher-invalid face regions; unknown other class never counts as negative or FP. Fullscene test once after crop-model selection; no threshold/model tuning on it.",
+  "project_acceptance_eligible": false,
+  "global_privacy_metrics_eligible": false,
+  "human_privacy_reviewed": false,
+  "redistribution": "Original images and plate-identity-bearing filenames stay in restricted local workspace only. No photos or original filenames in public report. Existing source-specific license and seven-day TTL apply.",
+  "source_licenses": [
+    {
+      "research_allowed": true,
+      "license_id": "CC-BY-NC-ND-4.0",
+      "source_url": "https://huggingface.co/datasets/CUHK-CSE/wider_face",
+      "source_revision": "db171f1b7fedf4d3453e81297ff02f9915356d19",
+      "license_url": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+      "primary_homepage": "https://shuoyang1213.me/WIDERFACE/index.html",
+      "card_sha256": "785b34edc837b2a0049840d9e1fdf798d382b5d418f16d2e264cec1637a1d292",
+      "restriction": "Private non-commercial research only; no dataset adaptations or model release claimed permitted."
+    },
+    {
+      "research_allowed": true,
+      "license_id": "MIT",
+      "source_url": "https://github.com/detectRecog/CCPD",
+      "license_url": "https://github.com/detectRecog/CCPD/blob/master/LICENSE",
+      "readme_sha256": "330723a69d0a960cfe1778727321146ff02643025e61ea92199bf0f16461c198",
+      "decision": "Publisher explicitly applies MIT to dataset; local research only, no human privacy/vehicle-owner consent claim."
+    }
+  ]
+}
