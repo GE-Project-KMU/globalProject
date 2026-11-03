@@ -115,7 +115,11 @@ def eligible(path,kind):
             if not set(next(csv.reader(stream),[]))&PRIVATE_FIELDS:raise ValueError("aggregate_or_unclassified_csv_is_preserved")
     elif path.suffix.lower()==".log":
         if path.stat().st_size>100*1024*1024:raise ValueError("metadata_too_large")
-        if not re.search(r"[^\s\"<>]+\.(?:jpg|jpeg|png|bmp|webp|xml)(?:[\s\"'<>:]|$)",path.read_text(encoding="utf-8",errors="replace"),re.I):raise ValueError("aggregate_or_unclassified_log_is_preserved")
+        text=path.read_text(encoding="utf-8",errors="replace")
+        # Verifier stdout may identify a probe by image_sha256 without a media
+        # filename. Accept JSON/JSONL and Python repr keys in mixed stdout too.
+        private_key=r"[\"'](?:"+"|".join(re.escape(key) for key in sorted(PRIVATE_FIELDS))+r")[\"']\s*:"
+        if not re.search(private_key,text) and not re.search(r"[^\s\"<>]+\.(?:jpg|jpeg|png|bmp|webp|xml)(?:[\s\"'<>:]|$)",text,re.I):raise ValueError("aggregate_or_unclassified_log_is_preserved")
 
 def evidence_expiries(value):
     found=[]

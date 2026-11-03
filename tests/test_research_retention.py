@@ -148,3 +148,25 @@ def test_public_license_and_aggregate_logs_preserved_but_private_media_log_regis
     with pytest.raises(ValueError,match="preserved"):retention.register(case.relative(case.plan),case.relative(case.inventory))
     log.write_text('error loading "SYNTHETIC_PRIVATE_FILENAME.jpg"',encoding="utf-8");case.save(log,"identifiable_manifest")
     assert retention.register(case.relative(case.plan),case.relative(case.inventory))["registered_files"]==1
+
+
+@pytest.mark.parametrize("content",[
+    json.dumps({"image_sha256":"a"*64,"artifact_contract_verified":True},indent=2),
+    'worker started\n'+json.dumps({"image_sha256":"a"*64})+'\nworker finished\n',
+    str({"sample_id":"SYNTHETIC_PROBE","passed":False}),
+])
+def test_private_probe_stdout_log_inherits_expiry_without_media_filename(case,content):
+    log=case.folder/"verification.log";log.write_text(content,encoding="utf-8")
+    case.save(log,"identifiable_manifest")
+    retention.register(case.relative(case.plan),case.relative(case.inventory))
+    record=next(iter(json.loads(case.inventory.read_text())["entries"].values()))
+    assert record["expires_at"]=="2026-01-08T00:00:00Z"
+    result=retention.purge(case.relative(case.inventory),now=datetime(2026,1,9,tzinfo=timezone.utc))
+    assert result["counts"]["would_delete"]==1 and log.exists()
+
+
+def test_aggregate_stdout_hashes_and_private_field_mentions_remain_preserved(case):
+    log=case.folder/"aggregate.log"
+    log.write_text(json.dumps({"dataset_release_sha256":"a"*64,"checkpoint_sha256":"b"*64})+'\nimage_sha256 is omitted from this aggregate\n',encoding="utf-8")
+    with pytest.raises(ValueError,match="aggregate_or_unclassified_log"):
+        retention.eligible(log,"identifiable_manifest")
