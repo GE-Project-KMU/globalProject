@@ -1,8 +1,14 @@
+from services.contracts import UUIDString
+from services.contracts import ProfileCreate,BundleCreate
 
 import math
 from fastapi import Request
 from common.runtime import *
 store=Store("analysis");app=app_for("analysis")
+
+from .registry import public_profile,public_bundle,quarantine_legacy,counts,assert_usable
+quarantine_legacy(store)
+
 def finite_tree(x):
     if isinstance(x,float) and not math.isfinite(x):fail(422,"FINITE_NUMBER_REQUIRED")
     if isinstance(x,dict):
@@ -19,8 +25,8 @@ def require(condition):
 def scalar_string(x,maximum=150):
     return isinstance(x,str) and 1<=len(x)<=maximum
 @app.post("/api/v1/profiles",status_code=201)
-async def create_profile(req:Request):
-    p=principal(req);role(p,"admin");b=await req.json();finite_tree(b)
+async def create_profile(req:Request,body:ProfileCreate):
+    p=principal(req);role(p,"admin");b=body.model_dump(exclude_unset=True,by_alias=True);finite_tree(b)
     required={"name","version","camera_serial","lens_label","calibration","config_hash"}
     if not required<=set(b) or set(b)-required or type(b["version"]) is not int or b["version"]<1:fail(422,"INVALID_PROFILE")
     if not scalar_string(b["name"],100) or not scalar_string(b["camera_serial"]) or not scalar_string(b["lens_label"]):fail(422,"INVALID_PROFILE")
@@ -48,11 +54,11 @@ async def create_profile(req:Request):
         stamp(c["calibrated_at"])
     except (AssertionError,ValueError,TypeError,KeyError):fail(422,"INVALID_CALIBRATION")
     if any(x["name"]==b["name"] and x["version"]==b["version"] for x in store.list(p["org_id"],"profile")):fail(409,"PROFILE_VERSION_EXISTS")
-    id=uid();store.create(id,p["org_id"],"profile",b);return ok({"profile_id":id,**b})
+    id=uid();row=store.create(id,p["org_id"],"profile",{**b,"calibrated_by":p["sub"]});store.audit(p,"profile.create",id);return ok(public_profile(row))
 @app.post("/api/v1/model-bundles",status_code=201)
-async def create_bundle(req:Request):
-    p=principal(req);role(p,"admin");b=await req.json();finite_tree(b)
-    required={"version","weights_hashes","preprocess","thresholds","config_hash"}
+async def create_bundle(req:Request,body:BundleCreate):
+    p=principal(req);role(p,"admin");b=body.model_dump(exclude_unset=True,by_alias=True);finite_tree(b)
+    required={"version","weights_hashes","preprocess","thresholds","config_hash","code_commit","environment_hash"}
     if not required<=set(b) or set(b)-required-{"code_commit","environment_hash"}:fail(422,"INVALID_BUNDLE")
     validate_hash(b["config_hash"])
     if not scalar_string(b["version"]):fail(422,"INVALID_VERSION")
@@ -71,16 +77,21 @@ async def create_bundle(req:Request):
         require(0<=t["min_valid_ratio"]<=1 and 0<=t["min_segment_support_ratio"]<=1)
     except (AssertionError,ValueError,KeyError,TypeError):fail(422,"INVALID_THRESHOLDS")
     if any(x["version"]==b["version"] for x in store.list(p["org_id"],"bundle")):fail(409,"BUNDLE_VERSION_EXISTS")
-    id=uid();store.create(id,p["org_id"],"bundle",b)
-    return ok({"model_bundle_id":id,**b,"deployment_status":"manifest_registered_weights_not_verified"})
+    id=uid();row=store.create(id,p["org_id"],"bundle",b)
+    store.audit(p,"model_bundle.create",id)
+    return ok(public_bundle(row))
 @app.get("/api/v1/profiles")
-def profiles(req:Request):return ok({"items":store.list(principal(req)["org_id"],"profile")})
+def profiles(req:Request):
+    p=principal(req);return ok({"items":[public_profile(row) for row in store.list(p["org_id"],"profile")],"quarantined_count":counts(store,p["org_id"],"profile")})
 @app.get("/api/v1/profiles/{id}")
-def get_profile(id:str,req:Request):return ok(store.get(id,principal(req)["org_id"],"profile"))
+def get_profile(id:UUIDString,req:Request):
+    p=principal(req);assert_usable(store,id,p["org_id"],"profile");return ok(public_profile(store.get(id,p["org_id"],"profile")))
 @app.get("/api/v1/model-bundles")
-def bundles(req:Request):return ok({"items":store.list(principal(req)["org_id"],"bundle")})
+def bundles(req:Request):
+    p=principal(req);return ok({"items":[public_bundle(row) for row in store.list(p["org_id"],"bundle")],"quarantined_count":counts(store,p["org_id"],"bundle")})
 @app.get("/api/v1/model-bundles/{id}")
-def get_bundle(id:str,req:Request):return ok(store.get(id,principal(req)["org_id"],"bundle"))
+def get_bundle(id:UUIDString,req:Request):
+    p=principal(req);assert_usable(store,id,p["org_id"],"bundle");return ok(public_bundle(store.get(id,p["org_id"],"bundle")))
 @app.get("/internal/model-version/{version}")
 def by_version(version:str,req:Request):
     p=principal(req);x=next((x for x in store.list(p["org_id"],"bundle") if x["version"]==version),None)
@@ -92,5 +103,10 @@ def capabilities(req:Request):
     models=DATA/"models"
     return ok({"raw_processing":"local_agent","server_raw_upload":False,
                "manifest_count":len(store.list(p["org_id"],"bundle")),
-               "model_status":"target_weights_required","local_agent_command":"python -m agent --help",
+               "model_status":"verified_per_job","local_agent_command":"python -m agent --help",
+               "execution_api":"/api/v1/analysis/jobs","prepared_configs_required":True,
+               "job_statuses":["queued","running","completed","blocked","failed"],
                "note":"Registry metadata is not proof of trained model accuracy."})
+
+from services.analysis.jobs import register
+register(app,store)
