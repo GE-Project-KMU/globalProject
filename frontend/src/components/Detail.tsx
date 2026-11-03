@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, LoaderCircle, X } from "lucide-react";
 import { ApiError, request } from "../api";
 import type { Observation, User } from "../types";
@@ -28,6 +28,8 @@ export default function Detail({
     [error, setError] = useState(""),
     [history, setHistory] = useState<any[]>([]);
   const editable = ["admin", "reviewer"].includes(user.role);
+  const dialog = useRef<HTMLElement>(null);
+  const returnFocus = useRef(document.activeElement as HTMLElement | null);
   useEffect(() => {
     let alive = true;
     request<Observation>(token, `/observations/${id(observation)}`)
@@ -51,6 +53,26 @@ export default function Detail({
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      if (e.key === "Tab") {
+        const controls = Array.from(
+          dialog.current?.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex="0"]',
+          ) || [],
+        );
+        const first = controls[0],
+          last = controls[controls.length - 1];
+        if (
+          e.shiftKey &&
+          (document.activeElement === first ||
+            !dialog.current?.contains(document.activeElement))
+        ) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
     };
     document.addEventListener("keydown", key);
     const previous = document.body.style.overflow;
@@ -58,6 +80,7 @@ export default function Detail({
     return () => {
       document.removeEventListener("keydown", key);
       document.body.style.overflow = previous;
+      returnFocus.current?.focus();
     };
   }, [onClose]);
   async function save(e: React.FormEvent) {
@@ -102,6 +125,7 @@ export default function Detail({
   return (
     <div className="drawer-backdrop" onClick={onClose}>
       <section
+        ref={dialog}
         className="drawer"
         role="dialog"
         aria-modal="true"
@@ -211,6 +235,7 @@ export default function Detail({
               <label>
                 검토 상태
                 <select
+                  aria-label="검토 상태"
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
                   disabled={!editable}
@@ -225,6 +250,7 @@ export default function Detail({
               <label>
                 검토 우선순위
                 <select
+                  aria-label="검토 우선순위"
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
                   disabled={!editable}

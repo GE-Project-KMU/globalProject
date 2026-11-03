@@ -65,7 +65,11 @@ export default function Inspections({
         </div>
         <label className="filter-select">
           <span className="sr-only">관측 종류</span>
-          <select value={type} onChange={(e) => setType(e.target.value)}>
+          <select
+            aria-label="관측 종류"
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+          >
             <option value="">모든 종류</option>
             <option value="pothole">포트홀</option>
             <option value="lane_segment">차선 마모</option>
@@ -73,7 +77,11 @@ export default function Inspections({
         </label>
         <label className="filter-select">
           <span className="sr-only">검토 상태 필터</span>
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <select
+            aria-label="검토 상태 필터"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
             <option value="">모든 상태</option>
             {Object.entries(statusLabels).map(([v, l]) => (
               <option key={v} value={v}>
@@ -84,7 +92,11 @@ export default function Inspections({
         </label>
         <label className="filter-select">
           <span className="sr-only">위치 품질 필터</span>
-          <select value={quality} onChange={(e) => setQuality(e.target.value)}>
+          <select
+            aria-label="위치 품질 필터"
+            value={quality}
+            onChange={(e) => setQuality(e.target.value)}
+          >
             <option value="">모든 위치 품질</option>
             <option value="valid">유효</option>
             <option value="degraded">품질 저하</option>

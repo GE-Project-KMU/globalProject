@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
 import { Link2, RefreshCw, LoaderCircle, ArrowRight } from "lucide-react";
 import { request } from "../api";
-import type { User } from "../types";
+import type { User, Observation } from "../types";
+import { date } from "../labels";
+import ProtectedImage from "../components/ProtectedImage";
 import { ErrorBox, Empty } from "../components/UI";
 
 export default function Duplicates({
@@ -15,16 +17,45 @@ export default function Duplicates({
     [error, setError] = useState(""),
     [busy, setBusy] = useState(true),
     [reason, setReason] = useState(""),
-    [working, setWorking] = useState("");
+    [working, setWorking] = useState(""),
+    [comparison, setComparison] = useState<{
+      id: string;
+      a: Observation;
+      b: Observation;
+    } | null>(null),
+    [comparing, setComparing] = useState("");
   const load = useCallback(() => {
     setBusy(true);
     setError("");
-    request<any>(token, "/duplicate-links")
+    request<any>(token, "/duplicate-links?status=suggested")
       .then((d) => setItems(d.items || d.links || []))
       .catch((e) => setError(e.message))
       .finally(() => setBusy(false));
   }, [token]);
   useEffect(load, [load]);
+  async function compare(item: any) {
+    setComparing(item.id);
+    setError("");
+    setReason("");
+    setComparison(null);
+    try {
+      const [a, b] = await Promise.all([
+        request<Observation>(
+          token,
+          `/observations/${item.source_observation_id}`,
+        ),
+        request<Observation>(
+          token,
+          `/observations/${item.target_observation_id}`,
+        ),
+      ]);
+      setComparison({ id: item.id, a, b });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setComparing("");
+    }
+  }
   async function decide(item: any, decision: string) {
     setWorking(item.id);
     setError("");
@@ -37,12 +68,19 @@ export default function Duplicates({
           target_observation_id:
             item.target_observation_id || item.evidence?.target_observation_id,
           decision,
-          source_version: item.source_version || 1,
-          target_version: item.target_version || 1,
+          source_version:
+            comparison && comparison.id === item.id
+              ? comparison.a.case_version
+              : item.source_version,
+          target_version:
+            comparison && comparison.id === item.id
+              ? comparison.b.case_version
+              : item.target_version,
           reason: reason.trim(),
         }),
       });
       setReason("");
+      setComparison(null);
       load();
     } catch (e) {
       setError((e as Error).message);
@@ -111,18 +149,66 @@ export default function Duplicates({
               </div>
               <button
                 className="button secondary"
-                disabled={!reason.trim() || !!working || user.role === "viewer"}
+                onClick={() => compare(item)}
+                disabled={!!comparing || !!working}
+              >
+                {comparing === item.id ? "근거 확인 중" : "사진·시각 비교"}
+              </button>
+              <button
+                className="button secondary"
+                disabled={
+                  !reason.trim() ||
+                  !!working ||
+                  user.role === "viewer" ||
+                  comparison?.id !== item.id
+                }
                 onClick={() => decide(item, "rejected")}
               >
                 다른 대상
               </button>
               <button
                 className="button primary"
-                disabled={!reason.trim() || !!working || user.role === "viewer"}
+                disabled={
+                  !reason.trim() ||
+                  !!working ||
+                  user.role === "viewer" ||
+                  comparison?.id !== item.id
+                }
                 onClick={() => decide(item, "approved")}
               >
                 동일 대상 연결
               </button>
+              {comparison && comparison.id === item.id && (
+                <div className="comparison">
+                  <p className="help-text">
+                    사진과 촬영 시각·진행 방향 근거를 함께 확인하세요. 위치
+                    근접만으로 동일 대상임을 확정하지 않습니다.
+                  </p>
+                  <div className="comparison-grid">
+                    {[comparison.a, comparison.b].map((o, i) => (
+                      <section key={i}>
+                        <h3>{i === 0 ? "원 관측" : "비교 관측"}</h3>
+                        <ProtectedImage
+                          token={token}
+                          path={
+                            o.image_content_path ||
+                            (o.image?.file_id
+                              ? `/api/v1/images/${o.image.file_id}/content`
+                              : undefined)
+                          }
+                        />
+                        <p>
+                          {date(o.captured_at)} ·{" "}
+                          {o.location?.quality || "위치 품질 미기록"}
+                        </p>
+                        {(o.demo || o.synthetic) && (
+                          <small>가상 시연 자료</small>
+                        )}
+                      </section>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -29,7 +29,7 @@ export default function Dashboard({
       <div className="stats-grid">
         {[
           {
-            label: "전체 점검 건",
+            label: "전체 관측",
             value: summary?.total,
             sub: "등록된 관측",
             icon: Route,
