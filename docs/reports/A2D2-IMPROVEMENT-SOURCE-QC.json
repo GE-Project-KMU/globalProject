@@ -1,0 +1,43 @@
+{
+  "acquisition_sha256": "d70f69e88fe41776dc80a03763aec2f9fe4f91c4c2bcba44b3e6f293674c3731",
+  "counts": {
+    "test": 100,
+    "train": 799,
+    "validation": 100
+  },
+  "development_manifest_sha256": "14c109f224b600c2b36398ca36e4b6eb9bb65410aaa0a03ac6b3dbe7b4c16f6e",
+  "format": "a2d2-improvement-source-qc-v1",
+  "fresh_test_isolated": true,
+  "fresh_test_manifest_sha256": "291981793df0f2a8ece9c2717e475054078ea1ad661c66050706f2b588992555",
+  "frozen_before_training": true,
+  "human_privacy_reviewed": false,
+  "known_class_mapping_verified": true,
+  "limitations": [
+    "Recording/date independence does not establish physically independent roads.",
+    "Previous TEST is regression only. No model or threshold selection may use fresh final holdout.",
+    "Publisher solid/dashed pixels are not independently annotated wear/outline/gap/valid GT.",
+    "Machine checks do not establish human privacy approval or redistribution permission."
+  ],
+  "manifest_sha256": "ee5d8cb5e4a34870e190eda80cda72890fa29510cc650b5fce516ba560c46a8d",
+  "new_duplicate_candidates_excluded": {
+    "train": 1
+  },
+  "new_plan_sha256": "a3f9268d90f3e432b3b8f1f1805334fa947976e09dc595e1bbab081ae118f4a5",
+  "new_source_expiry": "2026-11-10T18:06:24.797413+00:00",
+  "new_test_connected_to_old_data": false,
+  "old_deadlines_preserved": true,
+  "old_manifest_sha256": "cf74bc4bd1e627b3b5df39793830c26bd66d26c3dbcea2676e363c42a34b37f3",
+  "old_test_reused_for_training": false,
+  "physical_roads_independently_verified": false,
+  "project_acceptance_eligible": false,
+  "publisher_size_md5_and_png_sha256_verified": true,
+  "recording_heldout_verified": true,
+  "script_sha256": "2184c2ddc80a63de34961a755fc01706776db5298ab05c94ae1170a97e9baf50",
+  "source_license": "CC BY-ND 4.0",
+  "source_new_bytes": 1868205971,
+  "source_url": "https://registry.opendata.aws/aev-a2d2/",
+  "existing_training_rows_preserved": 400,
+  "additional_training_rows_retained": 399,
+  "previous_test_regression_rows": 100,
+  "source_class_mapping_and_license_evidence_hashes_rechecked": true
+}
