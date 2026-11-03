@@ -129,3 +129,20 @@ async def download(id:str,req:Request):
     path=FILES/(id+"."+j["format"])
     if not path.is_file():fail(404,"FILE_NOT_FOUND")
     return FileResponse(path,media_type="text/csv; charset=utf-8" if j["format"]=="csv" else "application/pdf",filename="road-insight."+j["format"],headers={"Cache-Control":"private, no-store"})
+@app.post("/api/v1/privacy-requests",status_code=202)
+async def privacy(req:Request):
+    p=principal(req);role(p,"admin");b=await req.json()
+    if set(b)!={"request_type","target_refs","reason"} or b["request_type"] not in ("access","correction","deletion") or not isinstance(b["reason"],str) or not 1<=len(b["reason"])<=500 or not isinstance(b["target_refs"],list) or not 1<=len(b["target_refs"])<=100:fail(422,"INVALID_PRIVACY_REQUEST")
+    for ref in b["target_refs"]:
+        if not isinstance(ref,dict) or set(ref)!={"kind","id"} or ref["kind"] not in ("observation","image","run","case"):fail(422,"INVALID_TARGET")
+        valid_uuid(ref["id"])
+    plan=(await remote("inspection","/internal/privacy/plan",p,method="POST",json={"target_refs":b["target_refs"]})).json()["data"]
+    id=uid();store.create(id,p["org_id"],"job",{"owner":p["sub"],"kind_name":"privacy","principal":p,"request":b,"plan":plan,"status":"pending","progress":0,"created_at":iso()},now()+90*86400)
+    return ok({"request_id":id,"job_id":id,"status":"received"})
+@app.get("/api/v1/privacy-requests/{id}")
+def privacy_status(id:str,req:Request):
+    p=principal(req);role(p,"admin");j=store.get(valid_uuid(id),p["org_id"],"job")
+    if j["kind_name"]!="privacy":fail(404,"NOT_FOUND")
+    status={"pending":"received","running":"in_progress","succeeded":"completed","failed":"failed"}[j["status"]]
+    if j.get("result_code")=="MANUAL_ADMIN_REVIEW_REQUIRED":status="in_progress"
+    return ok({"request_id":id,"job_id":id,"request_type":j["request"]["request_type"],"status":status,"result_code":j.get("result_code"),"created_at":j["created_at"],"resolved_at":iso() if status=="completed" else None})
