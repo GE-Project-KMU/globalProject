@@ -5,6 +5,7 @@ import argparse,hashlib,json,math,os,re,subprocess,sys,tempfile
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 EXPECTED={"lane":["background","paint"],"pothole":["pothole"],"redaction":["face","license_plate"]}
+MAX_METADATA_BYTES=40_000_000
 
 def default_training_python(os_name=None):
     return ROOT/(".venv-training/python.exe" if (os.name if os_name is None else os_name)=="nt" else ".venv-training/bin/python")
@@ -25,8 +26,11 @@ def digest(path):
     return h.hexdigest()
 
 def read(path):
-    if Path(path).stat().st_size>20_000_000:raise ValueError("metadata_too_large")
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    # Expanded research releases exceed20MB. Bound the actual read as well as
+    # the accepted size so a growing file cannot bypass the memory limit.
+    with Path(path).open("rb") as stream:raw=stream.read(MAX_METADATA_BYTES+1)
+    if len(raw)>MAX_METADATA_BYTES:raise ValueError("metadata_too_large")
+    return json.loads(raw.decode("utf-8"))
 
 def validate_architecture(info):
     """Validate reconstructible structure, including non-parameter operators."""

@@ -26,6 +26,16 @@ def test_metadata_only_does_not_open_unfinished_weights(artifact):
     assert result["production_approved"] is False and result["accuracy_evaluation_performed"] is False
     assert result["split_counts"]=={"train":1,"validation":1,"test":1}
 
+
+def test_expanded_release_metadata_has_a_bounded_40mb_read(artifact):
+    from scripts.verify_trained_models import read,MAX_METADATA_BYTES
+    path=artifact.folder/"synthetic-large-metadata.json"
+    path.write_bytes(b'{"synthetic":true}'+b' '*(MAX_METADATA_BYTES-18))
+    assert path.stat().st_size==MAX_METADATA_BYTES
+    assert read(path)=={"synthetic":True}
+    with path.open("ab") as stream:stream.write(b' ')
+    with pytest.raises(ValueError,match="metadata_too_large"):read(path)
+
 @pytest.mark.parametrize("change",[{"research_only":False},{"production_approved":True},{"source_licenses":[]},{"weights":"../outside.onnx"},{"weights":"C:/outside/model.onnx"},{"sha256":"invalid"},{"classes":["paint"]},{"project_acceptance_eligible":True}])
 def test_invalid_or_overclaimed_manifest_rejected(artifact,change):
     artifact.manifest.write_text(json.dumps({**artifact.model,**change}),encoding="utf-8")
