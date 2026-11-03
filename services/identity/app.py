@@ -79,3 +79,40 @@ async def change_user(id:str,req:Request):
             if session["user_id"]==id:store.delete(session["id"],p["org_id"],s)
         store.audit(p,"user.update",id,s)
     return ok(public_user(x))
+@app.get("/api/v1/devices")
+def devices(req:Request):
+    p=principal(req);role(p,"admin","reviewer");return ok({"items":[{k:v for k,v in x.items() if k!="credential_id"} for x in store.list(p["org_id"],"device")]})
+@app.get("/internal/devices/{id}")
+def device_reference(id:str,req:Request):
+    p=principal(req)
+    if p["role"]=="device" and p["sub"]!=id:fail(403,"FORBIDDEN")
+    x=store.get(id,p["org_id"],"device")
+    if not x["active"]:fail(403,"DEVICE_INACTIVE")
+    return ok({"id":id,"name":x["name"],"active":x["active"]})
+@app.post("/api/v1/devices",status_code=201)
+async def new_device(req:Request):
+    p=principal(req);role(p,"admin");b=await req.json()
+    if set(b)!={"name"} or not isinstance(b["name"],str) or not 1<=len(b["name"])<=100:fail(422,"VALIDATION_ERROR")
+    id=uid();token=secrets.token_urlsafe(32);tid=digest(token)
+    with store.tx() as s:
+        store.create(tid,p["org_id"],"device_credential",{"device_id":id},s=s)
+        store.create(id,p["org_id"],"device",{"name":b["name"],"active":True,"credential_id":tid},s=s)
+        store.audit(p,"device.create",id,s)
+    return ok({"device_id":id,"device_token":token,"name":b["name"],"active":True})
+@app.patch("/api/v1/devices/{id}")
+async def update_device(id:str,req:Request):
+    p=principal(req);role(p,"admin");b=await req.json()
+    if not b or set(b)-{"name","active"} or ("active" in b and not isinstance(b["active"],bool)) or ("name" in b and not 1<=len(b["name"])<=100):fail(422,"VALIDATION_ERROR")
+    x=store.get(id,p["org_id"],"device");payload={k:x[k] for k in ("name","active","credential_id")};payload.update(b)
+    x=store.change(id,p["org_id"],payload,x["version"]);return ok({k:v for k,v in x.items() if k!="credential_id"})
+@app.post("/api/v1/devices/{id}/credentials")
+async def rotate(id:str,req:Request):
+    p=principal(req);role(p,"admin");b=await req.json()
+    if not 1<=len(b.get("reason",""))<=500:fail(422,"REASON_REQUIRED")
+    x=store.get(id,p["org_id"],"device");token=secrets.token_urlsafe(32);tid=digest(token)
+    with store.tx() as s:
+        store.delete(x["credential_id"],p["org_id"],s)
+        store.create(tid,p["org_id"],"device_credential",{"device_id":id},s=s)
+        store.change(id,p["org_id"],{"name":x["name"],"active":x["active"],"credential_id":tid},x["version"],s)
+        store.audit(p,"device.rotate",id,s)
+    return ok({"device_id":id,"device_token":token})
