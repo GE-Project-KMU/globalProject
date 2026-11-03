@@ -1,0 +1,242 @@
+name: roadwatch
+
+x-app-env: &app-env
+  ROAD_ENV: production
+  ROAD_DATA_DIR: /app/data
+  ROAD_INTERNAL_SECRET: ${ROAD_INTERNAL_SECRET:?Generate project .env first}
+  ROAD_BOOTSTRAP_PASSWORD: ${ROAD_BOOTSTRAP_PASSWORD:?Generate project .env first}
+  ROAD_GATEWAY_URL: http://gateway:8000
+  ROAD_SERVICE_IDENTITY_URL: http://identity:8101
+  ROAD_SERVICE_MEDIA_URL: http://media:8102
+  ROAD_SERVICE_INSPECTION_URL: http://inspection:8103
+  ROAD_SERVICE_ANALYSIS_URL: http://analysis:8104
+  ROAD_SERVICE_REPORTING_URL: http://reporting:8105
+  ROAD_SERVICE_GATEWAY_URL: http://gateway:8000
+
+services:
+  identity-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: identity
+      POSTGRES_USER: identity
+      POSTGRES_PASSWORD: ${IDENTITY_DB_PASSWORD:?Set identity database password}
+    volumes:
+      - ./data/postgres/identity:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U identity -d identity"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  media-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: media
+      POSTGRES_USER: media
+      POSTGRES_PASSWORD: ${MEDIA_DB_PASSWORD:?Set media database password}
+    volumes:
+      - ./data/postgres/media:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U media -d media"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  inspection-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: inspection
+      POSTGRES_USER: inspection
+      POSTGRES_PASSWORD: ${INSPECTION_DB_PASSWORD:?Set inspection database password}
+    volumes:
+      - ./data/postgres/inspection:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U inspection -d inspection"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  analysis-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: analysis
+      POSTGRES_USER: analysis
+      POSTGRES_PASSWORD: ${ANALYSIS_DB_PASSWORD:?Set analysis database password}
+    volumes:
+      - ./data/postgres/analysis:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U analysis -d analysis"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  reporting-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: reporting
+      POSTGRES_USER: reporting
+      POSTGRES_PASSWORD: ${REPORTING_DB_PASSWORD:?Set reporting database password}
+    volumes:
+      - ./data/postgres/reporting:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U reporting -d reporting"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  identity:
+    build:
+      context: .
+      target: backend
+    image: roadwatch-backend:local
+    command: [python, -m, uvicorn, services.identity.app:app, --host, 0.0.0.0, --port, "8101"]
+    user: "${ROAD_CONTAINER_UID:-1000}:${ROAD_CONTAINER_GID:-1000}"
+    environment:
+      <<: *app-env
+      IDENTITY_DATABASE_URL: postgresql+psycopg://identity:${IDENTITY_DB_PASSWORD}@identity-db:5432/identity
+    volumes:
+      - ./data/containers/identity:/app/data
+    depends_on:
+      identity-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8101/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  media:
+    build:
+      context: .
+      target: backend
+    image: roadwatch-backend:local
+    command: [python, -m, uvicorn, services.media.app:app, --host, 0.0.0.0, --port, "8102"]
+    user: "${ROAD_CONTAINER_UID:-1000}:${ROAD_CONTAINER_GID:-1000}"
+    environment:
+      <<: *app-env
+      MEDIA_DATABASE_URL: postgresql+psycopg://media:${MEDIA_DB_PASSWORD}@media-db:5432/media
+    volumes:
+      - ./data/containers/media:/app/data
+    depends_on:
+      media-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8102/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  inspection:
+    build:
+      context: .
+      target: backend
+    image: roadwatch-backend:local
+    command: [python, -m, uvicorn, services.inspection.app:app, --host, 0.0.0.0, --port, "8103"]
+    user: "${ROAD_CONTAINER_UID:-1000}:${ROAD_CONTAINER_GID:-1000}"
+    environment:
+      <<: *app-env
+      INSPECTION_DATABASE_URL: postgresql+psycopg://inspection:${INSPECTION_DB_PASSWORD}@inspection-db:5432/inspection
+    volumes:
+      - ./data/containers/inspection:/app/data
+    depends_on:
+      inspection-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8103/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  analysis:
+    build:
+      context: .
+      target: backend
+    image: roadwatch-backend:local
+    command: [python, -m, uvicorn, services.analysis.app:app, --host, 0.0.0.0, --port, "8104"]
+    user: "${ROAD_CONTAINER_UID:-1000}:${ROAD_CONTAINER_GID:-1000}"
+    environment:
+      <<: *app-env
+      ANALYSIS_DATABASE_URL: postgresql+psycopg://analysis:${ANALYSIS_DB_PASSWORD}@analysis-db:5432/analysis
+    volumes:
+      - ./data/containers/analysis:/app/data
+    depends_on:
+      analysis-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8104/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  reporting:
+    build:
+      context: .
+      target: backend
+    image: roadwatch-backend:local
+    command: [python, -m, uvicorn, services.reporting.app:app, --host, 0.0.0.0, --port, "8105"]
+    user: "${ROAD_CONTAINER_UID:-1000}:${ROAD_CONTAINER_GID:-1000}"
+    environment:
+      <<: *app-env
+      REPORTING_DATABASE_URL: postgresql+psycopg://reporting:${REPORTING_DB_PASSWORD}@reporting-db:5432/reporting
+    volumes:
+      - ./data/containers/reporting:/app/data
+    depends_on:
+      reporting-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8105/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: .
+      target: backend
+    image: roadwatch-backend:local
+    command: [python, -m, uvicorn, services.gateway.app:app, --host, 0.0.0.0, --port, "8000"]
+    user: "${ROAD_CONTAINER_UID:-1000}:${ROAD_CONTAINER_GID:-1000}"
+    environment:
+      <<: *app-env
+    volumes:
+      - ./data/containers/gateway:/app/data
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      identity:
+        condition: service_healthy
+      media:
+        condition: service_healthy
+      inspection:
+        condition: service_healthy
+      analysis:
+        condition: service_healthy
+      reporting:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      target: frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    restart: unless-stopped
