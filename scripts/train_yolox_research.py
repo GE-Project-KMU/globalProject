@@ -178,6 +178,7 @@ def train(release,output,task,*,epochs=20,batch_size=16,learning_rate=.0005,pret
         "pretrained_sha256":sha256(workspace_path(pretrained,exists=True)),"transferred_parameter_tensors":transferred}
     atomic_json(output/"training-config.json",{"epochs":epochs,"batch_size":batch_size,"learning_rate":learning_rate,"seed":seed,
         "release_sha256":sha256(release),"classes":classes,"environment":environment,"research_only":True,"test_used_for_selection":False,
+        "executed_trainer_script_sha256":sha256(Path(__file__).resolve()),"executed_argv":sys.argv,
         "input_size":input_size,"max_labels":max_labels,"known_class_evaluation":known_class_evaluation,
         "partial_annotation_limit":"Unknown other-class objects can create false-negative objectness supervision; research-only, no exhaustive privacy coverage claim." if known_class_evaluation else None})
     for epoch in range(epochs):
@@ -226,6 +227,7 @@ def train(release,output,task,*,epochs=20,batch_size=16,learning_rate=.0005,pret
         "training_provenance":(output/"provenance.json").relative_to(ROOT).as_posix(),"input_size":[input_size,input_size],"output_layout":"yolox_decoded_xywh",
         "confidence":operating_confidence,"nms_iou":.5,"production_approved":False,"research_only":True,"human_privacy_reviewed":False,
         "project_acceptance_eligible":False,"source_licenses":source_licenses,"independent_route_verified":False,
+        "test_split_used":False,"test_evaluated":True,"test_split_used_scope":"training_and_selection",
         "data_revoked":False,"needs_revalidation":False,"best_epoch":best_epoch,"heldout_map50":heldout["metrics"]["map50"]}
     atomic_json(output/"model.json",manifest);link_model(output/"provenance.json",output/"model.json")
     atomic_json(output/"summary.json",{"architecture":"YOLOX-Nano","genuine_gradient_training":True,"best_epoch":best_epoch,
