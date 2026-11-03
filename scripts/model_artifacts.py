@@ -33,6 +33,7 @@ def verification_summary(path,info):
         if value.get(key) is not True:raise ValueError("full_runtime_verification_required")
     if value.get("app_vs_ort",{}).get("passed") is not True:raise ValueError("onnxruntime_parity_required")
     if value.get("numerical_parity_passed") is not True:raise ValueError("all_requested_numerical_comparisons_must_pass")
+    if value.get("postprocess_parity_passed",True) is not True:raise ValueError("detection_postprocess_parity_required")
     result={key:value[key] for key in ("manifest_sha256","weight_sha256","metadata_valid","weight_hash_verified","finite_output","preprocess_contract_verified")}
     for key in ("app_vs_ort","app_vs_torch"):
         if key in value:result[key]={k:v for k,v in value[key].items() if k in ("passed","max_abs_error","mean_abs_error","rtol","atol") and isinstance(v,(bool,int,float))}

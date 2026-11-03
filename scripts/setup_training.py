@@ -1,10 +1,10 @@
-"""Project-only Windows training runtime bootstrap; never changes system Python."""
+"""Project-only training launcher and Windows bootstrap; never changes system Python."""
 from pathlib import Path
 import argparse,json,os,subprocess,sys,urllib.request,zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
 RUNTIME=ROOT/".venv-training"
-PYTHON=RUNTIME/"python.exe"
+PYTHON=RUNTIME/("python.exe" if os.name=="nt" else "bin/python")
 CACHE=ROOT/".cache"/"training"
 
 def environment():

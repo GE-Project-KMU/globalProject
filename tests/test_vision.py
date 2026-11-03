@@ -920,3 +920,6 @@ def test_research_detector_export_does_not_impersonate_deployment_approval(folde
     provenance=json.loads((output/"provenance.json").read_text())
     assert provenance["research_only"] is True and provenance["production_approved"] is False
     assert json.loads(release.read_text())[0]["human_privacy_reviewed"] is False
+    atomic_json(release.with_suffix(".quarantine.json"),{"reason":"semantic class mapping rejected in source QC"})
+    with pytest.raises(ValueError,match="quarantined"):
+        export_coco(release,folder/"quarantined-export","pothole",research=True)
