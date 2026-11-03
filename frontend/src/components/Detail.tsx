@@ -5,6 +5,7 @@ import type { Observation, User } from "../types";
 import { statusLabels, gradeLabels, date, id, typeName } from "../labels";
 import { Badge, ErrorBox } from "./UI";
 import ProtectedImage from "./ProtectedImage";
+import { JsonDetails } from "./Management";
 
 export default function Detail({
   observation,
@@ -147,6 +148,18 @@ export default function Detail({
           </button>
         </header>
         <div className="drawer-body">
+          {!!item.corrections?.length && (
+            <JsonDetails
+              label="개인정보 정정 부가 기록 (원본 추론과 구분)"
+              value={item.corrections}
+            />
+          )}
+          {item.type === "lane_segment" && !item.lane?.paint_mask_rle && (
+            <p className="notice small">
+              도막 픽셀 마스크 미제공 · 잔존율 수치와 영상 근거를 함께
+              검토하세요.
+            </p>
+          )}
           {(item.demo || item.synthetic) && (
             <div className="notice small">
               가상 시연 자료입니다. 실제 탐지 성능을 나타내지 않습니다.
@@ -154,6 +167,9 @@ export default function Detail({
           )}
           <ProtectedImage
             token={token}
+            bbox={item.pothole?.bbox_xywh_px}
+            mask={item.lane?.paint_mask_rle}
+            outline={item.lane?.outline_polygon_px}
             path={
               item.image_content_path ||
               (item.image?.file_id
