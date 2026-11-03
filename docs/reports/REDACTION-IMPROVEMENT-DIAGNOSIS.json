@@ -1,0 +1,36 @@
+{
+  "scope": "Old validation-only diagnosis, no new holdout predictions or test-based selection",
+  "release_sha256": "f749f7e34b2af4256a9015b95b605ef7906197f3b6271690484f0aabd6c65b42",
+  "selected_validation_predictions_sha256": "00dc70ca3559aad8b10ed626f87175a45d33bf6ba997fcc15fa908244e91da15",
+  "face_gt_by_min_dimension_at640": {
+    "atleast32px": {
+      "gt": 283,
+      "matched": 257,
+      "recall_at_frozen_confidence_001": 0.9081272084805654
+    },
+    "8to16px": {
+      "gt": 485,
+      "matched": 332,
+      "recall_at_frozen_confidence_001": 0.6845360824742268
+    },
+    "16to32px": {
+      "gt": 295,
+      "matched": 238,
+      "recall_at_frozen_confidence_001": 0.8067796610169492
+    },
+    "under8px": {
+      "gt": 157,
+      "matched": 46,
+      "recall_at_frozen_confidence_001": 0.2929936305732484
+    }
+  },
+  "known_causes": [
+    "783 face training images vs complex small-object WIDER scenes",
+    "Single shared two-class objectness sees unannotated other-class objects as negatives",
+    "Generic COCO object initialization, simple flip/brightness only; no EMA or scale-aware sampling in v3",
+    "Face validation recall remains below goal even at frozen confidence .01; lowering confidence alone does not solve localization/recall"
+  ],
+  "no_old_test_sources_added_to_training": true,
+  "new_recipe_not_started": true,
+  "no_independent_person_identity_or_privacy_acceptance_claim": true
+}
