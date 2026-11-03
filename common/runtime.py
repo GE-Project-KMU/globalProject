@@ -1,13 +1,17 @@
 """Technical infrastructure only. Domain services never open one another's stores."""
-import base64, hashlib, hmac, json, logging, math, os, secrets, time, uuid
+import asyncio, base64, hashlib, hmac, json, logging, math, os, secrets, time, uuid
 from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 from datetime import datetime, timezone
 import httpx
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from sqlalchemy import create_engine, String, Float, Integer, JSON, select, update
+from fastapi.responses import JSONResponse,Response
+from fastapi.exceptions import RequestValidationError,ResponseValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.routing import APIRoute
+from fastapi.datastructures import DefaultPlaceholder
+from sqlalchemy import create_engine, String, Float, Integer, JSON, select, update, event, delete
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 from sqlalchemy.exc import IntegrityError
@@ -20,6 +24,7 @@ DATA.mkdir(parents=True, exist_ok=True)
 URLS = {n: os.getenv(f"ROAD_SERVICE_{n.upper()}_URL", f"http://127.0.0.1:{p}") for n,p in
         [("identity",8101),("media",8102),("inspection",8103),("analysis",8104),("reporting",8105)]}
 log = logging.getLogger("roadwatch")
+request_id_context=ContextVar("road_request_id",default=None)
 def uid(): return str(uuid.uuid4())
 def now(): return time.time()
 def iso(t=None): return datetime.fromtimestamp(t if t is not None else now(), timezone.utc).isoformat().replace("+00:00","Z")
@@ -48,7 +53,7 @@ def strict_int(raw):
     value=int(raw)
     if abs(value)>9007199254740991:raise ValueError("Integer exceeds JSON-safe range")
     return value
-def ok(data, **meta): return {"data":data,"meta":{"schema_version":"0.4",**meta}}
+def ok(data, **meta): return {"data":data,"meta":{"schema_version":"0.4","request_id":request_id_context.get(),**meta}}
 def valid_uuid(v):
     try: return str(uuid.UUID(v))
     except (ValueError,TypeError,AttributeError): fail(422,"INVALID_UUID")
@@ -89,6 +94,7 @@ class Aggregate(Base):
     version:Mapped[int]=mapped_column(Integer,default=1)
     created:Mapped[float]=mapped_column(Float,default=now,index=True)
     expires:Mapped[float|None]=mapped_column(Float,nullable=True,index=True)
+STORES={}
 class Store:
     def __init__(self,name):
         self.name=name
@@ -98,7 +104,13 @@ class Store:
             f=Path(url.removeprefix("sqlite:///")).resolve()
             if not f.is_relative_to(ROOT): raise RuntimeError("SQLite path outside project")
         self.engine=create_engine(url,connect_args={"check_same_thread":False,"timeout":30} if url.startswith("sqlite") else {},pool_pre_ping=True)
-        Base.metadata.create_all(self.engine)
+        if url.startswith("sqlite"):
+            @event.listens_for(self.engine,"connect")
+            def secure_delete(dbapi_connection,record):
+                dbapi_connection.execute("PRAGMA secure_delete=ON")
+        from common.migrations import migrate
+        migrate(self.engine,name,Base.metadata)
+        STORES[name]=self
     @contextmanager
     def tx(self):
         with Session(self.engine) as s:
@@ -140,22 +152,67 @@ class Store:
             with self.tx() as ss:return self.delete(id,org,ss)
         r=s.get(Aggregate,id)
         if r and r.org==org:s.delete(r)
+    def set_expiry(self,id,org,expires,s):
+        result=s.execute(update(Aggregate).where(Aggregate.id==id,Aggregate.org==org).values(expires=expires))
+        if result.rowcount!=1:fail(404,"NOT_FOUND")
+        s.expire_all()
     def audit(self,p,action,target,s=None):
         return self.create(uid(),p["org_id"],"audit",{"action":action,"actor_hash":digest(p["sub"]),"target_hash":digest(target),"at":iso()},now()+180*86400,s)
 
 def app_for(name):
     app=FastAPI(title=f"RoadWatch {name}",version="0.1.0",docs_url=None,redoc_url=None)
-    @app.exception_handler(HTTPException)
+    from services.contracts import Envelope,ErrorEnvelope
+    class PublicContractRoute(APIRoute):
+        def __init__(self,path,*args,**kwargs):
+            if path.startswith("/api/v1/"):
+                binary=path.startswith("/api/v1/images/") and path.endswith("/content") or path.startswith("/api/v1/reports/") and path.endswith("/download")
+                if binary:
+                    kwargs["response_class"]=Response
+                    kwargs["response_model"]=None
+                elif (kwargs.get("response_model") is None or isinstance(kwargs.get("response_model"),DefaultPlaceholder)) and kwargs.get("status_code")!=204:
+                    from services.response_contracts import get_response_model
+                    kwargs["response_model"]=get_response_model(path,kwargs.get("methods")) or Envelope
+                responses=kwargs.setdefault("responses",{})
+                if binary:
+                    types=("image/jpeg","image/png") if path.startswith("/api/v1/images/") else ("text/csv","application/pdf")
+                    responses[200]={"description":"Private evidence download","content":{t:{"schema":{"type":"string","format":"binary"}} for t in types}}
+                for status in (401,403,404,409,410,413,422,428,503):responses.setdefault(status,{"model":ErrorEnvelope,"description":"Structured domain error"})
+            super().__init__(path,*args,**kwargs)
+    app.router.route_class=PublicContractRoute
+    if name in ("identity","analysis"):
+        async def expire():
+            while True:
+                try:
+                    with STORES[name].tx() as session:session.execute(delete(Aggregate).where(Aggregate.expires<=now()))
+                except Exception:log.exception("%s retention worker failed",name)
+                await asyncio.sleep(60)
+        @app.on_event("startup")
+        async def start_expiry():app.state.expiry_task=asyncio.create_task(expire())
+        @app.on_event("shutdown")
+        async def stop_expiry():
+            task=getattr(app.state,"expiry_task",None)
+            if task:
+                task.cancel()
+                try:await task
+                except asyncio.CancelledError:pass
+    @app.exception_handler(StarletteHTTPException)
     async def he(req,exc):
-        e=exc.detail if isinstance(exc.detail,dict) else {"code":str(exc.detail),"message":str(exc.detail)}
+        e=exc.detail if isinstance(exc.detail,dict) else {"code":{404:"NOT_FOUND",405:"METHOD_NOT_ALLOWED",422:"VALIDATION_ERROR"}.get(exc.status_code,str(exc.detail)),"message":str(exc.detail)}
         return JSONResponse({"error":e,"meta":{"request_id":getattr(req.state,"request_id","")}},status_code=exc.status_code,headers=exc.headers)
     @app.exception_handler(RequestValidationError)
     async def ve(req,exc):
         return JSONResponse({"error":{"code":"VALIDATION_ERROR","message":"Invalid request","details":[{"field_path":".".join(map(str,x["loc"])),"code":x["type"]} for x in exc.errors()]},"meta":{"request_id":getattr(req.state,"request_id","")}},status_code=422)
+    @app.exception_handler(ResponseValidationError)
+    async def response_invalid(req,exc):
+        fields=[{"field_path":".".join(map(str,x["loc"])),"code":x["type"]} for x in exc.errors()]
+        log.error("%s response schema failure fields=%s",name,fields)
+        return JSONResponse({"error":{"code":"INTERNAL_ERROR","message":"Unexpected server response"},"meta":{"request_id":getattr(req.state,"request_id","")}},status_code=500)
     @app.middleware("http")
     async def guard(req,call_next):
         req.state.request_id=uid()
+        context_token=request_id_context.set(req.state.request_id)
         def reject(status,code,message):
+            request_id_context.reset(context_token)
             return JSONResponse({"error":{"code":code,"message":message},"meta":{"request_id":req.state.request_id}},status_code=status,headers={"X-Request-ID":req.state.request_id})
         try:
             public=req.url.path=="/health" or (name=="identity" and req.url.path=="/api/v1/auth/login")
@@ -182,11 +239,18 @@ def app_for(name):
             response=await call_next(req)
         except Exception:
             log.exception("%s unhandled request %s",name,req.state.request_id)
-            return JSONResponse({"error":{"code":"INTERNAL_ERROR","message":"Unexpected server error"},"meta":{"request_id":req.state.request_id}},status_code=500)
+            response=JSONResponse({"error":{"code":"INTERNAL_ERROR","message":"Unexpected server error"},"meta":{"request_id":req.state.request_id}},status_code=500)
+        finally:request_id_context.reset(context_token)
         response.headers["X-Request-ID"]=req.state.request_id
         response.headers["X-Content-Type-Options"]="nosniff"
         if "content" in req.url.path or "download" in req.url.path:response.headers["Cache-Control"]="private, no-store"
         return response
     @app.get("/health")
     def health():return {"status":"ok","service":name,"instance_id":os.getenv("ROAD_INSTANCE_ID",""),"pid":os.getpid()}
+    @app.get("/internal/audit")
+    def audit_export(req:Request,limit:int=1000):
+        p=principal(req);role(p,"admin")
+        if not 1<=limit<=5000:fail(422,"INVALID_LIMIT")
+        rows=sorted(STORES[name].list(p["org_id"],"audit"),key=lambda x:(x["at"],x["id"]),reverse=True)[:limit]
+        return ok({"items":[{k:x[k] for k in ("id","action","actor_hash","target_hash","at")} for x in rows]})
     return app
