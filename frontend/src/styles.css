@@ -2325,3 +2325,26 @@ textarea {
   margin: 0;
   max-width: 185px;
 }
+.report-public-option {
+  margin: 20px 0;
+  text-align: left;
+}
+.report-panel .report-public-option label {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 10px;
+  line-height: 1.6;
+}
+.report-public-option input {
+  width: auto;
+  margin-top: 3px;
+  flex-shrink: 0;
+  padding: 0;
+}
+.report-public-option p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.8;
+}

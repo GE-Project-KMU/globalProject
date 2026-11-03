@@ -20,6 +20,8 @@ export default function Reports({
   const [format, setFormat] = useState("csv"),
     [busy, setBusy] = useState(false),
     [job, setJob] = useState<any>(null),
+    [publicDemo, setPublicDemo] = useState(false),
+    [jobPublicDemo, setJobPublicDemo] = useState(false),
     [error, setError] = useState("");
   const [filters, setFilters] =
       useState<Record<string, string>>(initialFilters),
@@ -35,6 +37,7 @@ export default function Reports({
       )
         throw new Error("종료 시각은 시작 시각보다 뒤여야 합니다.");
       const query = new URLSearchParams({ format });
+      if (publicDemo) query.set("public_demo", "true");
       for (const [key, value] of Object.entries(filters)) {
         if (value)
           query.set(
@@ -46,6 +49,7 @@ export default function Reports({
       }
       const d = await request<any>(token, `/reports?${query}`);
       setJobFormat(format);
+      setJobPublicDemo(publicDemo);
       setJob(d);
       if (d.status === "succeeded" || d.download_path) {
         await download(
@@ -164,6 +168,23 @@ export default function Reports({
             </p>
           </div>
         </details>
+        <div className="report-public-option">
+          <label className="check-row">
+            <input
+              type="checkbox"
+              checked={publicDemo}
+              onChange={(e) => setPublicDemo(e.target.checked)}
+              aria-describedby="public-demo-help"
+            />
+            공개 시연용으로 위치·시각 축약
+          </label>
+          <p id="public-demo-help">
+            위치는 소수점 셋째 자리(약 100m), 촬영 시각은 날짜로 축약하고 내부
+            ID도 짧은 참조로 바꿉니다. 검토 자유 서술·정정 내용·상세 경로는
+            제외합니다. 익명성을 보장하지 않으므로 공개 전 기관 승인이
+            필요합니다.
+          </p>
+        </div>
         <label>
           내보내기 형식
           <select value={format} onChange={(e) => setFormat(e.target.value)}>
@@ -197,6 +218,11 @@ export default function Reports({
                 )[job.status] || "작업 접수됨"}
               </b>
               <small>{job.job_id || job.id}</small>
+              <small>
+                {jobPublicDemo
+                  ? "공개 시연용 축약 적용 · 기관 승인 필요"
+                  : "기관 내부 검토용"}
+              </small>
             </div>
             <button
               className="icon-button"

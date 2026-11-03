@@ -107,6 +107,10 @@ async function setup(page: Page, role = "admin") {
         Object.assign(x, {
           version: 2,
           status: "completed",
+          result_code:
+            body.action === "approve_access"
+              ? "ACCESS_APPROVED"
+              : "CORRECTION_APPLIED",
           decision_reason: body.reason,
           ...(body.action === "approve_access"
             ? {
@@ -285,6 +289,12 @@ test("privacy requires verified receipt, versioned approval and authenticated ex
   await page.getByRole("checkbox").nth(1).check();
   await page.getByRole("button", { name: "요청 접수", exact: true }).click();
   await page.getByRole("button", { name: "처리 내역" }).click();
+  await expect(
+    page.getByText("관리자 검토 대기", { exact: false }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("MANUAL_ADMIN_REVIEW_REQUIRED", { exact: false }),
+  ).toHaveCount(0);
   await page.getByLabel("처리 근거").fill("권한 및 대상 검증 완료");
   await page.getByRole("button", { name: "처리 기록 저장" }).click();
   await expect
@@ -300,6 +310,9 @@ test("privacy requires verified receipt, versioned approval and authenticated ex
       reason: "권한 및 대상 검증 완료",
     });
   const event = page.waitForEvent("download");
+  await expect(
+    page.getByText("열람 승인 완료", { exact: false }).first(),
+  ).toBeVisible();
   await page.getByRole("button", { name: "승인된 열람 자료 다운로드" }).click();
   expect((await event).suggestedFilename()).toBe("privacy-access.json");
 });
@@ -476,6 +489,38 @@ test("analysis jobs send prepared IDs and expose actual blocked result", async (
     page.getByRole("heading", { name: "분석 차단 · 준비 필요", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("MODEL_NOT_READY", { exact: true }),
+    page.getByText("분석에 필요한 학습 가중치가 준비되지 않았습니다.", {
+      exact: true,
+    }),
   ).toBeVisible();
+});
+
+test("public demo report sends explicit true only when selected", async ({
+  page,
+}) => {
+  const calls = await setup(page);
+  await nav(page, "보고서");
+  await expect(
+    page.getByRole("checkbox", { name: "공개 시연용으로 위치·시각 축약" }),
+  ).not.toBeChecked();
+  await page.getByRole("button", { name: "보고서 생성", exact: true }).click();
+  await expect
+    .poll(() => calls.filter((x) => x.p === "/reports").length)
+    .toBe(1);
+  expect(calls.find((x) => x.p === "/reports").query).not.toContain(
+    "public_demo",
+  );
+  await page
+    .getByRole("checkbox", { name: "공개 시연용으로 위치·시각 축약" })
+    .check();
+  await expect(
+    page.getByText(
+      "익명성을 보장하지 않으므로 공개 전 기관 승인이 필요합니다.",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "보고서 생성", exact: true }).click();
+  await expect
+    .poll(() => calls.filter((x) => x.p === "/reports").at(-1)?.query)
+    .toContain("public_demo=true");
 });
