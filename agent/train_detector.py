@@ -11,17 +11,21 @@ import subprocess
 import sys
 from PIL import Image
 from .paths import ROOT, workspace_path, atomic_json, sha256
-from .dataset import validate_release
+from .dataset import validate_release,validate_research_release
 from .governance import begin_training,register_asset,link_model
 
 
-def export_coco(release_path, output, task):
+def export_coco(release_path, output, task,*,research=False):
     if task not in ("pothole","redaction"): raise ValueError("unsupported_detection_task")
-    rows=json.loads(workspace_path(release_path,exists=True).read_text(encoding="utf-8"))
-    state=validate_release(rows)
+    release_path=workspace_path(release_path,exists=True)
+    if release_path.with_suffix(".quarantine.json").exists():raise ValueError("source_release_quarantined")
+    rows=json.loads(release_path.read_text(encoding="utf-8"))
+    state=(validate_research_release if research else validate_release)(rows)
     if not state["valid"]: raise ValueError("release_invalid:"+json.dumps(state["errors"]))
     output=workspace_path(output); output.mkdir(parents=True,exist_ok=True)
     provenance_path,provenance=begin_training(output,release_path,[r for r in rows if r["split"] in ("train","validation")],task)
+    provenance["research_only"]=research
+    atomic_json(provenance_path,provenance)
     classes=["pothole"] if task=="pothole" else ["face","license_plate"]
     for split,folder in (("train","train2017"),("validation","val2017")):
         images,annotations=[],[]
@@ -62,12 +66,12 @@ def export_coco(release_path, output, task):
     return output
 
 
-def train_export(release, output, task, repository, interpreter, *, epochs=100, batch_size=8, device="cpu"):
+def train_export(release, output, task, repository, interpreter, *, epochs=100, batch_size=8, device="cpu",research=False):
     if epochs<1 or batch_size<2 or device not in ("cpu","gpu"): raise ValueError("invalid_training_options")
     repository,interpreter=workspace_path(repository,exists=True),workspace_path(interpreter,exists=True)
     if not (repository/"tools/train.py").is_file() or not (repository/"tools/export_onnx.py").is_file() or not (repository/"exps/default/yolox_nano.py").is_file():
         raise ValueError("official_yolox_repository_required")
-    output=export_coco(release,output,task)
+    output=export_coco(release,output,task,research=research)
     count=1 if task=="pothole" else 2
     experiment=output/"experiment.py"
     # repr encodes filesystem paths safely into Python source; no shell interpolation.
@@ -96,7 +100,7 @@ def train_export(release, output, task, repository, interpreter, *, epochs=100, 
               "weights":onnx.relative_to(ROOT).as_posix(),"sha256":sha256(onnx),"target_trained":True,
               "dataset_release":"manifest-sha256:"+sha256(workspace_path(release,exists=True)),
               "input_size":[416,416],"output_layout":"yolox_decoded_xywh","architecture":"YOLOX-Nano",
-              "production_approved":False,"test_split_used":False,"data_revoked":False,"needs_revalidation":False,
+              "production_approved":False,"research_only":research,"test_split_used":False,"data_revoked":False,"needs_revalidation":False,
               "source_release_path":workspace_path(release,exists=True).relative_to(ROOT).as_posix(),
               "training_provenance":(output/"provenance.json").relative_to(ROOT).as_posix()}
     atomic_json(output/"model.json",artifact)
@@ -110,12 +114,13 @@ def main():
     parser.add_argument("--repository");parser.add_argument("--interpreter");parser.add_argument("--epochs",type=int,default=100)
     parser.add_argument("--batch-size",type=int,default=8);parser.add_argument("--device",choices=["cpu","gpu"],default="cpu")
     parser.add_argument("--export-data-only",action="store_true")
+    parser.add_argument("--research",action="store_true",help="Offline publisher research labels; never deployment approval")
     args=parser.parse_args()
     try:
-        if args.export_data_only: result={"coco_directory":str(export_coco(args.release,args.output,args.task)),"test_split_exported":False}
+        if args.export_data_only: result={"coco_directory":str(export_coco(args.release,args.output,args.task,research=args.research)),"test_split_exported":False}
         else:
             if not args.repository or not args.interpreter: raise ValueError("workspace_training_repository_and_interpreter_required")
-            result=train_export(args.release,args.output,args.task,args.repository,args.interpreter,epochs=args.epochs,batch_size=args.batch_size,device=args.device)
+            result=train_export(args.release,args.output,args.task,args.repository,args.interpreter,epochs=args.epochs,batch_size=args.batch_size,device=args.device,research=args.research)
         print(json.dumps(result,ensure_ascii=False,indent=2));return 0
     except (ValueError,RuntimeError,OSError,KeyError,subprocess.CalledProcessError) as exc:
         print(json.dumps({"status":"training_blocked","reason":str(exc)},ensure_ascii=False));return 2
