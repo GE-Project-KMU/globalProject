@@ -8,6 +8,7 @@ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 from agent.paths import workspace_path,atomic_json,sha256
 from agent.dataset import validate_research_release
 from agent.train_lane import prepare_pair
+from agent.models import OnnxModel
 from scripts.evaluate_lane_model import confusion,metrics
 
 def calibrate(manifest_path,model_path,report_path):
@@ -19,7 +20,7 @@ def calibrate(manifest_path,model_path,report_path):
     if artifact.get("threshold_calibration"):raise ValueError("threshold_already_frozen_create_new_model_version")
     weights=workspace_path(artifact["weights"],exists=True)
     if sha256(weights)!=artifact["sha256"]:raise ValueError("weights_hash_mismatch")
-    net=cv2.dnn.readNetFromONNX(str(weights))
+    model=OnnxModel(model_path);net=model.net
     thresholds=[.1,.2,.3,.4,.5,.6,.7,.8,.85,.9,.925,.95,.975,.99]
     counters={t:{"tp":0,"fp":0,"fn":0,"tn":0,"ignored":0} for t in thresholds}
     validation=sorted([r for r in rows if r["split"]=="validation"],key=lambda r:r["source_id"])
@@ -35,7 +36,7 @@ def calibrate(manifest_path,model_path,report_path):
             for k,v in c.items():counters[threshold][k]+=v
     scores=[{"paint_threshold":t,**metrics(counters[t])} for t in thresholds]
     best=max(scores,key=lambda r:(r["paint_iou"] if r["paint_iou"] is not None else -1,-abs(r["paint_threshold"]-.5)))
-    report={"selected_on":"validation_only","calibrated_at":datetime.now(timezone.utc).isoformat(),"validation_samples":len(validation),"model_sha256":artifact["sha256"],"manifest_sha256":sha256(manifest_path),"scores":scores,"selected":best,"test_images_used":0,"project_acceptance_passed":False}
+    report={"selected_on":"validation_only","inference_backend":getattr(model,"backend","unknown"),"calibrated_at":datetime.now(timezone.utc).isoformat(),"validation_samples":len(validation),"model_sha256":artifact["sha256"],"manifest_sha256":sha256(manifest_path),"scores":scores,"selected":best,"test_images_used":0,"project_acceptance_passed":False}
     atomic_json(report_path,report)
     artifact.update(paint_threshold=best["paint_threshold"],threshold_calibration={"selected_on":"validation","report_sha256":sha256(workspace_path(report_path)),"validation_samples":len(validation),"test_images_used":0})
     atomic_json(model_path,artifact)

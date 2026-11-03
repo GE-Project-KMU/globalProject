@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from .capture import EncryptedStore, replay, replay_bytes
 from .gnss import build_fixes, associate_location
-from .models import OnnxModel, frame_quality, redact
+from .models import OnnxModel, frame_quality, redact,runtime_metadata
 from .pipeline import Tracker
 from .profile import load_profile, geometry, lane_evidence
 from .segments import Distance, Segments
@@ -197,7 +197,7 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
     result = {"status": "awaiting_human_review", "run": run, "device_id": device_id,
               "profile_id": profile["profile_id"], "model_version": bundle["version"], "config_hash": config_hash,
               "frames": frame_items, "items": observations, "lane_segments": lane_results,
-              "runtime":{"engine":"OpenCV DNN CPU","elapsed_seconds":time.perf_counter()-started,
+              "runtime":{**runtime_metadata(models),"elapsed_seconds":time.perf_counter()-started,
                          "measured_processing_fps":len(frame_items)/max(time.perf_counter()-started,1e-9)},
               "model_acceptance":{task:model.manifest.get("production_approved",False) for task,model in models.items()},
               "retained_photos":len(retained),"removed_unreferenced_photos":removed_images,

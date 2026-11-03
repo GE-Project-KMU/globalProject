@@ -14,14 +14,65 @@ from .paths import workspace_path, sha256
 class ModelNotReady(RuntimeError):
     pass
 
+class OrtNetwork:
+    """CPU ORT, retaining the net.setInput/forward adapter interface."""
+    backend="onnxruntime-cpu"
+    def __init__(self,weights):
+        try:import onnxruntime as ort
+        except ImportError as exc:raise ValueError("onnxruntime_runtime_required") from exc
+        self.backend_version=self.version=ort.__version__
+        options=ort.SessionOptions();options.intra_op_num_threads=2;options.inter_op_num_threads=1;options.log_severity_level=3
+        try:
+            # A byte-loaded self-contained model cannot resolve external tensor
+            # files against an arbitrary filesystem path.
+            self.session=ort.InferenceSession(workspace_path(weights,exists=True).read_bytes(),sess_options=options,providers=["CPUExecutionProvider"])
+        except Exception as exc:raise ValueError("onnx_load_failed: "+type(exc).__name__) from exc
+        inputs=self.session.get_inputs();outputs=self.session.get_outputs()
+        if len(inputs)!=1 or len(outputs)!=1 or inputs[0].type!="tensor(float)":raise ValueError("single_float_input_output_required")
+        self.input_name=inputs[0].name;self.output_name=outputs[0].name;self.blob=None
+    def setInput(self,value):
+        self.blob=None
+        if not isinstance(value,np.ndarray) or value.dtype!=np.float32 or value.ndim!=4 or value.shape[0]!=1 or value.shape[1]!=3 or not np.isfinite(value).all():raise ModelNotReady("invalid_model_input_tensor")
+        self.blob=np.ascontiguousarray(value)
+    def forward(self):
+        if self.blob is None:raise ModelNotReady("model_input_required")
+        try:output=self.session.run([self.output_name],{self.input_name:self.blob})[0]
+        except Exception as exc:raise ModelNotReady("onnx_inference_failed: "+type(exc).__name__) from exc
+        if not np.isfinite(output).all():raise ModelNotReady("non_finite_model_output")
+        return output
 
-def readiness(manifest_path):
+class OpenCVClassicNetwork:
+    backend="opencv-classic-diagnostic"
+    def __init__(self,weights):
+        self.backend_version=self.version=cv2.__version__
+        if hasattr(cv2.dnn,"ENGINE_CLASSIC"):self.net=cv2.dnn.readNetFromONNX(str(weights),engine=cv2.dnn.ENGINE_CLASSIC)
+        else:self.net=cv2.dnn.readNetFromONNX(str(weights))
+        self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV);self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+    def setInput(self,value):self.net.setInput(value)
+    def forward(self):return self.net.forward()
+
+def load_network(weights,backend="onnxruntime"):
+    if backend=="onnxruntime":return OrtNetwork(weights)
+    if backend=="opencv-classic":return OpenCVClassicNetwork(weights)
+    raise ValueError("unsupported_inference_backend")
+
+def runtime_metadata(models):
+    """Describe actual loaded adapters; test/custom factories remain explicit."""
+    values={task:{"engine":getattr(model,"backend","custom-unverified"),"version":getattr(model,"backend_version",None)} for task,model in models.items()}
+    engines={value["engine"] for value in values.values()};versions={value["version"] for value in values.values()}
+    return {"engine":next(iter(engines)) if len(engines)==1 else "mixed","version":next(iter(versions)) if len(versions)==1 else None,"models":values,
+            "device":"cpu" if engines and engines<={"onnxruntime-cpu","opencv-classic-diagnostic"} else "unspecified"}
+
+
+def readiness(manifest_path,backend="onnxruntime"):
     try:
         manifest_path = workspace_path(manifest_path, exists=True)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if not isinstance(manifest,dict):raise ValueError("model_manifest_object_required")
         if manifest.get("data_revoked") or manifest.get("needs_revalidation"):raise ValueError("model_training_data_revoked_needs_revalidation")
         if manifest.get("training_provenance"):
             provenance=json.loads(workspace_path(manifest["training_provenance"],exists=True).read_text(encoding="utf-8"))
+            if not isinstance(provenance,dict):raise ValueError("training_provenance_object_required")
             if provenance.get("data_revoked") or provenance.get("needs_revalidation"):raise ValueError("model_training_data_revoked_needs_revalidation")
             from .governance import blocked_identities
             blocked=blocked_identities()
@@ -34,7 +85,7 @@ def readiness(manifest_path):
         classes = manifest.get("classes")
         required = {"pothole": ["pothole"], "lane": ["background", "paint"],
                     "redaction": ["face", "license_plate"]}
-        if task not in required or classes != required[task]:
+        if not isinstance(task,str) or task not in required or classes != required[task]:
             raise ValueError("task_class_mapping_mismatch")
         if manifest.get("target_trained") is not True or not isinstance(manifest.get("dataset_release"), str) or not manifest["dataset_release"].strip():
             raise ValueError("target_training_provenance_required")
@@ -54,28 +105,29 @@ def readiness(manifest_path):
             threshold=manifest["paint_threshold"]
             if type(threshold) not in (int,float) or not math.isfinite(threshold) or not 0<threshold<1:raise ValueError("invalid_paint_threshold")
         try:
-            cv2.dnn.readNetFromONNX(str(weights))
-        except cv2.error as exc:
+            network=load_network(weights,backend)
+        except (cv2.error,ValueError) as exc:
             raise ValueError("onnx_load_failed: " + str(exc)) from exc
-        return {"ready": True, "status": "ready", "manifest": manifest, "weights": str(weights)}
-    except (FileNotFoundError, KeyError, ValueError, json.JSONDecodeError) as exc:
+        return {"ready": True, "status": "ready", "research_only":manifest.get("research_only",False),
+                "deployment_ready":manifest.get("production_approved") is True and not manifest.get("research_only",False)
+                    and not manifest.get("deployment_blocked_reasons"),
+                "inference_backend":getattr(network,"backend",backend),"inference_backend_version":getattr(network,"backend_version",None),"manifest": manifest, "weights": str(weights)}
+    except (FileNotFoundError, KeyError, ValueError,TypeError,AttributeError, json.JSONDecodeError) as exc:
         return {"ready": False, "status": "model_not_ready", "reason": str(exc)}
 
 
 class OnnxModel:
-    def __init__(self, manifest_path):
-        state = readiness(manifest_path)
+    def __init__(self, manifest_path,backend="onnxruntime"):
+        state = readiness(manifest_path,backend)
         if not state["ready"]:
             raise ModelNotReady(state["reason"])
         self.manifest = state["manifest"]
         try:
-            self.net = cv2.dnn.readNetFromONNX(state["weights"])
-        except cv2.error as exc:
+            self.net = load_network(state["weights"],backend)
+        except (cv2.error,ValueError) as exc:
             raise ModelNotReady("onnx_load_failed: " + str(exc)) from exc
-        self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-        # OpenCV 5's graph engine defaults to CPU and warns on explicit target.
-        if int(cv2.__version__.split(".")[0]) < 5:
-            self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+        self.backend=getattr(self.net,"backend",backend)
+        self.backend_version=getattr(self.net,"backend_version",None)
 
     def predict(self, frame):
         if frame is None or frame.ndim != 3 or frame.shape[2] != 3:

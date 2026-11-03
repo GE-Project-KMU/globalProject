@@ -10,12 +10,12 @@
 | 시각·GNSS | 구현 | NMEA 체크섬·RMC UTC/좌표·GGA HDOP 연결·유효/저하/2초 초과 위치 없음 시험 |
 | 차선 면적 계산 | 구현 | O/G/P/V의 분모·정상 공백·가림, 60/80% 경계, 70/80% 품질 경계, 고유 패치 중복 제거·면적 가중 합산 |
 | 라벨/데이터 검증 | 구현 | bbox·RLE·마스크 크기·기한/해시·독립 검수·출처 필수값, 동일 실물/주행/원본/크롭의 연결 그룹 분할·누수 검출 |
-| 모델 어댑터 | 구현 | 실제 OpenCV DNN ONNX 로딩 경로. 대상 클래스·학습 출처·파일 SHA-256·입력/출력 규약 검사 |
+| 모델 어댑터 | 구현 | ONNX Runtime1.31.1 CPU가 기본. 대상 클래스·학습 출처·파일 SHA-256·입력/출력 규약 검사. 실제 backend/version을 결과에 기록 |
 | 로컬 검수 전송 | 구현 | 사람이 확인한 해시만 큐 등록, 검토자 승인→기기 이미지→관측 전송, 암호화 SQLite, lease 복구·재시도·멱등 ID·TTL |
 | 실제 ZED 하드웨어 | 미검증 | 이 작업에서 실제 카메라를 연결해 촬영한 것으로 주장하지 않음 |
 | 포트홀 외부 참조 모델 | 실제 추론 확인 | 대상 학습 YOLOX-S ONNX를 해시 고정 다운로드하고 합성 입력에서 CPU 추론 확인. 선정된 Nano 및 운영 승인 모델과 구별 |
-| 실노면 포트홀/도막 인식 정확도 | 미검증 | 도막/비식별화 대상 가중치 미제공. 필요한 ONNX가 없으면 `model_not_ready`, exit 2. 독립 현장 정확도 시험 필요 |
-| GPU 추론·10 FPS·60분 실차 시험 | 미검증 | 현재 어댑터의 실행 대상은 OpenCV DNN CPU. GPU가 있다는 사실만으로 GPU 추론을 통과 처리하지 않음 |
+| 독립 실차 인수 성능 | 미검증 | 공개 연구 데이터의 실제 학습·오프라인 평가와 구분한다. 후보 모델의 결과는 reports/학습 보고서에 기록하며 필요한 ONNX가 없거나 만료·철회되면 `model_not_ready`, exit2 |
+| GPU 추론·10 FPS·60분 실차 시험 | 미검증 | 현재 앱 어댑터의 실행 대상은 ONNX Runtime CPU. CUDA 학습 검증을 GPU 추론 또는 실차 성능 통과로 표시하지 않음 |
 | 10 m 고유 패치 구간 처리 | 구현·실차 미검증 | `workflow`에서 검증된 profile, GNSS/BEV 이동 일치, 0.1 m 노면 셀의 대표 선택·10 m 구간 면적 가중·점선 공백 제외. 근거 부족은 판정 불가 |
 
 위 합성 영상·마스크 시험은 코드와 데이터 처리 오류를 확인하는 기능 시험이다. mAP·IoU·실물 Recall·개인정보 검출 재현율에 대한 현장 성능 증거가 아니다.
@@ -23,6 +23,8 @@
 ## 환경과 실행
 
 현재 개발 PC에서 NVIDIA GeForce RTX 2080 Ti 11 GB/드라이버 610.88이 조회됐다. GPU 추론은 아직 검증하지 않았다. Python 패키지 목록은 `requirements-vision.txt`에 기록돼 있다. GPU 학습/ONNX export용 PyTorch 환경은 수집 PC 런타임과 분리해 호환 버전을 고정한다.
+
+학습 환경은 프로젝트 내부 Python3.11/PyTorch2.7.1+cu126으로 별도 구성했고 실제 CUDA 학습 연산을 확인했다. 앱 Python3.14에는 ONNX Runtime1.31.1을 고정한다. 설치·캐시·버전 증거는 [학습 환경](TRAINING-ENVIRONMENT.md), 이식·엔진 비교는 [모델 산출물 검증](MODEL-ARTIFACTS.md)을 따른다. OpenCV5는 영상 처리에 사용한다. 실제 RTK ONNX에서 기본 새 DNN engine의 잘못된 큰 logit/빈 마스크가 재현됐으므로 앱의 추론에 자동 선택하지 않는다. `OnnxModel(path,backend="opencv-classic")`는 명시적인 진단용이며 기본 ORT 실패 시 자동 fallback하지 않는다.
 
 ```powershell
 .\.venv\Scripts\python.exe -m agent --help

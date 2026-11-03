@@ -791,7 +791,8 @@ def test_training_expiry_removes_copies_labels_and_blocks_model(folder,monkeypat
         "target_trained":True,"dataset_release":"fixture","input_size":[32,32],"output_layout":"yolox_decoded_xywh",
         "source_release_path":str(release),"training_provenance":str(output/"provenance.json")})
     link_model(output/"provenance.json",manifest)
-    monkeypatch.setattr(cv2.dnn,"readNetFromONNX",lambda *args:object())
+    from agent import models as model_module
+    monkeypatch.setattr(model_module,"load_network",lambda *args,**kwargs:object())
     assert readiness(manifest)["ready"]
     now=datetime.now(timezone.utc)+timedelta(days=2)
     before=readiness(manifest)
@@ -901,3 +902,21 @@ def test_path_sync_preserves_gaps_scopes_limits_and_capture_registration(folder)
     assert json.loads(requests[0].content)==json.loads(requests[1].content)
     assert json.loads(requests[2].content)["manifest_hash"]==json.loads(requests[3].content)["manifest_hash"]
     assert synced["path_segments"]==4
+
+
+def test_research_detector_export_does_not_impersonate_deployment_approval(folder):
+    from agent.train_detector import export_coco
+    release,rows=training_release_fixture(folder)
+    evidence=folder/"license.json"
+    atomic_json(evidence,{"research_allowed":True,"license_id":"CC-BY-4.0","source_url":"https://publisher.invalid/dataset",
+                          "license_url":"https://creativecommons.org/licenses/by/4.0/"})
+    for row in rows:
+        row.update(privacy_status="restricted_research",qc_status="publisher_annotations_machine_checked",release_scope="offline_research",
+                   human_privacy_reviewed=False,not_for_deployment=True,license_evidence_path=str(evidence),license_evidence_sha256=sha256(evidence))
+    atomic_json(release,rows)
+    with pytest.raises(ValueError,match="approval_or_qc_missing"):
+        export_coco(release,folder/"deployment","pothole")
+    output=export_coco(release,folder/"research","pothole",research=True)
+    provenance=json.loads((output/"provenance.json").read_text())
+    assert provenance["research_only"] is True and provenance["production_approved"] is False
+    assert json.loads(release.read_text())[0]["human_privacy_reviewed"] is False

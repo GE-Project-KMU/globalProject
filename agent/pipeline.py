@@ -6,7 +6,7 @@ import time
 import cv2
 import numpy as np
 from .capture import replay
-from .models import OnnxModel, ModelNotReady, frame_quality, redact
+from .models import OnnxModel, ModelNotReady, frame_quality, redact,runtime_metadata
 from .lane import measure_patch
 from .paths import workspace_path, atomic_json, sha256
 
@@ -27,7 +27,7 @@ def infer_potholes(source, manifest_path, output):
               "model_architecture": model.manifest.get("architecture", "YOLOX"),
               "model_sha256": model.manifest["sha256"], "dataset_release": model.manifest["dataset_release"],
               "production_approved": model.manifest.get("production_approved", False),
-              "runtime": "OpenCV DNN CPU", "elapsed_seconds": time.perf_counter() - started,
+              "runtime": model.backend,"runtime_version":model.backend_version,"runtime_details":runtime_metadata({"pothole":model}), "elapsed_seconds": time.perf_counter() - started,
               "inferred_at": datetime.now(timezone.utc).isoformat(),
               "sharing_state": "local_result_only_no_image_approval"}
     atomic_json(output, result)
@@ -175,7 +175,7 @@ def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_
         observations.append(item)
     result = {"run_id": run_id, "started_at": started.isoformat(), "source": str(workspace_path(source)),
               "analyzed_frames": len(observations), "observations": observations,
-              "runtime": "OpenCV DNN CPU", "limitations": ["No validated target accuracy is claimed.",
+              "runtime":runtime_metadata(models)["engine"],"runtime_details":runtime_metadata(models), "limitations": ["No validated target accuracy is claimed.",
               "Single-frame lane patch values are not 10m segment judgments.",
               "Outputs need human image review and complete acquisition metadata before API ingestion."]}
     atomic_json(output / "analysis.json", result)

@@ -6,3 +6,5 @@ cryptography==50.0.2
 pyserial==3.5
 httpx==0.28.1
 av==19.0.2
+
+onnxruntime==1.31.1
