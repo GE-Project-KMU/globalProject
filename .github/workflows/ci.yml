@@ -82,6 +82,8 @@ jobs:
           .venv/bin/python -m pip install -r requirements-vision.txt
       - name: Start isolated domain services
         run: .venv/bin/python scripts/manage.py start --timeout 90
+      - name: Prepare checksum-pinned public ONNX smoke fixture
+        run: .venv/bin/python -m agent download-baseline
       - name: Test live HTTP contracts and local vision tooling
         run: .venv/bin/python -m pytest tests -q --tb=short --junitxml=data/backend-junit.xml
       - name: Summarize without secrets or raw payloads
