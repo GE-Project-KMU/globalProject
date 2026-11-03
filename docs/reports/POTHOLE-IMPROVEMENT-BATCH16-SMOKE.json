@@ -1,0 +1,18 @@
+{
+  "actual_train_data": true,
+  "test_data_accessed": false,
+  "batch_shape": [
+    16,
+    3,
+    640,
+    640
+  ],
+  "worst_original_targets": 13,
+  "native_mosaic_probability": 1.0,
+  "finite_loss": true,
+  "loss": 15.198225975036621,
+  "peak_cuda_allocated_MiB": 2075.11083984375,
+  "seconds": 0.8793849000066984,
+  "timing_is_not_isolated_benchmark": true,
+  "weights_discarded": true
+}

@@ -1,0 +1,32 @@
+{
+  "checks": {
+    "old_test_sha_not_in_any_new_split": true,
+    "old_test_dhash_le3_not_in_new_train": true,
+    "fresh_test_no_prior_image_sha": true,
+    "filename_blocks_disjoint": true,
+    "TTL_never_extended": true,
+    "native_mosaic_shape_finite_0": true,
+    "native_mosaic_boxes_in_frame_0": true,
+    "native_mosaic_shape_finite_1": true,
+    "native_mosaic_boxes_in_frame_1": true,
+    "native_mosaic_shape_finite_2": true,
+    "native_mosaic_boxes_in_frame_2": true,
+    "native_mosaic_shape_finite_3": true,
+    "native_mosaic_boxes_in_frame_3": true,
+    "native_mosaic_shape_finite_4": true,
+    "native_mosaic_boxes_in_frame_4": true,
+    "native_mosaic_shape_finite_5": true,
+    "native_mosaic_boxes_in_frame_5": true,
+    "native_mosaic_shape_finite_6": true,
+    "native_mosaic_boxes_in_frame_6": true,
+    "native_mosaic_shape_finite_7": true,
+    "native_mosaic_boxes_in_frame_7": true,
+    "F2_calibration_recovers_GT": true
+  },
+  "passed": true,
+  "accuracy_evidence": false,
+  "release_sha256": "75f2e693882e6c498199b57adf8077bd5939f66708e0d9c4af10f67e444e2727",
+  "trainer_sha256": "c381d100b23de270435d5b4573550bc0eaabbaa88d570f858dfa6652b4d3a4b3",
+  "old_source_expiry_unchanged": true,
+  "training_code_changed": false
+}
