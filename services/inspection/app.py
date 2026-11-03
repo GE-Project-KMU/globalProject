@@ -81,3 +81,53 @@ async def set_path(id:str,req:Request):
     if x["status"]!="recording" and x.get("segments")!=b["segments"]:fail(409,"RUN_ALREADY_COMPLETE")
     data=payload(x);data["segments"]=b["segments"]
     return ok(store.change(id,p["org_id"],data,x["version"]))
+@app.post("/api/v1/observations",status_code=201)
+async def ingest(b:Observation,req:Request,response:Response):
+    p=principal(req);role(p,"device")
+    if b.device_id!=p["sub"]:fail(403,"FORBIDDEN")
+    body=b.model_dump();rh=hashlib.sha256(jcs.canonicalize(body)).hexdigest();expires=stamp(b.captured_at)+90*86400
+    if expires<=now():fail(410,"DATA_EXPIRED")
+    try:
+        store.get(digest("observation:"+b.observation_id),p["org_id"],"tombstone")
+        fail(410,"DATA_EXPIRED")
+    except HTTPException as e:
+        if e.status_code!=404:raise
+    if stamp(b.captured_at)>now()+2:fail(422,"INVALID_TIME")
+    try:
+        old=store.get(b.observation_id,p["org_id"],"observation")
+        if old["request_hash"]!=rh or old["payload"]["device_id"]!=p["sub"]:fail(409,"IDEMPOTENCY_CONFLICT")
+        response.status_code=200;v=view(old,p);return ok({**v,"event_id":b.event_id,"deduplicated":True})
+    except HTTPException as e:
+        if e.status_code!=404:raise
+    run=store.get(b.run_id,p["org_id"],"run")
+    if run["device_id"]!=p["sub"] or run["profile_id"]!=b.profile_id:fail(422,"RUN_REFERENCE_MISMATCH")
+    if stamp(b.captured_at)<stamp(run["started_at"])-2 or (run.get("ended_at") and stamp(b.captured_at)>stamp(run["ended_at"])+2):fail(422,"INVALID_RUN_TIME")
+    image=(await remote("media","/internal/images/"+b.image.file_id,p)).json()["data"]
+    if image["sha256"]!=b.image.sha256 or stamp(image["captured_at"])!=stamp(b.captured_at):fail(422,"IMAGE_REFERENCE_MISMATCH")
+    bundle=(await remote("analysis","/internal/model-version/"+b.model_version,p)).json()["data"]
+    if bundle["config_hash"]!=b.config_hash:fail(422,"CONFIG_HASH_MISMATCH")
+    profile=(await remote("analysis","/api/v1/profiles/"+b.profile_id,p)).json()["data"]
+    if b.pothole:
+        x,y,w,h=b.pothole.bbox_xywh_px;iw,ih=profile["calibration"]["image_size"]
+        if x+w>iw or y+h>ih:fail(422,"BOX_OUT_OF_IMAGE")
+    with store.tx() as s:
+        try:
+            prior=store.get(b.observation_id,p["org_id"],"observation",s)
+            if prior["request_hash"]!=rh:fail(409,"IDEMPOTENCY_CONFLICT")
+            response.status_code=200
+            return ok({**view(prior,p,s),"event_id":b.event_id,"deduplicated":True})
+        except HTTPException as e:
+            if e.status_code!=404:raise
+        try:
+            event=store.get(b.event_id,p["org_id"],"event",s)
+            if event["run_id"]!=b.run_id or event["type"]!=b.type:fail(409,"EVENT_CONFLICT")
+            case_id=event["case_id"]
+        except HTTPException as e:
+            if e.status_code!=404:raise
+            case_id=uid()
+            store.create(case_id,p["org_id"],"case",{"type":b.type,"status":"unreviewed","priority":"normal","reason":"","first_seen_at":b.captured_at,"last_seen_at":b.captured_at,"representative_observation_id":b.observation_id,"merged_into":None,"demo":b.demo,"updated_at":iso()},s=s)
+            store.create(b.event_id,p["org_id"],"event",{"case_id":case_id,"run_id":b.run_id,"type":b.type},expires,s)
+        o=store.create(b.observation_id,p["org_id"],"observation",{"payload":body,"case_id":case_id,"request_hash":rh},expires,s)
+        store.audit(p,"observation.create",b.observation_id,s)
+        v=view(o,p,s)
+    return ok({**v,"event_id":b.event_id,"deduplicated":False})
