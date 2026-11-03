@@ -213,3 +213,67 @@ def summary(req:Request):
     items=[view(o,p) for o in store.list(p["org_id"],"observation")]
     cases={v["case_id"]:v for v in items}.values()
     return ok({"total":len(items),"pending":sum(v["review"]["status"]=="unreviewed" for v in cases),"completed":sum(v["review"]["status"]=="completed" for v in cases),"potholes":sum(v["type"]=="pothole" for v in items),"worn_lanes":sum((v.get("lane") or {}).get("grade")=="worn_candidate" for v in items),"unassessable":sum((v.get("lane") or {}).get("grade")=="unassessable" for v in items),"counts_unit":"observation","demo":any(v.get("demo") for v in items)})
+
+def distance(a,b):
+    if a["lat"] is None or b["lat"] is None:return None
+    dlat=math.radians(b["lat"]-a["lat"]);dlon=math.radians(b["lon"]-a["lon"])
+    h=math.sin(dlat/2)**2+math.cos(math.radians(a["lat"]))*math.cos(math.radians(b["lat"]))*math.sin(dlon/2)**2
+    return 6371000*2*math.asin(min(1,math.sqrt(h)))
+def link_view(x,p):
+    src=canonical_case(x["source_case_id"],p["org_id"]);target=canonical_case(x["target_case_id"],p["org_id"])
+    return {**x,"source_version":src["version"],"target_version":target["version"]}
+@app.get("/api/v1/duplicate-links")
+def duplicates(req:Request,status:str|None=None):
+    p=principal(req);role(p,"admin","reviewer")
+    if status not in (None,"suggested","approved","rejected","revoked"):fail(422,"INVALID_FILTER")
+    existing=store.list(p["org_id"],"link")
+    # Geometry only proposes candidates. Humans inspect images/direction.
+    observations=[view(o,p) for o in store.list(p["org_id"],"observation")]
+    bycase={o["case_id"]:o for o in observations}
+    candidates=list(bycase.values())[-200:]
+    known={frozenset((l["source_case_id"],l["target_case_id"])) for l in existing}
+    for i,a in enumerate(candidates):
+        for b in candidates[i+1:]:
+            if a["type"]!=b["type"] or a["review"]["status"]=="completed" or b["review"]["status"]=="completed":continue
+            pair=frozenset((a["case_id"],b["case_id"]))
+            if pair in known:continue
+            dist=distance(a["location"],b["location"])
+            if dist is not None and dist<=10:
+                id=uid();x=store.create(id,p["org_id"],"link",{"source_case_id":a["case_id"],"target_case_id":b["case_id"],"source_observation_id":a["id"],"target_observation_id":b["id"],"status":"suggested","distance_m":dist,"evidence":{"basis":"nearby_vehicle_observations","direction_verified":False},"reason":""},min(stamp(a["expires_at"]),stamp(b["expires_at"])))
+                existing.append(x);known.add(pair)
+    return ok({"items":[link_view(x,p) for x in existing if status is None or x["status"]==status],"next_cursor":None})
+@app.post("/api/v1/duplicate-links",status_code=201)
+async def decide_link(req:Request,response:Response):
+    p=principal(req);role(p,"admin","reviewer");b=await req.json()
+    required={"source_observation_id","target_observation_id","decision","source_version","target_version","reason"}
+    if set(b)!=required or b["decision"] not in ("suggested","approved","rejected") or not isinstance(b["reason"],str) or not 1<=len(b["reason"])<=500:fail(422,"VALIDATION_ERROR")
+    if any(type(b[k]) is not int or b[k]<1 for k in ("source_version","target_version")):fail(422,"INVALID_VERSION")
+    with store.tx() as s:
+        a=store.get(valid_uuid(b["source_observation_id"]),p["org_id"],"observation",s);o=store.get(valid_uuid(b["target_observation_id"]),p["org_id"],"observation",s)
+        src=canonical_case(a["case_id"],p["org_id"],s);target=canonical_case(o["case_id"],p["org_id"],s)
+        if src["id"]==target["id"] or src["type"]!=target["type"]:fail(409,"INVALID_MERGE")
+        if src["version"]!=b["source_version"] or target["version"]!=b["target_version"]:fail(409,"VERSION_CONFLICT")
+        existing=next((x for x in store.list(p["org_id"],"link",s) if x["source_case_id"]==src["id"] and x["target_case_id"]==target["id"]),None)
+        data={"source_case_id":src["id"],"target_case_id":target["id"],"source_observation_id":a["id"],"target_observation_id":o["id"],"status":b["decision"],"reason":b["reason"],"distance_m":distance(a["payload"]["location"],o["payload"]["location"]),"decided_at":iso(),"decided_by":p["sub"]}
+        if existing:
+            x=store.change(existing["id"],p["org_id"],data,existing["version"],s);response.status_code=200
+        else:x=store.create(uid(),p["org_id"],"link",data,min(a["expires"],o["expires"]),s)
+        if b["decision"]=="approved":
+            if target["status"]=="completed":fail(409,"COMPLETED_CASE_RECURRENCE")
+            sp=payload(src);sp["merged_into"]=target["id"]
+            store.change(src["id"],p["org_id"],sp,src["version"],s)
+            tp=payload(target);tp["updated_at"]=iso();store.change(target["id"],p["org_id"],tp,target["version"],s)
+        store.audit(p,"duplicate."+b["decision"],x["id"],s)
+    return ok(x)
+@app.patch("/api/v1/duplicate-links/{id}")
+async def revoke_link(id:str,req:Request):
+    p=principal(req);role(p,"admin","reviewer");b=await req.json()
+    if set(b)!={"decision","expected_version","reason"} or b["decision"]!="revoked" or not isinstance(b["reason"],str) or not 1<=len(b["reason"])<=500:fail(422,"VALIDATION_ERROR")
+    with store.tx() as s:
+        x=store.get(id,p["org_id"],"link",s)
+        if x["version"]!=b["expected_version"]:fail(409,"VERSION_CONFLICT")
+        source=store.get(x["source_case_id"],p["org_id"],"case",s);sp=payload(source);sp["merged_into"]=None
+        store.change(source["id"],p["org_id"],sp,source["version"],s)
+        lp=payload(x);lp.update(status="revoked",reason=b["reason"],decided_at=iso(),decided_by=p["sub"])
+        x=store.change(id,p["org_id"],lp,x["version"],s);store.audit(p,"duplicate.revoke",id,s)
+    return ok(x)
