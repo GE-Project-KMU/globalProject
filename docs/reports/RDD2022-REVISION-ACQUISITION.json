@@ -1,0 +1,22 @@
+{
+  "format": "rdd2022-additional-source-availability-v1",
+  "publisher_article": "https://doi.org/10.6084/m9.figshare.21431547.v1",
+  "author_repository": "https://github.com/sekilab/RoadDamageDetector",
+  "publisher_metadata_accessible": true,
+  "publisher_metadata_license": "CC BY 4.0",
+  "country_archive_acquisition_completed": false,
+  "verified_new_country_archives": 0,
+  "observed_http_status": 403,
+  "attempts": [
+    "Official Figshare country member HTTP Range acquisition",
+    "Author-linked S3 country archive",
+    "Fresh official download redirect and public API endpoint"
+  ],
+  "inference_from_http_status": "Access was refused during these requests; no claim is made about the publisher's permanent availability or the cause.",
+  "full_outer_md5_verified": false,
+  "failed_download_used_for_training": false,
+  "quarantined_mirror_labels_used_as_replacement": false,
+  "original_experiment_or_deadline_modified": false,
+  "offline_acquisition_contract_tests_passed": 8,
+  "followup_scope": "One predeclared VAL-only L1 refinement using the prior original-RDD2020 train/validation partitions. Both previously evaluated test sets remain regression-only. No new independent holdout is claimed."
+}
