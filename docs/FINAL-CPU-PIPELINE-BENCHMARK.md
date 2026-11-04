@@ -41,4 +41,6 @@ Root의 실제 단회 ABBA 실행이 정상 종료됐다. 같은 실행 안에�
 
 읽기 감사로 source/protocol/execution/model-set·완료attempt 연결, 시간/FPS/median 재계산,4개 runtime snapshot,64개 관측의순서·cap·의미 동일성과64개 저장PNG의현재SHA를 확인했다. 공개 집계에는 모델·코드·protocol·execution·aggregate 해시와 숫자만 보존하고 개별 프레임 hash/path/예측은 공개하지 않는다. 상세 집계는 [FINAL-CPU-PIPELINE-BENCHMARK-RESULTS.json](reports/FINAL-CPU-PIPELINE-BENCHMARK-RESULTS.json)에 있다.
 
+측정과 읽기 감사 이후 writer를 모두 종료한 별도 단계에서 [최종 보관 등록과 삭제 없는 dry-run](CYCLE2-RESEARCH-RETENTION.md)을 수행했다. 위 측정 단계의 기한을 연장하지 않았다.
+
 이 결과는 CPU 합성16장 범위의 수치·출력 동일성과 처리속도다. 실제 독립 정확도·물리깊이·카메라/decode/GNSS/API·10분 지속·현장10FPS를 입증하지 않는다. GPU raw 검증 실패를 통과로 바꾸거나 GPU 지원을 승인하는 증거도 아니다. GPU pipeline/VAL32/600초 soak는 해당 strict gate를 통과하기 전 실행 완료로 표시하지 않는다.

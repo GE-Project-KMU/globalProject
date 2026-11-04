@@ -1,6 +1,13 @@
-# 새 cycle 보관 준비
+# 새 cycle 보관 실행 결과와 준비 이력
 
-이 문서는 **실제 asset scan·freeze·등록·이동·삭제를 아직 실행하지 않은 준비 상태**를 기록한다. 모든 ML·평가·성능·soak writer가 종료된 뒤 root 담당자가 확인하고 수동 실행한다. 기존17개 범위의 inventory/plan과 과거6개 control pin은 수정하지 않는다. 새 helper는 과거6개와 직전17범위 inventory/plan2개, 총8개 control hash를 별도로 확인한다.
+2026-11-05에 학습·평가·성능 측정·보고 writer 종료를 확인한 뒤 실제 scan·freeze·등록과 **삭제 없는 dry-run**을 완료했다. [공개 결과](reports/CYCLE2-FINAL-RETENTION-RESULTS.json)에 제어 파일의 SHA와 집계만 기록했다.
+
+- 선언31범위 중29개가 존재하고 optional2개는 미생성이다. 새 등록은3,101파일이며 기존4개 inventory·4개 plan의45,619항목은 그대로다.
+- 원기한 연장·파일 수정·누락·범위 거부·실제 삭제는0이다. dry-run에서 만료파일71개와 private plan1개를 식별했으나 삭제하지 않았다. 가중치도 보존했다.
+- 정확한64개 로그를 검토해 개별 검증 정보를 담은5개만 관리 폴더로 수동 이동하고 원본 부재·대상 SHA를 확인했다. 비개인/고정 증거 로그59개와 원경로를 참조하는 제어 파일은 보존했다.
+- 자동 삭제 예약이나 purge apply는 실행하지 않았다. 알려진 writer 검사와 운영자 종료 확인은 전체 PC의 프로세스 부재 증명이 아니며, 이 등록도 프로젝트 전체·PC 전체 목록을 뜻하지 않는다.
+
+아래는 실행 전 범위·예외·재현 절차를 정한 준비 이력이다. 기존17개 범위의 inventory/plan과 과거6개 control pin은 수정하지 않았다. 새 helper는 과거6개와 직전17범위 inventory/plan2개, 총8개 control hash를 별도로 확인했다.
 
 `scripts/freeze_cycle2_retention.py`는 새 `cycle2-frozen-plan.json`, `cycle2-inventory.json`, `cycle2-summary.json`만 생성한다. 같은 이름이 있으면 거부한다. 기본 `audit`는 control JSON만 읽고 자료를 탐색하지 않는다. source 원기한을 mtime·현재 날짜·재다운로드로 연장하지 않는다. 원증거 hash가 바뀌거나 기록 중인 파일이 바뀌면 거부한다.
 

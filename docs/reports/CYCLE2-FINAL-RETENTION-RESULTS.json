@@ -1,0 +1,86 @@
+{
+  "absent_optional_roots": 2,
+  "automatic_schedule_configured": false,
+  "deadline_date_counts": {
+    "2026-11-04": 71,
+    "2026-11-05": 68,
+    "2026-11-10": 2962
+  },
+  "declared_roots": 31,
+  "dry_run": {
+    "automatic_schedule_configured": false,
+    "counts": {
+      "deleted": 0,
+      "missing": 0,
+      "modified_refused": 0,
+      "not_due": 3030,
+      "retired": 0,
+      "scope_refused": 0,
+      "would_delete": 71
+    },
+    "dry_run": true,
+    "model_weights_deleted": 0,
+    "private_plan_counts": {
+      "deleted": 0,
+      "missing": 0,
+      "modified_refused": 0,
+      "not_due": 0,
+      "retired": 0,
+      "scope_refused": 0,
+      "would_delete": 1
+    }
+  },
+  "explicit_roots": 29,
+  "format": "public-cycle2-retention-summary-v1",
+  "historical_assets_scanned": false,
+  "historical_controls_unchanged": true,
+  "historical_inventories_verified": 4,
+  "historical_plans_verified": 4,
+  "historical_registered_files": 45619,
+  "model_weights_deleted": 0,
+  "preserved_counts": {
+    "aggregate_or_unclassified_json_is_preserved": 163,
+    "aggregate_or_unclassified_log_is_preserved": 5,
+    "exact_retry_control_minimal_provenance": 2,
+    "minimal_source_or_provenance_is_preserved": 18,
+    "model_or_minimal_provenance_is_preserved": 9,
+    "nonpersonal_family_control_provenance": 9,
+    "performance_source_and_aggregate": 7,
+    "prototype_context_provenance": 1,
+    "source_acquisition_control_provenance": 3,
+    "weights_or_unclassified": 194
+  },
+  "registered_files": 3101,
+  "registration": {
+    "inventory_files": 3101,
+    "registered_files": 3101,
+    "source_deadlines_extended": false,
+    "source_files_modified": false
+  },
+  "source_deadlines_extended": false,
+  "source_files_deleted": 0,
+  "source_range_files": 169,
+  "unclassified_extensions": {},
+  "unclassified_requires_operator_review": false,
+  "writer_stop_confirmed": true,
+  "known_writer_guard_is_not_global_process_proof": true,
+  "log_review": {
+    "reviewed_logs": 64,
+    "moved_private_logs": 5,
+    "preserved_aggregate_or_pinned_logs": 59,
+    "source_and_destination_sha_verified": true,
+    "original_private_log_copies_remaining": 0,
+    "files_deleted": 0
+  },
+  "local_materials_only": true,
+  "scope": "31 declared cycle2 roots and exact reviewed logs; not a whole-PC inventory",
+  "artifact_sha256": {
+    "cycle2-summary.json": "b009e3e981f91dd70bcfd0f5ee75cb3e2b2581ad7f1c65b7d0b1f56d3b340854",
+    "cycle2-frozen-plan.json": "7bf9ea3cc230087fc70c049a8395ec37074605575c43488496f5902559cf9b65",
+    "cycle2-inventory.json": "0dd3a76d85d292e0e8f1cbb63ce135ba6924778f101be16792f1d60cf840dd26",
+    "cycle2-writer-stop.json": "9e4f9d364905d2ed17f1208810dd1bc3a9b5e12aaa0cdf30b6a41b8685ba62c5",
+    "cycle2-log-migration-plan.json": "26dde8d5d8b888022e9bcb524499058685bc6a5e570f7c40d0006621906aa97a",
+    "cycle2-log-migration-result.json": "01fcb18e4484952e2ceedb317cf8a5c32e4ffae95445f2d4693464f5d69ed778"
+  },
+  "preparation_source_sha256": "91ab6e785b23f8fdb104908142e499b5aa5fcc35de8d4a8e62d4cd7222115a1b"
+}
