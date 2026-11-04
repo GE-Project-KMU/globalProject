@@ -28,9 +28,21 @@ OLD_LANE=['data/public/a2d2/acquisition.json','data/public/a2d2-improvement-v2/a
 PRIVACY='data/training/research-redaction-v6/release.json'
 OLD_PRIVACY='data/training/research-redaction-v4/release.json'
 SCREEN='data/demo-reference/browser-evidence/e8981281-329f-4455-a627-27e6073c7b95'
+SCREEN_FOLLOWUP='data/demo-reference/browser-evidence/8dd5ab5e-3d4e-47f2-bd89-eb5d1b3f8e71'
+SOAK='data/training/hardware-free-soak-v6'
+SOAK_PROOFS=['data/training/pothole-nano-rdd2020-v4/provenance.json',
+             'data/training/lane-a2d2-supported-ort131-v3/provenance.json',
+             'data/training/redaction-specialists-v4-efficient/provenance.json',SOAK+'/summary.json']
+PERF_OLD_PROOFS=['data/cpu-inference-benchmark/public-val-v1/private-plan.json',
+                 'data/public/a2d2-improvement-v2/manifest.json',
+                 'data/training/research-pothole-rdd2020-v4/release.json',
+                 'data/training/research-redaction-v4/release.json']
+PERF_NEW='data/gpu-model-sets/final-v6'
+PERF_NEW_PROOFS=[PERF_NEW+'/plan.json','data/public/a2d2-refinement-v3/release.json',
+                 'data/training/pothole-mwpd-v6/release.json','data/training/research-redaction-v6/release.json']
 OPTIONAL_ROOTS={'data/training/research-pothole-clean-v6'}
 # Collection roots are exact. The existing retention API only admits the broad
-# demo namespace, so plan roots use it while entries stay inside SCREEN only.
+# demo namespace, so entries stay inside the two exact screenshot collections.
 POLICIES={
  'data/research/mwpd-v6':('mwpd_source',[MWPD],'2026-11-11'),
  'data/training/research-pothole-mwpd-v6':('pothole_release',[MWPD,'data/training/research-pothole-mwpd-v6/release.json'],'2026-11-11'),
@@ -42,7 +54,12 @@ POLICIES={
  'data/training/research-redaction-v6':('redaction_release',[PRIVACY,OLD_PRIVACY],'2026-11-10'),
  'data/training/redaction-refinement-v6':('redaction_model',[PRIVACY,OLD_PRIVACY,'data/training/redaction-refinement-v6/provenance.json'],'2026-11-10'),
  'data/training/refinement-evaluation':('mixed_evaluation',[LANE,*OLD_LANE,PRIVACY,OLD_PRIVACY,MWPD,RDD],'2026-11-10'),
- SCREEN:('rtk_screenshot',['data/public/rtk/acquisition.json',SCREEN+'/private-evidence.json'],'2027-02-01')}
+ SCREEN:('rtk_screenshot',['data/public/rtk/acquisition.json',SCREEN+'/private-evidence.json'],'2027-02-01'),
+ SCREEN_FOLLOWUP:('rtk_screenshot',['data/public/rtk/acquisition.json',SCREEN_FOLLOWUP+'/private-evidence.json'],'2027-02-01'),
+ SOAK:('synthetic_soak',SOAK_PROOFS,'2026-11-10')}
+POLICIES.update({'data/cpu-inference-benchmark':('performance_diagnostic',PERF_OLD_PROOFS,'2026-11-10'),
+                 'data/gpu-inference-probe':('performance_diagnostic',PERF_OLD_PROOFS,'2026-11-10'),
+                 PERF_NEW:('performance_diagnostic',PERF_NEW_PROOFS,'2026-11-10')})
 
 def validate_policies(policies):
     if not isinstance(policies,dict) or set(policies)!=set(POLICIES):raise ValueError('exact_public_cycle_roots_required')
@@ -90,6 +107,21 @@ def kind(path,tag):
     if suffix in r.KINDS['source_annotation']:return 'source_annotation'
     return None
 
+def performance_provenance(path):
+    if path.name in {'aggregate.json','receipt.json'} or path.suffix.lower() in {'.py','.txt','.sha256'}:return True
+    if path.suffix.lower()=='.xml' and path.stat().st_size<=1024*1024:
+        import xml.etree.ElementTree as ET
+        try:return ET.fromstring(path.read_bytes()).tag.rsplit('}',1)[-1] in {'testsuites','testsuite'}
+        except ET.ParseError:return False
+    if path.suffix.lower()!='.json':return False
+    value=r.read(path)
+    if not isinstance(value,dict) or value.get('format') not in {'staging-cuda-model-set-v1','registered-cuda-model-set-v1','verified-local-cuda-bundle-v1'}:return False
+    def cases(item):
+        if isinstance(item,dict):return any(key=='cases' and bool(child) or cases(child) for key,child in item.items())
+        if isinstance(item,list):return any(cases(child) for child in item)
+        return False
+    return not cases(value)
+
 def list_files(root):
     base=r.project_path(root)
     if not base.is_dir():raise ValueError('completed_public_cycle_root_missing')
@@ -110,7 +142,7 @@ def freeze(receipt_path,receipt_sha256):
     if any(os.path.lexists(p) for p in (plan,inventory,summary)):raise ValueError('new_public_cycle_outputs_required')
     with r.inventory_lock(summary):
         old_ids,history=audit_immutable()
-        entries=[];proofs={};snapshots={};file_sets={};preserved=Counter();unknown=Counter();bytes_total=0
+        entries=[];proofs={};proof_dates={};snapshots={};file_sets={};preserved=Counter();unknown=Counter();bytes_total=0
         for root,(tag,evidence,max_date) in POLICIES.items():
             if root in OPTIONAL_ROOTS and not r.project_path(root).exists():continue
             deadlines=[]
@@ -118,13 +150,28 @@ def freeze(receipt_path,receipt_sha256):
                 if name not in proofs:
                     path=r.project_path(name,file=True)
                     digest,identity=r.file_snapshot(path);proofs[name]={'path':name,'sha256':digest};snapshots[name]=(digest,identity)
-                dates=r.evidence_expiries(r.read(r.project_path(name,file=True)))
+                    proof_dates[name]=r.evidence_expiries(r.read(path))
+                dates=proof_dates[name]
                 if not dates:raise ValueError('each_source_proof_requires_original_expiry')
                 deadlines.extend(dates)
             deadline=min(deadlines)
             if deadline.date().isoformat()>max_date:raise ValueError('original_expiry_date_ceiling_exceeded')
             files=list_files(root);file_sets[root]=files
+            if tag=='synthetic_soak':
+                completed=r.read(r.project_path(root+'/summary.json',file=True))
+                expected=completed.get('saved_PNGs')
+                actual=sum(bool(re.fullmatch(r'analysis/[0-9]{9}\.redacted\.png',path.relative_to(r.project_path(root)).as_posix())) for path in files)
+                if type(expected) is not int or expected<1 or completed.get('inferred_frames')!=expected or actual!=expected or not r.project_path(root+'/analysis/analysis.json',file=True).is_file():
+                    raise ValueError('soak_completed_output_count_mismatch')
             for path in files:
+                if tag=='synthetic_soak':
+                    local=path.relative_to(r.project_path(root)).as_posix()
+                    if local!='analysis/analysis.json' and not re.fullmatch(r'analysis/[0-9]{9}\.redacted\.png',local):
+                        preserved['soak_origin_and_execution_provenance']+=1
+                        continue
+                if tag=='performance_diagnostic' and performance_provenance(path):
+                    preserved['performance_aggregate_receipt_and_source_provenance']+=1
+                    continue
                 relative=path.relative_to(r.ROOT).as_posix();category=kind(path,tag)
                 if category is None:
                     preserved['weights' if any(s.lower() in r.WEIGHTS for s in path.suffixes) else 'unclassified_extension']+=1
@@ -133,8 +180,24 @@ def freeze(receipt_path,receipt_sha256):
                 try:r.eligible(path,category)
                 except r.PreservedResearchFile as error:preserved[str(error)]+=1;continue
                 if r.hash_text(relative) in old_ids:raise ValueError('new_candidate_already_in_historical_inventory')
+                entry_evidence=list(evidence);entry_deadline=deadline
+                if tag=='performance_diagnostic':
+                    # A synthetic pipeline can impose a shorter local source
+                    # contract (e.g. one hour). Never replace it with Nov10.
+                    candidates=[path] if path.suffix.lower()=='.json' else [path.parent/'analysis.json']
+                    for candidate in candidates:
+                        if not os.path.lexists(candidate):continue
+                        candidate=r.project_path(candidate.relative_to(r.ROOT).as_posix(),file=True)
+                        name=candidate.relative_to(r.ROOT).as_posix()
+                        if name not in proofs:
+                            dates=r.evidence_expiries(r.read(candidate))
+                            if not dates:continue
+                            checksum,fingerprint=r.file_snapshot(candidate);proofs[name]={'path':name,'sha256':checksum};snapshots[name]=(checksum,fingerprint);proof_dates[name]=dates
+                        dates=proof_dates[name]
+                        if name not in entry_evidence:entry_evidence.append(name)
+                        entry_deadline=min(entry_deadline,*dates)
                 digest,identity=r.file_snapshot(path);snapshots[relative]=(digest,identity)
-                entries.append({'path':relative,'kind':category,'sha256':digest,'expires_at':r.iso(deadline),'evidence':[proofs[p] for p in evidence]});bytes_total+=identity[2]
+                entries.append({'path':relative,'kind':category,'sha256':digest,'expires_at':r.iso(entry_deadline),'evidence':[proofs[p] for p in entry_evidence]});bytes_total+=identity[2]
         if not entries:raise ValueError('new_public_candidates_required')
         # Refuse partial/writing inputs before creating any plan/inventory.
         for root,files in file_sets.items():
@@ -142,7 +205,7 @@ def freeze(receipt_path,receipt_sha256):
         for name,(digest,identity) in snapshots.items():
             if r.file_snapshot(r.project_path(name,file=True))!=(digest,identity):raise ValueError('public_cycle_file_changed')
         stopped_receipt(receipt.relative_to(r.ROOT).as_posix(),receipt_sha256);audit_immutable()
-        roots=list(dict.fromkeys('data/demo-reference' if root==SCREEN else root for root in file_sets))
+        roots=list(dict.fromkeys('data/demo-reference' if POLICIES[root][0]=='rtk_screenshot' else root for root in file_sets))
         r.roots(roots)
         r.write(plan,{'schema_version':1,'roots':roots,'entries':entries,'collection_scope_tags':{root:POLICIES[root][0] for root in file_sets},'writer_receipt_sha256':receipt_sha256})
         registration=r.register(plan.relative_to(r.ROOT).as_posix(),inventory.relative_to(r.ROOT).as_posix())

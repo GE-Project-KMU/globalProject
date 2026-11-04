@@ -129,3 +129,94 @@ def test_present_but_incomplete_optional_cohort_cannot_be_silently_skipped(scope
     value=json.loads((root/receipt).read_text());value['roots']=sorted(policies);pin=put(root/receipt,value)
     with pytest.raises(ValueError,match='file_missing'):f.freeze(receipt,pin)
     assert not (root/'data/research-retention/public-cycle-inventory.json').exists()
+
+@pytest.mark.parametrize('missing_frame',[False,True])
+def test_soak_registers_only_frame_outputs_and_inherits_all_old_proofs(scope,monkeypatch,missing_frame):
+    root,receipt,_,_=scope
+    name=f.SOAK;directory=root/name;(directory/'analysis').mkdir(parents=True)
+    proofs=[]
+    for number,hour in enumerate((12,11,10)):
+        evidence=f'data/training/old-model-{number}/provenance.json'
+        put(root/evidence,{'assets':[{'expires_at':f'2026-11-10T{hour:02d}:00:00Z'}]});proofs.append(evidence)
+    put(directory/'summary.json',{'source_expires_at':'2026-11-10T09:00:00Z','sample_id':'force-preserved-summary','saved_PNGs':1,'inferred_frames':1})
+    proofs.append(name+'/summary.json')
+    put(directory/'plan.json',{'path':'force-preserved-origin-plan'})
+    (directory/'executed-probe-v1.py').write_bytes(b'SYNTHETIC EXECUTION PROVENANCE')
+    (directory/'generated-geometry.png').write_bytes(b'SYNTHETIC INPUT PRESERVED')
+    put(directory/'memory-samples.json',[{'memory_bytes':100}]);put(directory/'progress.json',{'frames_completed':1})
+    frame=directory/'analysis/000000000.redacted.png';frame.write_bytes(b'SYNTHETIC OUTPUT')
+    (directory/'analysis/unclassified.png').write_bytes(b'KEEP UNCLASSIFIED')
+    put(directory/'analysis/analysis.json',{'source_path':'SYNTHETIC','observations':[]})
+    policies=dict(f.POLICIES);policies[name]=('synthetic_soak',proofs,'2026-11-10');monkeypatch.setattr(f,'POLICIES',policies)
+    value=json.loads((root/receipt).read_text());value['roots']=sorted(policies);pin=put(root/receipt,value)
+    if missing_frame:
+        frame.unlink()
+        with pytest.raises(ValueError,match='soak_completed_output_count'):f.freeze(receipt,pin)
+        assert not (root/'data/research-retention/public-cycle-inventory.json').exists()
+        return
+    before={p.name:p.read_bytes() for p in directory.iterdir() if p.is_file()}
+    result=f.freeze(receipt,pin)
+    inventory=json.loads((root/'data/research-retention/public-cycle-inventory.json').read_text())
+    soak=[item for item in inventory['entries'].values() if item['path'].startswith(name+'/')]
+    assert {item['path'] for item in soak}=={name+'/analysis/000000000.redacted.png',name+'/analysis/analysis.json'}
+    assert {item['expires_at'] for item in soak}=={'2026-11-10T09:00:00Z'}
+    assert all((directory/key).read_bytes()==content for key,content in before.items())
+    assert frame.exists() and result['source_files_deleted']==0
+
+def test_both_explicit_RTK_folders_use_original_acquisition_and_own_evidence(scope,monkeypatch):
+    root,receipt,_,_=scope
+    source='data/public/rtk/acquisition.json';put(root/source,{'expires_at':'2027-02-01T12:00:00Z'})
+    policies=dict(f.POLICIES)
+    for name,hour in ((f.SCREEN,13),(f.SCREEN_FOLLOWUP,11)):
+        directory=root/name;directory.mkdir(parents=True)
+        (directory/'view.png').write_bytes(b'SYNTHETIC SCREENSHOT')
+        put(directory/'private-evidence.json',{'expires_at':f'2027-02-01T{hour:02d}:00:00Z'})
+        policies[name]=('rtk_screenshot',[source,name+'/private-evidence.json'],'2027-02-01')
+    monkeypatch.setattr(f,'POLICIES',policies)
+    value=json.loads((root/receipt).read_text());value['roots']=sorted(policies);pin=put(root/receipt,value)
+    f.freeze(receipt,pin)
+    inventory=json.loads((root/'data/research-retention/public-cycle-inventory.json').read_text())
+    screens={item['path']:item for item in inventory['entries'].values() if item['root']=='data/demo-reference'}
+    assert screens[f.SCREEN+'/view.png']['expires_at']=='2027-02-01T12:00:00Z'
+    assert screens[f.SCREEN_FOLLOWUP+'/view.png']['expires_at']=='2027-02-01T11:00:00Z'
+
+@pytest.mark.parametrize('name',['data/cpu-inference-benchmark','data/gpu-inference-probe','data/gpu-model-sets/final-v6'])
+def test_performance_case_material_inherits_caps_but_keeps_model_and_execution_proofs(scope,monkeypatch,name):
+    root,receipt,_,_=scope;directory=root/name;directory.mkdir(parents=True)
+    proof='data/research/rdd2020/source.json'
+    put(directory/'private-plan.json',{'cases':[{'path':'SYNTHETIC-ONLY','expires_at':'2026-11-09T00:00:00Z'}]})
+    put(directory/'private-checks.json',{'image_sha256':'a'*64,'passed':True})
+    (directory/'blob.npy').write_bytes(b'SYNTHETIC-TENSOR-NOT-NUMPY')
+    put(directory/'aggregate.json',{'passed':True});put(directory/'receipt.json',{'source_sha256':'b'*64})
+    put(directory/'staging.json',{'format':'staging-cuda-model-set-v1','models':{'lane':{'manifest':{'path':'MODEL-ONLY'}}}})
+    put(directory/'registered.json',{'format':'registered-cuda-model-set-v1','models':{'lane':{'manifest':{'path':'MODEL-ONLY'}}}})
+    put(directory/'model.json',{'format':'onnx','weights':'weights.onnx'})
+    (directory/'weights.onnx').write_bytes(b'SYNTHETIC-MODEL-NOT-ONNX')
+    (directory/'execution-source.py').write_bytes(b'SOURCE PROVENANCE')
+    (directory/'junit.xml').write_text('<testsuites><testsuite name="SYNTHETIC" tests="1"><testcase name="contract"/></testsuite></testsuites>')
+    put(directory/'operator-profiles/trace.json',[{'name':'node','dur':1,'args':{'shape':[1,3,64,64]}}])
+    run=directory/'pipeline-v1/run-0';run.mkdir(parents=True)
+    (run/'000000000.redacted.png').write_bytes(b'SYNTHETIC-PIXELS')
+    put(run/'analysis.json',{'source_path':'SYNTHETIC','local_material':{'expires_at':'2026-11-05T00:00:00Z'}})
+    policies=dict(f.POLICIES);policies[name]=('performance_diagnostic',[proof],'2026-11-10');monkeypatch.setattr(f,'POLICIES',policies)
+    value=json.loads((root/receipt).read_text());value['roots']=sorted(policies);pin=put(root/receipt,value)
+    f.freeze(receipt,pin)
+    inventory=json.loads((root/'data/research-retention/public-cycle-inventory.json').read_text())
+    entries={item['path']:item for item in inventory['entries'].values() if item['path'].startswith(name+'/')}
+    assert entries[name+'/private-plan.json']['expires_at']=='2026-11-09T00:00:00Z'
+    assert entries[name+'/private-checks.json']['expires_at']=='2026-11-10T10:00:00Z'
+    assert entries[name+'/blob.npy']['expires_at']=='2026-11-10T10:00:00Z'
+    assert entries[name+'/pipeline-v1/run-0/analysis.json']['expires_at']=='2026-11-05T00:00:00Z'
+    assert entries[name+'/pipeline-v1/run-0/000000000.redacted.png']['expires_at']=='2026-11-05T00:00:00Z'
+    assert len(entries)==5
+    assert all((directory/file).exists() for file in ['aggregate.json','receipt.json','staging.json','registered.json','weights.onnx','execution-source.py','junit.xml','operator-profiles/trace.json'])
+
+def test_model_descriptor_with_cases_is_not_misclassified_as_minimal_provenance(scope):
+    root,_,_,_=scope
+    path=root/'data/cpu-inference-benchmark/descriptor.json'
+    put(path,{'format':'registered-cuda-model-set-v1','models':{'lane':{'cases':[{'path':'SYNTHETIC'}]}}})
+    assert not f.performance_provenance(path)
+
+@pytest.mark.parametrize('name',['data/cpu-inference-benchmark-other','data/gpu-inference-probe-other','data/gpu-model-sets','data/gpu-model-sets/final-v7','data/gpu-model-sets/final-v6-other'])
+def test_performance_allowlist_never_expands_to_siblings_or_parent_namespace(scope,name):
+    with pytest.raises(ValueError,match='unknown_research_root'):r.roots([name])
