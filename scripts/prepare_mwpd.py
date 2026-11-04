@@ -24,6 +24,15 @@ API='https://data.mendeley.com/public-api/datasets/s5hx9n2jc3'
 RAW='data/research/mwpd-v6'
 RELEASE='data/training/research-pothole-mwpd-v6'
 NAMESPACE=uuid.UUID('3c444c1d-42d3-4353-a708-71793ac7edd0')
+CLASS_MAP_SHA='677aa08212ee2c178848f44c9c415e1858a9339c809e4c3cf71ecd02b2ed696c'
+
+
+def verify_class_map(folder):
+    path=workspace_path(folder/'publisher-class-map.yaml',exists=True)
+    if sha256(path)!=CLASS_MAP_SHA:raise ValueError('publisher_class_map_changed')
+    text=path.read_text(encoding='utf-8')
+    if not re.search(r'^nc:\s*1\s*$',text,re.M) or not re.search(r"^names:\s*\['Potholes'\]\s*$",text,re.M):
+        raise ValueError('publisher_class_zero_not_pothole')
 
 
 def source_group(name):
@@ -84,6 +93,17 @@ def acquire(output=RAW):
             acquired=datetime.now(timezone.utc)
             receipt={'source_url':SOURCE,'downloaded_at':acquired.isoformat(),'expires_at':(acquired+timedelta(days=7)).isoformat(),'publisher_metadata_sha256':sha256(folder/'publisher-files.json'),'license_id':'CC-BY-4.0','publisher_file_sha256_verification_required':True}
             atomic_json(receipt_path,receipt)
+        class_map=folder/'publisher-class-map.yaml'
+        if not class_map.exists():
+            response=client.get(API+'/folders/2');response.raise_for_status()
+            parent=next(f['id'] for f in response.json() if f['name']=='MWPD')
+            response=client.get(API+f'/files?folder_id={parent}&version=2');response.raise_for_status()
+            entry=next(f for f in response.json() if f['filename']=='data.yaml')
+            if entry['content_details']['sha256_hash']!=CLASS_MAP_SHA:raise ValueError('publisher_class_map_changed')
+            response=client.get(entry['content_details']['download_url']);response.raise_for_status()
+            if hashlib.sha256(response.content).hexdigest()!=CLASS_MAP_SHA:raise ValueError('publisher_class_map_download_hash_mismatch')
+            class_map.write_bytes(response.content);atomic_json(folder/'publisher-class-map.source.json',entry)
+        verify_class_map(folder)
         pairs,removed=select_pairs(metadata);entries=[p[k] for p in pairs for k in ('image','label')]
         (folder/'files').mkdir(exist_ok=True)
         def download(entry):
@@ -123,20 +143,68 @@ def parse_yolo(text,width,height):
     return objects
 
 
+def historical_identity(rows):
+    result=set()
+    for row in rows:
+        # Missing visual identity is an audit failure, not permission to skip
+        # the exact-hash exclusion for that historical source.
+        if not re.fullmatch('[a-f0-9]{64}',str(row.get('sha256',''))) or not re.fullmatch('[a-f0-9]{16}',str(row.get('perceptual_dhash',''))):
+            raise ValueError('complete_historical_source_identity_required')
+        result.add((row['sha256'],int(row['perceptual_dhash'],16),row['split']))
+    return sorted(result)
+
+
+def isolate_components(candidates,historical):
+    """Propagate history and split boundaries through every new near-duplicate chain."""
+    parent=list(range(len(candidates)))
+    def find(i):
+        while parent[i]!=i:parent[i]=parent[parent[i]];i=parent[i]
+        return i
+    def near(a,b):
+        return min((a[0]^b[0]).bit_count(),(a[1]^b[0]).bit_count(),(a[0]^b[1]).bit_count())<=3
+    visuals=[(int(r['perceptual_dhash'],16),r['_flip_dhash']) for r in candidates]
+    hits=[]
+    for i,row in enumerate(candidates):
+        any_old=False;protected=False
+        for digest,visual,split in historical:
+            if row['sha256']==digest or near(visuals[i],(visual,visual)):
+                any_old=True;protected|=split!='train'
+        hits.append((any_old,protected))
+        for j in range(i):
+            other=candidates[j]
+            if row['sha256']==other['sha256'] or row['leakage_group_id']==other['leakage_group_id'] or near(visuals[i],visuals[j]):
+                parent[find(i)]=find(j)
+    components={}
+    for i,row in enumerate(candidates):components.setdefault(find(i),[]).append(i)
+    priority={'test':0,'validation':1,'train':2};kept=[];removed=Counter()
+    for indices in components.values():
+        first=min((candidates[i]['split'] for i in indices),key=priority.get)
+        old_any=any(hits[i][0] for i in indices);old_protected=any(hits[i][1] for i in indices)
+        seen=set()
+        for i in indices:
+            row=candidates[i]
+            if (first=='train' and old_protected) or (first!='train' and old_any):
+                removed['historical_validation_or_test_overlap' if first=='train' else 'historical_used_image_overlap']+=1
+            elif row['split']!=first or row['sha256'] in seen:
+                removed['connected_cross_split_or_exact_duplicate']+=1
+            else:
+                seen.add(row['sha256']);kept.append({k:v for k,v in row.items() if k!='_flip_dhash'})
+    return kept,removed
+
+
 def prepare(source=RAW,output=RELEASE):
     folder=workspace_path(source,exists=True);output=workspace_path(output)
     if not output.is_relative_to(ROOT/'data/training') or output.exists():raise ValueError('new_private_training_release_required')
     receipt=json.loads((folder/'source.json').read_text());metadata=json.loads((folder/'publisher-files.json').read_text())
     if sha256(folder/'publisher-files.json')!=receipt['publisher_metadata_sha256'] or datetime.fromisoformat(receipt['expires_at'])<=datetime.now(timezone.utc):raise ValueError('invalid_or_expired_source')
+    verify_class_map(folder)
     pairs,removed=select_pairs(metadata);removed=Counter(removed)
-    historical=[]
+    history_rows=[]
     for p in sorted((ROOT/'data/training').glob('research-pothole*/release.json')):
         if p.parent==output:continue
-        for r in json.loads(p.read_text(encoding='utf-8')):
-            if r.get('perceptual_dhash'):historical.append((r['sha256'],int(r['perceptual_dhash'],16),r['split']))
-    all_hash={h for h,_,_ in historical};test_hash={h for h,_,s in historical if s=='test'}
-    all_visual={v for _,v,_ in historical};test_visual={v for _,v,s in historical if s=='test'}
-    rows=[];seen_hash=set();seen_visual=[]
+        history_rows+=json.loads(p.read_text(encoding='utf-8'))
+    historical=historical_identity(history_rows)
+    candidates=[]
     evidence=folder/'license-evidence.json'
     for p in pairs: # TEST is protected first, then validation, then TRAIN.
         image_path=local_file(folder,p['image']);label_path=local_file(folder,p['label'])
@@ -145,15 +213,10 @@ def prepare(source=RAW,output=RELEASE):
         image=cv2.imread(str(image_path))
         if image is None:raise ValueError('publisher_image_decode_failed')
         digest=sha256(image_path);visual=dhash(image);flip=dhash(cv2.flip(image,1));split=p['split']
-        oldhash,oldvisual=(test_hash,test_visual) if split=='train' else (all_hash,all_visual)
-        if digest in oldhash or any(min((visual^v).bit_count(),(flip^v).bit_count())<=3 for v in oldvisual):
-            removed['historical_test_overlap' if split=='train' else 'historical_used_image_overlap']+=1;continue
-        if digest in seen_hash or any(s!=split and min((visual^v).bit_count(),(flip^v).bit_count())<=3 for v,s in seen_visual):
-            removed['cross_split_exact_or_near_duplicate']+=1;continue
         objects=parse_yolo(label_path.read_text(encoding='utf-8'),image.shape[1],image.shape[0])
-        seen_hash.add(digest);seen_visual.append((visual,split))
         identifier=str(uuid.uuid5(NAMESPACE,'MWPD2:'+p['image']['id']))
-        rows.append({'sample_id':identifier,'source_id':str(uuid.uuid5(NAMESPACE,'source:'+digest)),'source_hash':digest,'leakage_group_id':'MWPD2:filename:'+p['group'],'split':split,'country':'Bangladesh-source-unverified-location','path':image_path.relative_to(ROOT).as_posix(),'sha256':digest,'perceptual_dhash':f'{visual:016x}','annotation_version':'MWPD2-publisher-YOLO-single-pothole','annotation_sha256':sha256(label_path),'source_url':SOURCE,'license_evidence_path':evidence.relative_to(ROOT).as_posix(),'license_evidence_sha256':sha256(evidence),'privacy_status':'restricted_research','qc_status':'publisher_annotations_machine_checked','release_scope':'offline_research','human_privacy_reviewed':False,'not_for_deployment':True,'project_acceptance_eligible':False,'independent_route_verified':False,'detection_labels_verified':True,'allowed_use':'Private offline CC-BY-4.0 research with attribution; no human privacy/deployment approval','expires_at':receipt['expires_at'],'source_expires_at':receipt['expires_at'],'objects':objects})
+        candidates.append({'sample_id':identifier,'source_id':str(uuid.uuid5(NAMESPACE,'source:'+digest)),'source_hash':digest,'leakage_group_id':'MWPD2:filename:'+p['group'],'split':split,'country':'Bangladesh-source-unverified-location','path':image_path.relative_to(ROOT).as_posix(),'sha256':digest,'perceptual_dhash':f'{visual:016x}','_flip_dhash':flip,'annotation_version':'MWPD2-publisher-YOLO-single-pothole','annotation_sha256':sha256(label_path),'source_url':SOURCE,'license_evidence_path':evidence.relative_to(ROOT).as_posix(),'license_evidence_sha256':sha256(evidence),'privacy_status':'restricted_research','qc_status':'publisher_annotations_machine_checked','release_scope':'offline_research','human_privacy_reviewed':False,'not_for_deployment':True,'project_acceptance_eligible':False,'independent_route_verified':False,'detection_labels_verified':True,'allowed_use':'Private offline CC-BY-4.0 research with attribution; no human privacy/deployment approval','expires_at':receipt['expires_at'],'source_expires_at':receipt['expires_at'],'objects':objects})
+    rows,excluded=isolate_components(candidates,historical);removed.update(excluded)
     checked=validate_research_release(rows)
     if not checked['valid']:raise ValueError(str(checked['errors'][:3]))
     counts=Counter(r['split'] for r in rows)

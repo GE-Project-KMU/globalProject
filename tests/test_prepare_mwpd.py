@@ -1,6 +1,6 @@
 import math
 import pytest
-from scripts.prepare_mwpd import source_group,select_pairs,parse_yolo
+from scripts.prepare_mwpd import source_group,select_pairs,parse_yolo,historical_identity,isolate_components
 
 
 def entry(group,token,suffix='jpg'):
@@ -41,3 +41,26 @@ def test_publisher_box_conversion_and_clipping():
 @pytest.mark.parametrize('line',['1 .5 .5 .2 .2','0 nan .5 .2 .2','0 2 .5 .2 .2','0 .5 .5 0 .2','0 .5 .5 .2'])
 def test_invalid_class_or_geometry_cannot_enter_training(line):
     with pytest.raises(ValueError):parse_yolo(line,100,50)
+
+
+def candidate(name,visual,split):
+    return {'sha256':name,'perceptual_dhash':f'{visual:016x}','_flip_dhash':visual,'leakage_group_id':name,'split':split}
+
+
+def test_old_validation_overlap_propagates_through_new_training_chain():
+    rows=[candidate('bridge',1,'train'),candidate('chain',15,'train'),candidate('independent',65535,'train')]
+    kept,removed=isolate_components(rows,[('historical',0,'validation')])
+    assert [r['sha256'] for r in kept]==['independent']
+    assert removed['historical_validation_or_test_overlap']==2
+
+
+def test_new_holdout_is_protected_through_indirect_near_duplicate_chain():
+    rows=[candidate('test',0,'test'),candidate('bridge',1,'train'),candidate('chain',15,'train')]
+    kept,_=isolate_components(rows,[])
+    assert [r['sha256'] for r in kept]==['test']
+    assert '_flip_dhash' not in kept[0]
+
+
+def test_missing_historical_visual_identity_cannot_silently_skip_exact_hash():
+    with pytest.raises(ValueError,match='historical_source_identity'):
+        historical_identity([{'sha256':'a'*64,'split':'validation'}])
