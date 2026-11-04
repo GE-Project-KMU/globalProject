@@ -140,4 +140,68 @@ resize thread1/2 픽셀 일치도 확인했다. 이는 실제 모델 정확도�
 포함된다. 직렬 모델의 독립 속도와 직접 비교해 개선률을 주장하지 않는다.
 `parallel_execution_wall_seconds`는 worker 시작~추론/worker JSON 완료 구간이다.
 후속 공통 score/merge·최종 보고서 저장은 제외하므로 전체 CLI 시간은 외부
-`Measure-Command`로 별도 기록한다. 픽셀 파일을 만들거나 GPU를 추가 사용하지 않는다.
+`Stopwatch`로 별도 기록한다. 픽셀 파일을 만들거나 GPU를 추가 사용하지 않는다.
+
+
+### 개인정보 병렬 실행 protocol V2와 최초 중단
+
+최초 실행은 전처리 소스 SHA pin 불일치에서 worker 생성 전 중단했다.
+TEST 예측0건이며 기존 V1 계획·실패 로그를 보존했다. 원인은 Git `e201a8e`의
+float32 전처리 중간 복사 축소다. 입력 크기·threshold·정규화 연산 순서는 같고,
+두 환경 각각828건 및 실제 predict의 setInput828건에서 bitwise 동일성을
+검증했다. 이는 실제 전처리 코드 최적화이며 단순 문서 변경으로 표현하지 않는다.
+
+학습·추론·score·선택 조건은 그대로 두고 부모 protocol SHA와 이유를 명시한
+`PRIVACY-REFINEMENT-PARALLEL-PROTOCOL-V2.json`을 Git `c83de18`에서 최종 예측 전에
+고정했다. helper 변경은 protocol pointer와 lineage/reason metadata에 한정했다.
+worker·assemble_results·run의 AST digest가 원 버전과 같고 독립 합성8건을
+재실행해 통과했다. 관련 계약65건도 통과했다. 실제 raw/postprocess 양성 VAL2
+canonical 검증은 최적화된 전처리에서 기본 허용오차로 통과한 결과다.
+원 계획의 불일치를 조용히 덮어쓰거나 TEST를 보고 모델·threshold를 바꾸지 않았다.
+
+
+### 개인정보 완료 결과
+
+고정8epoch를 끝냈고 실제 optimizer update는5,993회다. AMP overflow로 건너뛴
+7회는 update로 세지 않았다. 선택은epoch6/VAL 얼굴 AP50 84.65%, 최종 confidence는
+VAL508에서 선택한.01이다. 번호판 parameter와 BN buffer의 byte digest는 전후
+동일하다. 고정 얼굴·번호판 양성 VAL 각1건에서 앱/격리 ORT1.31.1/원 FP32
+Torch raw 기본 허용오차와 최종 box/class/score 정합성을 통과했다.
+
+새200장 중 얼굴100장의 유효 GT649개에 대해 기존→후보 얼굴 AP50은
+88.10→87.62%, recall은94.30→93.68%, precision은21.39→21.11%다.
+후보의 TP608/FP2272/FN41이며 기존은 TP612/FP2249/FN37이다. 새 번호판100장에서는
+두 모델 모두 TP98/FP3/FN2, recall98%, precision97.03%, AP50 98.01%로 같았다.
+후보의 얼굴 개선은 확인되지 않았고, 두 클래스 최소 recall95% 목표도 미달한다.
+따라서 새 개인정보 후보의 승격을 권고하지 않으며 기존 baseline을 유지하도록
+권고한다. baseline 역시 이 새 얼굴 평가에서95%에 미달하므로 완전한 비식별화
+안전성을 승인한 것이 아니다. TEST 결과를 보고 추가 학습·checkpoint·threshold
+재선택은 하지 않았다.
+
+이 결과는 알려진 클래스만 있는 publisher annotation에 대한 조건부 평가다.
+다른 클래스가 주석되지 않은 사진을 완전한 negative로 세지 않았으며 얼굴·번호판
+전체 누락이 없다는 검증은 아니다. 새 source는 과거 이미지·근접 중복·번호판
+identity를 제외했지만, WIDER event partition이 과거 시험과 같으므로 독립 인물·
+도로·기관 성능을 주장하지 않는다. 원본의 license·보관 기한을 연장하지 않았고,
+사용자의 녹화 원본은 학습·평가에 사용하지 않았다.
+
+
+CPU 완료 보고서의 `GPU_validation_included_in_this_CPU_report:false`는 이 보고서가
+CPU canonical/정확도 증거를 집계한다는 뜻이다. 별도 신규 세 모델의 GPU raw/post
+검증 결과는 [FINAL-MODEL-GPU-VALIDATION.json](reports/FINAL-MODEL-GPU-VALIDATION.json)에
+기록한다. GPU 수치 일치 통과는 새로운 독립 정확도 평가나 개인정보 목표 충족을
+뜻하지 않는다.
+
+
+기존 TEST400장 회귀에서는 얼굴 AP50 79.98→80.23%, recall86.49→87.28%,
+precision17.35→17.68%였다. 후보 TP995/FP4634/FN145, 기존 TP986/FP4696/FN154다.
+번호판은 두 모델 모두 TP196/FP15/FN4, recall98%, precision92.89%, AP50 97.94%로
+같았다. 이 회귀의 소폭 상승을 새 평가의 퇴보보다 우선해 후보를 선택하지 않는다.
+
+각 모델을 정확히 한 번씩 실행한 새200장/회귀400장의 전체 CLI 경과시간은 각각
+91.11/181.41초였으며 worker 구간은89.11/177.31초였다. 새 집합의 predict 중앙값은
+기존424.66ms/후보425.95ms, 회귀는425.47/426.20ms였다. 병렬 CPU 부하가 포함된
+관측치이고 모델 속도 개선을 입증한 수치가 아니다. 안전한 집계 실행 증거는
+`PRIVACY-REFINEMENT-EXECUTION.json`, 결과와 실제 학습/수치 검증 연결은
+`PRIVACY-REFINEMENT-RESULTS.json` 및 `PRIVACY-REFINEMENT-COMPLETION.json`에 기록했다.
+두 평가 종료 후 모든 inference worker를 종료했고 추가 TEST 예측은 하지 않았다.

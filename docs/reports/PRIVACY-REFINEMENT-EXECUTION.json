@@ -1,0 +1,42 @@
+{
+  "format": "privacy-refinement-execution-aggregate-v2",
+  "protocol_sha256": "bd60096bd914db70c76dc56a5ea863d612dd59b8bfcb717b8f448647e15eb413",
+  "protocol_freeze_commit": "c83de18",
+  "initial_v1_attempt": {
+    "status": "preflight_source_pin_mismatch",
+    "TEST_predictions": 0,
+    "workers_spawned": 0,
+    "original_protocol_and_log_preserved": true
+  },
+  "CPU_processes_per_cohort": 2,
+  "ORT_threads_per_process": 2,
+  "GPU_operations": 0,
+  "extra_test_model_inferences": 0,
+  "timing_limits": [
+    "Shared-host parallel CPU contention, not isolated serial model throughput",
+    "Whole CLI stopwatch includes worker startup, inference, scoring, merge and final report",
+    "Worker-stage wall excludes parent scoring/merge/final report"
+  ],
+  "cohorts": {
+    "fresh": {
+      "samples": 200,
+      "model_passes_per_model": 1,
+      "whole_CLI_wall_seconds": 91.1126087,
+      "worker_stage_wall_seconds": 89.10814930003835,
+      "exit_code": 0,
+      "baseline_manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+      "candidate_manifest_sha256": "4b5c6236051faf1f1cf600b9f6ef391c58004652f35d3158989cb74156612322",
+      "candidate_weights_sha256": "1c92c2a5e85930a950491fb01124249967890427e1d40555c55b555a8ce288a2"
+    },
+    "regression": {
+      "samples": 400,
+      "model_passes_per_model": 1,
+      "whole_CLI_wall_seconds": 181.4135618,
+      "worker_stage_wall_seconds": 177.31474699999671,
+      "exit_code": 0,
+      "baseline_manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+      "candidate_manifest_sha256": "4b5c6236051faf1f1cf600b9f6ef391c58004652f35d3158989cb74156612322",
+      "candidate_weights_sha256": "1c92c2a5e85930a950491fb01124249967890427e1d40555c55b555a8ce288a2"
+    }
+  }
+}

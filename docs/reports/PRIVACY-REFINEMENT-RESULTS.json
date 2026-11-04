@@ -1,0 +1,426 @@
+{
+  "format": "public-model-refinement-results-v1",
+  "task": "privacy",
+  "cohorts": {
+    "fresh": {
+      "role": "new_unseen_recording_or_source_only_no_physical_person_route_independence",
+      "samples": 200,
+      "models": {
+        "baseline": {
+          "manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+          "weights_sha256": "bf54a5ad4211e945e71c84502a75a2d32e03de397883d70df8c64881c515aa3a",
+          "operating_confidence": 0.01,
+          "architecture": "two YOLOX-Nano specialists global plus four tiles",
+          "input_size": [
+            1920,
+            1920
+          ],
+          "backend": "onnxruntime-cpu",
+          "backend_version": "1.31.1",
+          "timing_context": "two parallel independent CPU2-thread model processes; shared-host, not isolated serial speed",
+          "ap_metrics": {
+            "classes": {
+              "face": {
+                "gt_count": 649,
+                "prediction_count": 2861,
+                "tp": 612,
+                "fp": 2249,
+                "fn": 37,
+                "ap50": 0.880956047550048,
+                "recall": 0.9429892141756548,
+                "precision": 0.2139112198531982
+              },
+              "license_plate": {
+                "gt_count": 100,
+                "prediction_count": 101,
+                "tp": 98,
+                "fp": 3,
+                "fn": 2,
+                "ap50": 0.98009800980098,
+                "recall": 0.98,
+                "precision": 0.9702970297029703
+              }
+            },
+            "map50": 0.9305270286755141,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "operating_metrics": {
+            "classes": {
+              "face": {
+                "gt_count": 649,
+                "prediction_count": 2861,
+                "tp": 612,
+                "fp": 2249,
+                "fn": 37,
+                "ap50": 0.880956047550048,
+                "recall": 0.9429892141756548,
+                "precision": 0.2139112198531982
+              },
+              "license_plate": {
+                "gt_count": 100,
+                "prediction_count": 101,
+                "tp": 98,
+                "fp": 3,
+                "fn": 2,
+                "ap50": 0.98009800980098,
+                "recall": 0.98,
+                "precision": 0.9702970297029703
+              }
+            },
+            "map50": 0.9305270286755141,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "fixed_035_reference": {
+            "classes": {
+              "face": {
+                "gt_count": 649,
+                "prediction_count": 703,
+                "tp": 556,
+                "fp": 147,
+                "fn": 93,
+                "ap50": 0.8331027869018849,
+                "recall": 0.8567026194144838,
+                "precision": 0.7908961593172119
+              },
+              "license_plate": {
+                "gt_count": 100,
+                "prediction_count": 97,
+                "tp": 97,
+                "fp": 0,
+                "fn": 3,
+                "ap50": 0.9702970297029703,
+                "recall": 0.97,
+                "precision": 1.0
+              }
+            },
+            "map50": 0.9016999083024275,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.35
+          },
+          "latency_seconds": {
+            "median": 0.4246616000018548,
+            "p95": 0.5070710400119424
+          }
+        },
+        "candidate": {
+          "manifest_sha256": "4b5c6236051faf1f1cf600b9f6ef391c58004652f35d3158989cb74156612322",
+          "weights_sha256": "1c92c2a5e85930a950491fb01124249967890427e1d40555c55b555a8ce288a2",
+          "operating_confidence": 0.01,
+          "architecture": "two YOLOX-Nano specialists global plus four tiles",
+          "input_size": [
+            1920,
+            1920
+          ],
+          "backend": "onnxruntime-cpu",
+          "backend_version": "1.31.1",
+          "timing_context": "two parallel independent CPU2-thread model processes; shared-host, not isolated serial speed",
+          "ap_metrics": {
+            "classes": {
+              "face": {
+                "gt_count": 649,
+                "prediction_count": 2880,
+                "tp": 608,
+                "fp": 2272,
+                "fn": 41,
+                "ap50": 0.8762304781289316,
+                "recall": 0.9368258859784283,
+                "precision": 0.2111111111111111
+              },
+              "license_plate": {
+                "gt_count": 100,
+                "prediction_count": 101,
+                "tp": 98,
+                "fp": 3,
+                "fn": 2,
+                "ap50": 0.98009800980098,
+                "recall": 0.98,
+                "precision": 0.9702970297029703
+              }
+            },
+            "map50": 0.9281642439649558,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "operating_metrics": {
+            "classes": {
+              "face": {
+                "gt_count": 649,
+                "prediction_count": 2880,
+                "tp": 608,
+                "fp": 2272,
+                "fn": 41,
+                "ap50": 0.8762304781289316,
+                "recall": 0.9368258859784283,
+                "precision": 0.2111111111111111
+              },
+              "license_plate": {
+                "gt_count": 100,
+                "prediction_count": 101,
+                "tp": 98,
+                "fp": 3,
+                "fn": 2,
+                "ap50": 0.98009800980098,
+                "recall": 0.98,
+                "precision": 0.9702970297029703
+              }
+            },
+            "map50": 0.9281642439649558,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "fixed_035_reference": {
+            "classes": {
+              "face": {
+                "gt_count": 649,
+                "prediction_count": 710,
+                "tp": 552,
+                "fp": 158,
+                "fn": 97,
+                "ap50": 0.8333237051183445,
+                "recall": 0.8505392912172574,
+                "precision": 0.7774647887323943
+              },
+              "license_plate": {
+                "gt_count": 100,
+                "prediction_count": 97,
+                "tp": 97,
+                "fp": 0,
+                "fn": 3,
+                "ap50": 0.9702970297029703,
+                "recall": 0.97,
+                "precision": 1.0
+              }
+            },
+            "map50": 0.9018103674106575,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.35
+          },
+          "latency_seconds": {
+            "median": 0.42595125001389533,
+            "p95": 0.5231346200132975
+          }
+        }
+      },
+      "map50_change": -0.0023627847105582855
+    },
+    "regression": {
+      "role": "previously_examined_regression_only_no_independent_accuracy_claim",
+      "samples": 400,
+      "models": {
+        "baseline": {
+          "manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+          "weights_sha256": "bf54a5ad4211e945e71c84502a75a2d32e03de397883d70df8c64881c515aa3a",
+          "operating_confidence": 0.01,
+          "architecture": "two YOLOX-Nano specialists global plus four tiles",
+          "input_size": [
+            1920,
+            1920
+          ],
+          "backend": "onnxruntime-cpu",
+          "backend_version": "1.31.1",
+          "timing_context": "two parallel independent CPU2-thread model processes; shared-host, not isolated serial speed",
+          "ap_metrics": {
+            "classes": {
+              "face": {
+                "gt_count": 1140,
+                "prediction_count": 5682,
+                "tp": 986,
+                "fp": 4696,
+                "fn": 154,
+                "ap50": 0.799756750066838,
+                "recall": 0.8649122807017544,
+                "precision": 0.17353044702569517
+              },
+              "license_plate": {
+                "gt_count": 200,
+                "prediction_count": 211,
+                "tp": 196,
+                "fp": 15,
+                "fn": 4,
+                "ap50": 0.9794462797065048,
+                "recall": 0.98,
+                "precision": 0.9289099526066351
+              }
+            },
+            "map50": 0.8896015148866714,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "operating_metrics": {
+            "classes": {
+              "face": {
+                "gt_count": 1140,
+                "prediction_count": 5682,
+                "tp": 986,
+                "fp": 4696,
+                "fn": 154,
+                "ap50": 0.799756750066838,
+                "recall": 0.8649122807017544,
+                "precision": 0.17353044702569517
+              },
+              "license_plate": {
+                "gt_count": 200,
+                "prediction_count": 211,
+                "tp": 196,
+                "fp": 15,
+                "fn": 4,
+                "ap50": 0.9794462797065048,
+                "recall": 0.98,
+                "precision": 0.9289099526066351
+              }
+            },
+            "map50": 0.8896015148866714,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "fixed_035_reference": {
+            "classes": {
+              "face": {
+                "gt_count": 1140,
+                "prediction_count": 1200,
+                "tp": 885,
+                "fp": 315,
+                "fn": 255,
+                "ap50": 0.7543234130674499,
+                "recall": 0.7763157894736842,
+                "precision": 0.7375
+              },
+              "license_plate": {
+                "gt_count": 200,
+                "prediction_count": 194,
+                "tp": 191,
+                "fp": 3,
+                "fn": 9,
+                "ap50": 0.9502382661216411,
+                "recall": 0.955,
+                "precision": 0.9845360824742269
+              }
+            },
+            "map50": 0.8522808395945455,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.35
+          },
+          "latency_seconds": {
+            "median": 0.4254710499953944,
+            "p95": 0.5062000600388272
+          }
+        },
+        "candidate": {
+          "manifest_sha256": "4b5c6236051faf1f1cf600b9f6ef391c58004652f35d3158989cb74156612322",
+          "weights_sha256": "1c92c2a5e85930a950491fb01124249967890427e1d40555c55b555a8ce288a2",
+          "operating_confidence": 0.01,
+          "architecture": "two YOLOX-Nano specialists global plus four tiles",
+          "input_size": [
+            1920,
+            1920
+          ],
+          "backend": "onnxruntime-cpu",
+          "backend_version": "1.31.1",
+          "timing_context": "two parallel independent CPU2-thread model processes; shared-host, not isolated serial speed",
+          "ap_metrics": {
+            "classes": {
+              "face": {
+                "gt_count": 1140,
+                "prediction_count": 5629,
+                "tp": 995,
+                "fp": 4634,
+                "fn": 145,
+                "ap50": 0.8022838569281924,
+                "recall": 0.8728070175438597,
+                "precision": 0.17676319062000356
+              },
+              "license_plate": {
+                "gt_count": 200,
+                "prediction_count": 211,
+                "tp": 196,
+                "fp": 15,
+                "fn": 4,
+                "ap50": 0.9794462797065048,
+                "recall": 0.98,
+                "precision": 0.9289099526066351
+              }
+            },
+            "map50": 0.8908650683173486,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "operating_metrics": {
+            "classes": {
+              "face": {
+                "gt_count": 1140,
+                "prediction_count": 5629,
+                "tp": 995,
+                "fp": 4634,
+                "fn": 145,
+                "ap50": 0.8022838569281924,
+                "recall": 0.8728070175438597,
+                "precision": 0.17676319062000356
+              },
+              "license_plate": {
+                "gt_count": 200,
+                "prediction_count": 211,
+                "tp": 196,
+                "fp": 15,
+                "fn": 4,
+                "ap50": 0.9794462797065048,
+                "recall": 0.98,
+                "precision": 0.9289099526066351
+              }
+            },
+            "map50": 0.8908650683173486,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "fixed_035_reference": {
+            "classes": {
+              "face": {
+                "gt_count": 1140,
+                "prediction_count": 1212,
+                "tp": 890,
+                "fp": 322,
+                "fn": 250,
+                "ap50": 0.762333254560061,
+                "recall": 0.7807017543859649,
+                "precision": 0.7343234323432343
+              },
+              "license_plate": {
+                "gt_count": 200,
+                "prediction_count": 194,
+                "tp": 191,
+                "fp": 3,
+                "fn": 9,
+                "ap50": 0.9502382661216411,
+                "recall": 0.955,
+                "precision": 0.9845360824742269
+              }
+            },
+            "map50": 0.856285760340851,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.35
+          },
+          "latency_seconds": {
+            "median": 0.4262035999854561,
+            "p95": 0.5097795400070027
+          }
+        }
+      },
+      "map50_change": 0.001263553430677189
+    }
+  },
+  "physical_person_or_route_independence_verified": false,
+  "old_VAL_is_reused_development": true,
+  "old_TEST_is_regression_only": true,
+  "test_used_for_model_or_threshold_selection": false,
+  "user_recordings_used": false,
+  "project_acceptance_eligible": false,
+  "production_approved": false,
+  "existing_source_expiries_extended": false,
+  "limits": [
+    "New unseen source/recording cohort, not physical route/person independence",
+    "Known publisher paint proxy or conditional face/plate labels, not wear/complete privacy ground truth",
+    "Single-model CPU timings under shared host load; not full-pipeline or field FPS",
+    "No causal attribution to one architecture/loss change without ablation"
+  ]
+}
