@@ -21,6 +21,47 @@ DOMAIN_ARCHIVE_NAME='RDD2022_released_through_CRDDC2022.zip'
 EXPIRIES={"expires_at","source_expires_at","collection_expires_at","mask_expires_at","license_expires_at","retention_expires_at"}
 PRESERVED={"provenance.json","source.json","source-qc.json","source-metadata.json","acquisition.json","license-evidence.json","license.json","license.txt","license.md","license","notice","readme.md","readme.txt","environment-report.json","install-receipt.json"}
 PRIVATE_FIELDS={"source_member","path","image_path","mask_path","source_path","filename","file_name","sample_id","source_id","image_id","image_sha256","bbox_xywh_px","paint_mask_rle"}
+RESCUE_RETRY_FORMATS={'rescue-v8-external-supervision-retry1-v1','rescue-v8-external-single-GPU-supervision-retry1-plan-v1'}
+
+
+def minimal_rescue_retry_control(path,value):
+    """Exact control names and schema only; private/unknown additions get TTL."""
+    receipts={ROOT/'data/training/redaction-rescue-v8'/f'external-{phase}-supervisor-retry1.json' for phase in ('preflight','train')}
+    public_plan=ROOT/'docs/reports/PRIVACY-RESCUE-V8-RETRY1-SUPERVISION-PLAN.json'
+    if path not in receipts|{public_plan}:return False
+    receipt_keys=set('format phase status learning_plan_sha256 training_source_sha256 supervision_plan_sha256 supervisor_source_sha256 prerequisite_receipt_sha256 requires_single_GPU_training_job training_math_changed owns_training_child_only other_process_controlled global_OOM_zero_claimed OOM_detection_scope source_expiries_extended TEST_images preflight_optimizer_step_attempts_reported preflight_is_real_training_experiment separate_preflight_model_discarded fresh_construct_for_train parent_failed_preflight_sha256 CPU_import_evidence_sha256 dependency_repair_only GPU_child_started current_environment_verification own_child_pid own_child_creation_time parent_pid trainer_report_sha256 own_child_stopped_after_identity_check termination_refused_or_failed device_memory observer_child_stopped observer_thread_stopped wall_seconds failure_reason own_OOM_signature_observed child_exit_code own_child_running_after_cleanup sources_unchanged'.split())
+    plan_keys=set('format supervisor_source_sha256 preparation_source_sha256 training_source_sha256 learning_plan_sha256 CPU_contract_sha256 input_sha256 prerequisites required_prior_status required_prior_exit_code required_prior_child_identity_absent initial_device_samples_each_strictly_below_bytes initial_device_samples device_reported_budget_bytes requested_query_interval_ms scope max_GPU_training_jobs source_deadline phases preflight_is_separate_process preflight_optimizer_step_attempts ephemeral_actual_update_count_not_exposed_by_trainer preflight_state_discarded_before_fresh_construct_training training_requires_preflight_completed_child_absent_and_exact_report_hash direct_training_python_with_setup_training_environment direct_child_binding_avoids_untracked_launcher_descendant CPU_work_may_run_concurrently timing_is_not_isolated_camera_FPS no_training_source_or_math_changes no_parent_file_overwrites no_automatic_retry_or_resume GPU_execution_requires_root_phase_slot TEST_images user_recordings_used source_expiries_extended parent_supervision_plan revision_reason failed_preflight environment_evidence training_python_sha256 requires_explicit_GPU_phase_approval_flag current_CPU_environment_probe_required_before_GPU current_environment_package_map_must_equal_snapshot CPU_environment_probe_timeout_seconds exclusive_attempt_claim_precedes_CPU_probe no_original_receipt_or_log_overwrites original_failure_was_not_a_completed_GPU_preflight'.split())
+    expected='rescue-v8-external-single-GPU-supervision-retry1-plan-v1' if path==public_plan else 'rescue-v8-external-supervision-retry1-v1'
+    if value.get('format')!=expected or not set(value)<=(plan_keys if path==public_plan else receipt_keys):return False
+    image=re.compile(r'\.(?:jpe?g|png|bmp|webp|npy|npz)(?:\b|$)',re.I)
+    extra={'bbox','coordinates','sample_ids','source_ids','image_ids','frame_id','per_image','predictions','detections'}
+    def private(item):
+        if isinstance(item,dict):
+            for key,child in item.items():
+                if image.search(key):return True
+                if key=='path':
+                    if not isinstance(child,str) or Path(child).suffix.lower() not in {'.json','.py','.pt','.pth','.onnx','.txt','.log','.exe'}:return True
+                elif key in PRIVATE_FIELDS|extra:return True
+                if private(child):return True
+        elif isinstance(item,list):return any(private(child) for child in item)
+        elif isinstance(item,str):return bool(image.search(item))
+        return False
+    if private(value):return False
+    nested_keys={
+        'current_environment_verification':set('passed packages_sha256 CPU_only cuda_initialized CUDA_VISIBLE_DEVICES timeout_seconds interpreter_sha256 imports'.split()),
+        'device_memory':set('scope query_interval_requested_ms timestamps_are_receive_times_not_hardware_sample_times cannot_guarantee_no_transient_excess_between_samples total_samples retained_samples max_device_reported_used_bytes observed_receive_interval_ms over_budget_observed errors'.split()),
+        'prerequisite_receipt_sha256':{'Small_retry1','lane_retry1','separate_preflight'}}
+    for key,allowed in nested_keys.items():
+        if key in value and (not isinstance(value[key],dict) or not set(value[key])<=allowed):return False
+    current=value.get('current_environment_verification',{})
+    if 'imports' in current and current['imports']!=['agent.evaluate','agent.pipeline','yolox.utils','torch']:return False
+    memory=value.get('device_memory',{})
+    if memory.get('errors'):return False  # Unknown diagnostic text keeps source TTL.
+    interval=memory.get('observed_receive_interval_ms')
+    if interval is not None and (not isinstance(interval,dict) or not set(interval)<={'min','median','max'}):return False
+    reason=value.get('failure_reason')
+    if reason is not None and (not isinstance(reason,str) or re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*:[A-Za-z0-9_]+',reason) is None):return False
+    return True
 
 
 class PreservedResearchFile(ValueError):
@@ -134,6 +175,9 @@ def eligible(path,kind):
         return False
     if path.suffix.lower()==".json":
         value=read(path)
+        if isinstance(value,dict) and value.get('format') in RESCUE_RETRY_FORMATS:
+            if minimal_rescue_retry_control(path,value):raise PreservedResearchFile('exact_retry_control_minimal_provenance')
+            return  # Never inherit generic aggregate preservation for this format.
         if isinstance(value,dict):
             if value.get("format")=="onnx" or "weights" in value or value.get("format") in ("training-provenance-v1","model-release-summary-v1"):raise PreservedResearchFile("model_or_minimal_provenance_is_preserved")
         # Aggregate reports without individual identifiers/pixels are retained.

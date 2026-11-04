@@ -1,0 +1,142 @@
+{
+  "format": "rescue-v8-external-single-GPU-supervision-retry1-plan-v1",
+  "supervisor_source_sha256": "00a60af75bab8f145189e0b0502dc560ca25d4988fa8ebf8a97b03650ba48a4a",
+  "preparation_source_sha256": "bcb80ffa4e27b601a6245802cab93cb4dad48a7ce98693bb3751b5be20eb3d6a",
+  "training_source_sha256": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+  "learning_plan_sha256": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d",
+  "CPU_contract_sha256": "f0783681bb7c6c1000f4639686753a88a8582818cdf5315b627746aca203dedb",
+  "input_sha256": {
+    "scripts/train_redaction_rescue_v8.py": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+    "docs/reports/PRIVACY-RESCUE-V8-PLAN.json": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d",
+    "data/training/redaction-rescue-v8/plan.json": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d",
+    "data/training/redaction-rescue-v8/cpu-contract.json": "f0783681bb7c6c1000f4639686753a88a8582818cdf5315b627746aca203dedb",
+    "data/training/research-redaction-cycle2-v7/development.json": "37cdd77565438c1254768347a7d7abe37c686ba20239c3ade2fda23cd98a8d0c",
+    "data/training/research-redaction-cycle2-v7/release.json": "5ae56bd60700ce17a6af8e92edf630a2722ebc6148e177b798afa172cbff50dc",
+    "data/training/redaction-specialists-v4-efficient/best.pt": "6c985f7e3afb0fa061cbb82d7ec7b304eb5f9fbfcd0cf9f775dbab28873c82ad",
+    "scripts/cycle2_device_memory.py": "0ce1a2d8da7ae1900945a5fc87da6f462e6772f76d02f6de13ce1ee3761e9d6d",
+    "scripts/supervise_cycle2_training.py": "1db02c78262386a4fd119231bb216241173450ebe8e1bcc33bdcaccac12b8809",
+    "agent/redaction_rescue_network.py": "61876d6621c733516661059692eb2a734f8da35048aca86238b4d7a0d1583dc0",
+    "agent/redaction_network.py": "9d26b063b22b54b1606cb33be1291b6e71f57945849aab21119764e1c847ca5d",
+    "agent/redaction_tiled_network.py": "f8a1fe9121ad36cbab1e14a1f2477dd821ec6f04ee7bd6fd862996967dbd376f",
+    "scripts/redaction_rescue_data.py": "ff831573dfcfc0ae37f2273c51ee6ca1cc035ce224fb36fc857d42fffa49385b",
+    "docs/reports/PRIVACY-RESCUE-V8-SUPERVISION-PLAN.json": "c5e1dcc65cdd48d11d46b79f0fe6caf0f045bf5628c8597f5356a1ca0a29b1ae",
+    "scripts/supervise_redaction_rescue_v8.py": "6b6f268106078011e7f9b8c47794aa53c3a941baf9d0b04f3b32b2bbacd96812",
+    "data/training/redaction-rescue-v8/external-preflight-supervisor.json": "f1791384f7925fd1f7d9be320fb83d40cbfb1f2555f5605ab0607661fc063931",
+    ".cache/cycle2-rescue-v8-preflight.log": "8fc5f869ed5d32d14ab42f0ad0567ec7865382464bb0aacc4c73593b915fa99c",
+    "data/training/redaction-rescue-v8/external-preflight-device-samples.json": "4ca57149a04d9bcb8260a28b37bc152184135551dd96322c7b6b5b0bcc1e2d5d",
+    ".cache/cycle2-rescue-v8-preflight-observer.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "data/training/redaction-rescue-v8-env-repair/before.json": "caa25cc806aa187d49fc97a156dba54142fd61b77e0b9ffeeec27a80cc7a0f7e",
+    "data/training/redaction-rescue-v8-env-repair/after.json": "01a3232a942f93cf5b1f845f673c52c2e994c22cc8c7806458e65b78e95cde1d",
+    "data/training/redaction-rescue-v8-env-repair/import-success.json": "be1fe14662bc1e4a2119010e1a3c49e592c595ff15fa8b0e983cd6273a4a5879",
+    "data/training/redaction-rescue-v8-env-repair/requirements-snapshot.txt": "850b0fef35c2cca7066f3dbb06ec6a2dcc83889b68e3713113904b3512eccbc6",
+    "data/training/redaction-rescue-v8-env-repair/install.log": "f30363bc13659f869f59d25e6c3190e475f718297ff40cf3603fc24e5dd59cfd",
+    "data/training/redaction-rescue-v8-env-repair/install-compatible.log": "a6b154a7881bb39af4834474715be31180f68de4981a3decc3646ed79ced4b0b",
+    "data/training/redaction-rescue-v8-env-repair/publisher-wheel-metadata.json": "736aadfb3f92b08b00175d25c2bd5a13a0418ecc84b94b7b4d2cac0e3a393c66",
+    ".venv-training/python.exe": "5f7b89a612c9b8af1d6456cdfcd1dbe5ca630849e79aebced9bee9a6694952ec",
+    "requirements-training.txt": "0881fa492ee72ebc557edea6ca31dd00c62a60e25874143f8f7d641e2103f5b8",
+    "requirements-training-lock-windows311.txt": "79d95843f1dbfbd13684f567634e7da16157270ae3b330fe2b156b90fdc94674"
+  },
+  "prerequisites": {
+    "Small_retry1": {
+      "receipt": "data/training/pothole-small-v9-retry1/shared-training-supervisor.json",
+      "plan_field": "plan_sha256",
+      "plan_sha256": "9578d1d2e0f85ea193d2536132f5b8fd0767b2b9ea54e8d718774aa2cafa833b"
+    },
+    "lane_retry1": {
+      "receipt": "data/training/public-nextcycle/lane-retry1-training-supervisor.json",
+      "plan_field": "learning_plan_sha256",
+      "plan_sha256": "cfdade6dd97417a50837c9e0fec4cbbd349bff7a047c8b444fb8793909d0fc56"
+    }
+  },
+  "required_prior_status": "completed",
+  "required_prior_exit_code": 0,
+  "required_prior_child_identity_absent": true,
+  "initial_device_samples_each_strictly_below_bytes": 2147483648,
+  "initial_device_samples": 2,
+  "device_reported_budget_bytes": 9663676416,
+  "requested_query_interval_ms": 100,
+  "scope": "sampled device-reported FB memory under WDDM; no hard quota or exact process-sum claim",
+  "max_GPU_training_jobs": 1,
+  "source_deadline": "2026-11-10T16:55:19.285523+00:00",
+  "phases": [
+    "preflight",
+    "train"
+  ],
+  "preflight_is_separate_process": true,
+  "preflight_optimizer_step_attempts": 8,
+  "ephemeral_actual_update_count_not_exposed_by_trainer": true,
+  "preflight_state_discarded_before_fresh_construct_training": true,
+  "training_requires_preflight_completed_child_absent_and_exact_report_hash": true,
+  "direct_training_python_with_setup_training_environment": true,
+  "direct_child_binding_avoids_untracked_launcher_descendant": true,
+  "CPU_work_may_run_concurrently": true,
+  "timing_is_not_isolated_camera_FPS": true,
+  "no_training_source_or_math_changes": true,
+  "no_parent_file_overwrites": true,
+  "no_automatic_retry_or_resume": true,
+  "GPU_execution_requires_root_phase_slot": true,
+  "TEST_images": 0,
+  "user_recordings_used": false,
+  "source_expiries_extended": false,
+  "parent_supervision_plan": {
+    "path": "docs/reports/PRIVACY-RESCUE-V8-SUPERVISION-PLAN.json",
+    "sha256": "c5e1dcc65cdd48d11d46b79f0fe6caf0f045bf5628c8597f5356a1ca0a29b1ae"
+  },
+  "revision_reason": "Original separate preflight failed with ModuleNotFoundError; add only pinned missing project-environment dependencies and retry in new supervision namespaces. Frozen trainer, learning plan and training math unchanged.",
+  "failed_preflight": {
+    "receipt": {
+      "path": "data/training/redaction-rescue-v8/external-preflight-supervisor.json",
+      "sha256": "f1791384f7925fd1f7d9be320fb83d40cbfb1f2555f5605ab0607661fc063931"
+    },
+    "log": {
+      "path": ".cache/cycle2-rescue-v8-preflight.log",
+      "sha256": "8fc5f869ed5d32d14ab42f0ad0567ec7865382464bb0aacc4c73593b915fa99c"
+    },
+    "samples": {
+      "path": "data/training/redaction-rescue-v8/external-preflight-device-samples.json",
+      "sha256": "4ca57149a04d9bcb8260a28b37bc152184135551dd96322c7b6b5b0bcc1e2d5d"
+    },
+    "observer_log": {
+      "path": ".cache/cycle2-rescue-v8-preflight-observer.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "environment_evidence": {
+    "before.json": {
+      "path": "data/training/redaction-rescue-v8-env-repair/before.json",
+      "sha256": "caa25cc806aa187d49fc97a156dba54142fd61b77e0b9ffeeec27a80cc7a0f7e"
+    },
+    "after.json": {
+      "path": "data/training/redaction-rescue-v8-env-repair/after.json",
+      "sha256": "01a3232a942f93cf5b1f845f673c52c2e994c22cc8c7806458e65b78e95cde1d"
+    },
+    "import-success.json": {
+      "path": "data/training/redaction-rescue-v8-env-repair/import-success.json",
+      "sha256": "be1fe14662bc1e4a2119010e1a3c49e592c595ff15fa8b0e983cd6273a4a5879"
+    },
+    "requirements-snapshot.txt": {
+      "path": "data/training/redaction-rescue-v8-env-repair/requirements-snapshot.txt",
+      "sha256": "850b0fef35c2cca7066f3dbb06ec6a2dcc83889b68e3713113904b3512eccbc6"
+    },
+    "install.log": {
+      "path": "data/training/redaction-rescue-v8-env-repair/install.log",
+      "sha256": "f30363bc13659f869f59d25e6c3190e475f718297ff40cf3603fc24e5dd59cfd"
+    },
+    "install-compatible.log": {
+      "path": "data/training/redaction-rescue-v8-env-repair/install-compatible.log",
+      "sha256": "a6b154a7881bb39af4834474715be31180f68de4981a3decc3646ed79ced4b0b"
+    },
+    "publisher-wheel-metadata.json": {
+      "path": "data/training/redaction-rescue-v8-env-repair/publisher-wheel-metadata.json",
+      "sha256": "736aadfb3f92b08b00175d25c2bd5a13a0418ecc84b94b7b4d2cac0e3a393c66"
+    }
+  },
+  "training_python_sha256": "5f7b89a612c9b8af1d6456cdfcd1dbe5ca630849e79aebced9bee9a6694952ec",
+  "requires_explicit_GPU_phase_approval_flag": true,
+  "current_CPU_environment_probe_required_before_GPU": true,
+  "current_environment_package_map_must_equal_snapshot": true,
+  "CPU_environment_probe_timeout_seconds": 60,
+  "exclusive_attempt_claim_precedes_CPU_probe": true,
+  "no_original_receipt_or_log_overwrites": true,
+  "original_failure_was_not_a_completed_GPU_preflight": true
+}
