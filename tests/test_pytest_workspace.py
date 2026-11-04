@@ -14,6 +14,15 @@ def test_unique_default_roots_and_standard_tempfile_stay_inside_project():
     assert Path(first.option.basetemp).is_relative_to(ROOT/'.cache/pytest-tmp')
     with tempfile.TemporaryDirectory() as name:assert Path(name).is_relative_to(ROOT/'.cache/tmp/pytest')
 
+def test_real_pytest_fixture_has_an_existing_project_local_parent(tmp_path):
+    assert tmp_path.exists() and tmp_path.is_relative_to(ROOT/'.cache/pytest-tmp')
+
+def test_fresh_explicit_scratch_parent_is_created_before_fixture_use():
+    with tempfile.TemporaryDirectory(prefix='pytest-parent-',dir=ROOT/'.cache') as directory:
+        base=Path(directory)/'new-parent/leaf'
+        configure(SimpleNamespace(option=SimpleNamespace(basetemp=str(base))))
+        assert base.parent.is_dir() and not base.exists()
+
 def test_explicit_project_basetemp_preserved_and_external_rejected():
     local=ROOT/'.cache/pytest-explicit';config=SimpleNamespace(option=SimpleNamespace(basetemp=str(local)))
     configure(config);assert Path(config.option.basetemp)==local
