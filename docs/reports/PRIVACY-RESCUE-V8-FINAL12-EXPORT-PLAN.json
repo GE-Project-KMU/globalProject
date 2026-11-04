@@ -1,0 +1,67 @@
+{
+  "format": "privacy-fixed-final12-EMA-export-policy-v1",
+  "export_source_sha256": "e8de9f51024417d4b4b36a8791870e144786ce582fea9adca1a493b88107287a",
+  "source_plan_sha256": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d",
+  "training_source_sha256": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+  "source_sha256": {
+    "scripts/train_redaction_rescue_v8.py": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+    "scripts/export_redaction_final12.py": "e8de9f51024417d4b4b36a8791870e144786ce582fea9adca1a493b88107287a",
+    "docs/reports/PRIVACY-RESCUE-V8-RETRY1-SUPERVISION-PLAN.json": "cb5092c1a2726d4038d0fc51af1d4e7c3bb1d30ac81416fb7923c3b420ba3cd1",
+    "docs/reports/PRIVACY-FAMILY-V9-PREDECLARATION.json": "2717f0a737aa73d72afca8cc567519d0630c3ae2ebe77b980d608a9018228117",
+    "scripts/supervise_redaction_rescue_v8_retry1.py": "00a60af75bab8f145189e0b0502dc560ca25d4988fa8ebf8a97b03650ba48a4a",
+    "agent/redaction_rescue_network.py": "61876d6621c733516661059692eb2a734f8da35048aca86238b4d7a0d1583dc0",
+    "agent/redaction_network.py": "9d26b063b22b54b1606cb33be1291b6e71f57945849aab21119764e1c847ca5d",
+    "agent/redaction_tiled_network.py": "f8a1fe9121ad36cbab1e14a1f2477dd821ec6f04ee7bd6fd862996967dbd376f",
+    "scripts/redaction_rescue_data.py": "ff831573dfcfc0ae37f2273c51ee6ca1cc035ce224fb36fc857d42fffa49385b",
+    ".cache/vendor/YOLOX/yolox/models/yolo_head.py": "0275bcdeb1b1d5dbd3172fc4897c75cb161f707843983bf582fb087676f969c2",
+    ".cache/vendor/YOLOX/yolox/models/yolo_pafpn.py": "8571af557f6caacda61e54813be4be2d73c4a0889e1f876ec5586057eb2eebde",
+    ".cache/vendor/YOLOX/yolox/models/darknet.py": "368c9db45166e863691cf7460b314d047928f90e8744c492a673b6eff9b809f3",
+    ".cache/vendor/YOLOX/yolox/models/network_blocks.py": "f490240a674799f1b548ac4ca571c7f3e59d4e75efee8ebeb1e24e6e4e10d2a4"
+  },
+  "supervision_plan_sha256": "cb5092c1a2726d4038d0fc51af1d4e7c3bb1d30ac81416fb7923c3b420ba3cd1",
+  "parent_family_predeclaration": {
+    "path": "docs/reports/PRIVACY-FAMILY-V9-PREDECLARATION.json",
+    "sha256": "2717f0a737aa73d72afca8cc567519d0630c3ae2ebe77b980d608a9018228117"
+  },
+  "development_sha256": "37cdd77565438c1254768347a7d7abe37c686ba20239c3ade2fda23cd98a8d0c",
+  "release_sha256": "5ae56bd60700ce17a6af8e92edf630a2722ebc6148e177b798afa172cbff50dc",
+  "epoch": 12,
+  "EMA": true,
+  "checkpoint_selection": "preregistered_fixed_final_epoch12_EMA",
+  "revision_timing": "Added after review of development VAL through completed epoch6, before final12 exists and before any family TEST",
+  "development_results_already_examined_through_epoch": 6,
+  "predeclaration_completed_epoch_metadata": 7,
+  "predeclaration_metadata_snapshot": {
+    "path": "data/training/redaction-rescue-v8-final12/predeclaration-recovery-receipt.json",
+    "sha256": "120b71554698304b352b27619ffc3486395b308e6d76e9e6f5dd0081d97d227d"
+  },
+  "original_AP_selected_checkpoint_unchanged": true,
+  "original_training_max_epochs": 12,
+  "fixed12_epoch_choice_depends_on_final12_VAL_or_TEST": false,
+  "V9_family_selection_on_VAL_only_after_export": true,
+  "confidence_before_family_VAL_selection": 0.01,
+  "confidence_is_native_VAL_floor_not_operating_approval": true,
+  "source_expires_at": "2026-11-10T16:55:19.285523+00:00",
+  "source_expiries_extended": false,
+  "base_checkpoint_sha256": "6c985f7e3afb0fa061cbb82d7ec7b304eb5f9fbfcd0cf9f775dbab28873c82ad",
+  "input_shape": [
+    1,
+    3,
+    1920,
+    1920
+  ],
+  "output_shape": [
+    1,
+    333300,
+    7
+  ],
+  "legacy_prefix_proposals": 102900,
+  "CPU_export_requires_explicit_root_approval": true,
+  "recovery_weights_or_images_read_during_declaration": false,
+  "GPU_used": false,
+  "TEST_images": 0,
+  "user_recordings_used": false,
+  "research_only": true,
+  "production_approved": false,
+  "project_acceptance_eligible": false
+}
