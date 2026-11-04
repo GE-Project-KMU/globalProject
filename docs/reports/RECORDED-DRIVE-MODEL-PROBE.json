@@ -1,0 +1,83 @@
+{
+  "format": "recorded-drive-model-probe-aggregate-v1",
+  "status": "bounded_local_inference_completed_not_accuracy_validation",
+  "source_files": 16,
+  "inferred_left_frames": 80,
+  "all_original_checksums_unchanged": true,
+  "all_files_decoded_through_eof": true,
+  "sample_selection": "five equally spaced message indices including endpoints; floor(k*(N-1)/4), deduplicated",
+  "model_weights_sha256": {
+    "pothole": "9b956d8ead74d1b11db0d1c43bac9ae5bdda2b0d6b843062319ae28de2f2f269",
+    "lane": "0cbf89f5bfd751bc9ae2cb071f887609d9ff40a9f2f3914c129a44806dc1f548",
+    "redaction": "bf54a5ad4211e945e71c84502a75a2d32e03de397883d70df8c64881c515aa3a"
+  },
+  "frozen_plan_sha256": "49b126e6d69f211f0317e282b2d0e0231927a3df9d045b57467d7e1677bf1fd3",
+  "latency": {
+    "pothole": {
+      "median_ms": 28.93519999634009,
+      "p95_ms": 34.24539000407094
+    },
+    "lane": {
+      "median_ms": 480.84694998397026,
+      "p95_ms": 538.9153949901811
+    },
+    "redaction": {
+      "median_ms": 400.19679999386426,
+      "p95_ms": 440.564035018906
+    }
+  },
+  "candidate_boxes_by_class": {
+    "face": 403,
+    "license_plate": 14,
+    "pothole": 8
+  },
+  "frames_with_pothole_candidates": 8,
+  "frames_with_privacy_candidates": 78,
+  "frames_passing_basic_image_quality": 73,
+  "basic_quality_reason_counts": {
+    "underexposed": 7
+  },
+  "lane_paint_pixel_fraction_mean": 0.001763130847318673,
+  "lane_paint_pixel_fraction_min": 0.0,
+  "lane_paint_pixel_fraction_max": 0.01084008487654321,
+  "authorized_until_utc": "2026-11-05T14:59:00+00:00",
+  "labels_available": false,
+  "accuracy_measured": false,
+  "privacy_recall_measured": false,
+  "physical_depth_or_wear_measured": false,
+  "utc_or_gnss_generated": false,
+  "raw_pixel_files_written": false,
+  "server_observations_created": false,
+  "human_privacy_approval_granted": false,
+  "automatic_deletion_registered": false,
+  "training_performed": false,
+  "model_thresholds_changed": false,
+  "limits": [
+    "Candidates are unreviewed predictions, not confirmed defects or unique objects",
+    "Lane paint pixel fraction is image coverage, not wear or physical road retention",
+    "No GT labels: no AP, precision, recall or masking-completeness claim",
+    "Five temporal samples per file are an execution probe, not a representative accuracy set",
+    "2D observed-profile MCAP decoder; no SDK IMAGE clock, rectification, GNSS or metric depth verification",
+    "CPU timings are measurements on this local machine; no deployment throughput claim"
+  ],
+  "elapsed_seconds_including_decode_and_checksums": 187.33387850000872,
+  "runtime": {
+    "engine": "onnxruntime-cpu",
+    "version": "1.31.1",
+    "models": {
+      "pothole": {
+        "engine": "onnxruntime-cpu",
+        "version": "1.31.1"
+      },
+      "lane": {
+        "engine": "onnxruntime-cpu",
+        "version": "1.31.1"
+      },
+      "redaction": {
+        "engine": "onnxruntime-cpu",
+        "version": "1.31.1"
+      }
+    },
+    "device": "cpu"
+  }
+}
