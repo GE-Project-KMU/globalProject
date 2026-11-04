@@ -1,5 +1,6 @@
 """Paired warmed CPU/CUDA 2D pipeline timing with explicit inclusion scopes."""
 import argparse,json,sys,time,os
+from datetime import datetime,timezone,timedelta
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 import numpy as np
@@ -8,26 +9,37 @@ from agent.inference_runner import create_models,InferenceRunner,close_models
 from scripts.benchmark_inference_cpu import MANIFESTS,Capture,synthetic_frames,scoped,sha
 
 
-def run(output,gpu_profile,native_proof):
+def run(output,gpu_profile,native_proof,model_set=None):
     output=scoped(output)
     if output.exists():raise ValueError('new_verified_pipeline_output_required')
     proof_path=scoped(native_proof);proof=json.loads(proof_path.read_text())
-    receipt_path=proof_path.parent/'receipt.json';receipt=json.loads(receipt_path.read_text())
-    if (proof.get('passed') is not True or proof.get('gpu_node_events_observed') is not True or
-        sha(receipt_path)!=proof.get('receipt_sha256') or receipt.get('gpu_profile_sha256')!=sha(gpu_profile)):
-        raise ValueError('passing_native_gpu_profile_proof_required')
-    if any(sha(ROOT/name)!=digest for name,digest in receipt['source_sha256'].items()):raise ValueError('native_gpu_proof_source_changed')
+    manifests=MANIFESTS
+    if model_set is None:
+        receipt_path=proof_path.parent/'receipt.json';receipt=json.loads(receipt_path.read_text())
+        if (proof.get('passed') is not True or proof.get('gpu_node_events_observed') is not True or
+            sha(receipt_path)!=proof.get('receipt_sha256') or receipt.get('gpu_profile_sha256')!=sha(gpu_profile)):
+            raise ValueError('passing_native_gpu_profile_proof_required')
+        if any(sha(ROOT/name)!=digest for name,digest in receipt['source_sha256'].items()):raise ValueError('native_gpu_proof_source_changed')
+    else:
+        from scripts.gpu_model_set import read,validate_descriptor
+        registered=read(gpu_profile);plan=validate_descriptor(registered,True)
+        if sha(model_set)!=registered['plan']['sha256'] or sha(native_proof)!=registered['native']['sha256']:raise ValueError('model_set_benchmark_binding_mismatch')
+        if any(sha(ROOT/name)!=digest for name,digest in proof['source_sha256'].items()):raise ValueError('native_gpu_proof_source_changed')
+        manifests={task:entry['manifest']['path'] for task,entry in plan['models'].items()}
     output.mkdir(parents=True)
     old_profile=os.environ.pop('ROAD_GPU_PROFILE_DIRECTORY',None)
     original={name:getattr(pipeline,name) for name in ('replay','create_models','frame_quality','redact','atomic_json','close_models')}
     original_write=pipeline.cv2.imwrite;original_track=pipeline.Tracker.update
     frame=synthetic_frames()[1];runs=[];hashes=[]
+    synthetic_at=datetime.now(timezone.utc);synthetic_expires=(synthetic_at+timedelta(hours=1)).isoformat()
     source_files=['agent/models.py','agent/inference_runner.py','agent/pipeline.py','agent/gpu_worker_client.py','scripts/gpu_inference_worker.py']
     source_sha={name:sha(ROOT/name) for name in source_files}
     try:
         # Primary CPU-default/CUDA pair is ABBA; CPU-fast is supplemental CC.
-        for index,(backend,profile) in enumerate([('cpu','default'),('cuda','fast'),('cuda','fast'),('cpu','default'),('cpu','fast'),('cpu','fast')]):
-            start=time.perf_counter();models=create_models(MANIFESTS,profile,inference_backend=backend,gpu_profile=gpu_profile if backend=='cuda' else None)
+        order=[('cpu','default'),('cuda','fast'),('cuda','fast'),('cpu','default')]
+        if model_set is None:order+=[('cpu','fast'),('cpu','fast')]
+        for index,(backend,profile) in enumerate(order):
+            start=time.perf_counter();models=create_models(manifests,profile,inference_backend=backend,gpu_profile=gpu_profile if backend=='cuda' else None)
             load=time.perf_counter()-start
             stage={task:[] for task in models};phase={name:[] for name in ('quality','tracking','redaction','png_storage','json_storage','worker_teardown')}
             for task,model in models.items():
@@ -57,8 +69,9 @@ def run(output,gpu_profile,native_proof):
             tick=time.perf_counter()
             try:
                 result=pipeline.analyze_video(output/'synthetic-memory-source',output/f'run-{index}',
-                    pothole_manifest=MANIFESTS['pothole'],lane_manifest=MANIFESTS['lane'],redaction_manifest=MANIFESTS['redaction'],cpu_profile=profile,
-                    inference_backend=backend,gpu_profile=gpu_profile if backend=='cuda' else None)
+                    pothole_manifest=manifests['pothole'],lane_manifest=manifests['lane'],redaction_manifest=manifests['redaction'],cpu_profile=profile,
+                    inference_backend=backend,gpu_profile=gpu_profile if backend=='cuda' else None,
+                    source_expires_at=synthetic_expires,source_captured_at=synthetic_at.isoformat())
             finally:close_models(models)
             wall=time.perf_counter()-tick;teardown=sum(phase['worker_teardown']);processing=wall-teardown
             hashes.append([row['image']['sha256'] for row in result['observations']])
@@ -86,4 +99,4 @@ def run(output,gpu_profile,native_proof):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output');p.add_argument('--gpu-profile',default='data/gpu-runtime-profiles/ort1202-v1.json');p.add_argument('--native-proof',default='data/gpu-inference-probe/native-v1/aggregate.json');a=p.parse_args();run(a.output,a.gpu_profile,a.native_proof)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output');p.add_argument('--gpu-profile',default='data/gpu-runtime-profiles/ort1202-v1.json');p.add_argument('--native-proof',default='data/gpu-inference-probe/native-v1/aggregate.json');p.add_argument('--model-set');a=p.parse_args();run(a.output,a.gpu_profile,a.native_proof,a.model_set)

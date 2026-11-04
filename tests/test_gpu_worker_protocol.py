@@ -17,7 +17,7 @@ def ready(shape=[1,3,16,16]):
     return {'status':'ready','backend':'onnxruntime-cuda-worker','version':'1.20.2',
         'providers':['CUDAExecutionProvider','CPUExecutionProvider'],'use_tf32':'0','device_capability':[7,5],
         'input_type':'tensor(float)','output_type':'tensor(float)','input_shape':shape,'output_shape':shape,
-        'provider_options':{'CUDAExecutionProvider':{'use_tf32':'0','gpu_mem_limit':'2147483648','cudnn_conv_algo_search':'HEURISTIC'}},'python':'3.11.9','cuda_runtime':'12.6','cudnn':90701,'device':'SYNTHETIC PROTOCOL DOUBLE'}
+        'provider_options':{'CUDAExecutionProvider':{'use_tf32':'0','gpu_mem_limit':'2147483648','cudnn_conv_algo_search':'HEURISTIC'}},'python':'3.11.9','cuda_runtime':'12.6','cudnn':90701,'device':'NVIDIA GeForce RTX 2080 Ti'}
 
 
 def test_tensor_bounds_and_exact_handshake():
@@ -26,7 +26,7 @@ def test_tensor_bounds_and_exact_handshake():
         with pytest.raises(ValueError):gpu.shape_bytes(shape)
     assert gpu.validate_handshake(ready(),[1,3,16,16])['version']=='1.20.2'
     for changes in ({'providers':['CPUExecutionProvider']},{'use_tf32':'1'},{'version':'1.31.1'},
-                    {'device_capability':[8,6]},{'input_type':'tensor(float16)'},{'input_shape':[1,3,32,32]}):
+                    {'device_capability':[8,6]},{'device':'Unverified different SM75 GPU'},{'input_type':'tensor(float16)'},{'input_shape':[1,3,32,32]}):
         with pytest.raises(ValueError):gpu.validate_handshake({**ready(),**changes},[1,3,16,16])
 
 
@@ -42,7 +42,21 @@ def evidence(folder):
         'results':{'pothole':{'cases':20,'raw_failures':0,'post_failures':0}},
         'metadata':{'pothole':{'ort':'1.20.2','providers':gpu.GPU_PROFILE['providers'],
             'provider_options':{'CUDAExecutionProvider':{'use_tf32':'0'}}}}})
-    return {**base,'required_runtime_profile':gpu.GPU_PROFILE,'gpu_compatibility':{'base_manifest':original,'cpu_plan':cpu,'gpu_plan':plan,'aggregate':result}}
+    compatibility={'base_manifest':original,'cpu_plan':cpu,'gpu_plan':plan,'aggregate':result}
+    legacy={**base,'required_runtime_profile':gpu.GPU_PROFILE,'gpu_compatibility':compatibility.copy()}
+    executed_child=save('executed-child.json',legacy)
+    executed=save('executed-profile.json',{'models':{'pothole':{'manifest':executed_child['path'],
+        'manifest_sha256':executed_child['sha256'],'base_manifest_sha256':original['sha256']}}})
+    receipt=save('native-receipt.json',{'gpu_profile_sha256':executed['sha256']})
+    native=save('native-proof.json',{'passed':True,'gpu_node_events_observed':True,
+        'application_preprocess_and_postprocess_unchanged':True,'receipt_sha256':receipt['sha256'],
+        'results':{'pothole':{'cases':20,'raw_failures':0,'post_failures':0}}})
+    binding=save('binding.json',{'format':'native-gpu-proof-model-binding-v1','aggregate_sha256':result['sha256'],
+        'gpu_plan_sha256':plan['sha256'],'cpu_plan_sha256':cpu['sha256'],'native_aggregate':native,
+        'native_receipt':receipt,'executed_profile':executed,'validated_models':{'pothole':{
+            'base_manifest_sha256':original['sha256'],'weights_sha256':base['sha256'],
+            'executed_child_sha256':executed_child['sha256']}}})
+    return {**legacy,'gpu_compatibility':{**compatibility,'binding':binding}}
 
 
 def test_child_cannot_change_threshold_or_reuse_changed_evidence(folder):
@@ -58,6 +72,20 @@ def test_insufficient_or_failed_proof_cannot_create_supported_child(folder):
     value=json.loads(path.read_text());value['results']['pothole']['raw_failures']=1
     path.write_text(json.dumps(value));entry['sha256']=gpu.sha256(path)
     with pytest.raises(ValueError,match='strict_validation'):gpu.validate_gpu_manifest(child)
+
+
+def test_old_unbound_evidence_and_rebound_new_model_are_rejected(folder):
+    child=evidence(folder)
+    missing={**child,'gpu_compatibility':{k:v for k,v in child['gpu_compatibility'].items() if k!='binding'}}
+    with pytest.raises(ValueError,match='pointer_required'):gpu.validate_gpu_manifest(missing)
+    links=child['gpu_compatibility']
+    def rewrite(name,value):
+        path=gpu.workspace_path(links[name]['path']);path.write_text(json.dumps(value));links[name]['sha256']=gpu.sha256(path)
+    base=json.loads(gpu.workspace_path(links['base_manifest']['path']).read_text());base['sha256']='b'*64
+    rewrite('base_manifest',base);child['sha256']='b'*64
+    rewrite('cpu_plan',{'model_manifest_sha256':{'pothole':links['base_manifest']['sha256']}})
+    rewrite('gpu_plan',{'parent_cpu_plan_sha256':links['cpu_plan']['sha256']})
+    with pytest.raises(ValueError,match='bound_proof_mismatch'):gpu.validate_gpu_manifest(child)
 
 
 def test_worker_rejects_weight_path_outside_its_workspace_before_gpu_import(folder,monkeypatch):

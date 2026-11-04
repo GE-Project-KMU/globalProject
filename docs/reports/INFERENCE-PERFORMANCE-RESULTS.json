@@ -1,0 +1,774 @@
+{
+  "format": "inference-performance-public-results-v1",
+  "scope": "Fixed weights/thresholds; synthetic CPU profiling and public validation conversion evidence only.",
+  "cpu": {
+    "runtime": "Windows AMD64 ORT1.31.1 CPU",
+    "physical_cores": 8,
+    "logical_cores": 16,
+    "synthetic_profiling": {
+      "baseline": {
+        "strict_cases_passed": true,
+        "three_model_predict": {
+          "serial_median_ms": 802.9616000130773,
+          "parallel_median_ms": 490.0224000157323,
+          "serial_p95_ms": 874.4161999755305,
+          "parallel_p95_ms": 526.614559997688
+        },
+        "stage_profile": {
+          "pothole": {
+            "total": {
+              "median_ms": 29.69710002071224,
+              "p95_ms": 38.75203999923542
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 4.150799999479204,
+              "p95_ms": 4.526580002857372
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 24.900900025386363,
+              "p95_ms": 33.73401999124326
+            },
+            "postprocess": {
+              "median_ms": 0.603299995418638,
+              "p95_ms": 0.7789600000251083
+            }
+          },
+          "lane": {
+            "total": {
+              "median_ms": 439.2463999975007,
+              "p95_ms": 491.84786000987515
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 30.45269998256117,
+              "p95_ms": 35.55371999973431
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 405.29359999345616,
+              "p95_ms": 450.88090000790544
+            },
+            "postprocess": {
+              "median_ms": 5.142299982253462,
+              "p95_ms": 5.5834799946751446
+            }
+          },
+          "redaction": {
+            "total": {
+              "median_ms": 366.636600025231,
+              "p95_ms": 423.1001799926162
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 39.688599994406104,
+              "p95_ms": 49.42150001297704
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 318.4297999832779,
+              "p95_ms": 380.24229999864474
+            },
+            "postprocess": {
+              "median_ms": 5.958499998087063,
+              "p95_ms": 7.268560008378699
+            }
+          }
+        }
+      },
+      "two_no_spin": {
+        "strict_cases_passed": true,
+        "three_model_predict": {
+          "serial_median_ms": 794.7035999968648,
+          "parallel_median_ms": 482.2412000212353,
+          "serial_p95_ms": 841.2983699789037,
+          "parallel_p95_ms": 504.12109999742825
+        },
+        "stage_profile": {
+          "pothole": {
+            "total": {
+              "median_ms": 26.116699998965487,
+              "p95_ms": 27.068940008757636
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 3.4432000247761607,
+              "p95_ms": 3.563140000915155
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 22.049599996535107,
+              "p95_ms": 22.999959986191243
+            },
+            "postprocess": {
+              "median_ms": 0.5929000035393983,
+              "p95_ms": 0.5953800049610436
+            }
+          },
+          "lane": {
+            "total": {
+              "median_ms": 419.40909999539144,
+              "p95_ms": 447.9790399898775
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 27.125599997816607,
+              "p95_ms": 28.401219990337268
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 386.66349998675287,
+              "p95_ms": 416.0282800148707
+            },
+            "postprocess": {
+              "median_ms": 4.81069998932071,
+              "p95_ms": 4.936480009928346
+            }
+          },
+          "redaction": {
+            "total": {
+              "median_ms": 345.4014999733772,
+              "p95_ms": 355.0575399887748
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 34.70079999533482,
+              "p95_ms": 40.49774000304751
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 304.98610000358894,
+              "p95_ms": 311.1259799974505
+            },
+            "postprocess": {
+              "median_ms": 5.6878999748732895,
+              "p95_ms": 5.795079993549734
+            }
+          }
+        }
+      },
+      "four_no_spin": {
+        "strict_cases_passed": true,
+        "three_model_predict": {
+          "serial_median_ms": 625.5977000109851,
+          "parallel_median_ms": 413.8575000106357,
+          "serial_p95_ms": 651.5994799905457,
+          "parallel_p95_ms": 474.5872899889946
+        },
+        "stage_profile": {
+          "pothole": {
+            "total": {
+              "median_ms": 18.868999992264435,
+              "p95_ms": 26.641820004442703
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 3.4589999995660037,
+              "p95_ms": 11.063839995767916
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 14.662600005976856,
+              "p95_ms": 15.388739999616519
+            },
+            "postprocess": {
+              "median_ms": 0.6006000039633363,
+              "p95_ms": 0.6696999946143478
+            }
+          },
+          "lane": {
+            "total": {
+              "median_ms": 265.9255999897141,
+              "p95_ms": 283.9470399892889
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 26.269999973010272,
+              "p95_ms": 29.677279997849833
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 233.66850000456907,
+              "p95_ms": 250.30273999436758
+            },
+            "postprocess": {
+              "median_ms": 4.913800017675385,
+              "p95_ms": 5.4091600119136265
+            }
+          },
+          "redaction": {
+            "total": {
+              "median_ms": 266.42420000280254,
+              "p95_ms": 285.53694000001997
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 34.523600013926625,
+              "p95_ms": 38.325360004091635
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 225.41030001593754,
+              "p95_ms": 240.86065999581479
+            },
+            "postprocess": {
+              "median_ms": 5.844400002388284,
+              "p95_ms": 6.583679997129366
+            }
+          }
+        }
+      },
+      "eight_no_spin": {
+        "strict_cases_passed": true,
+        "three_model_predict": {
+          "serial_median_ms": 483.6241000157315,
+          "parallel_median_ms": 390.9710999869276,
+          "serial_p95_ms": 587.442999999621,
+          "parallel_p95_ms": 449.75656001188327
+        },
+        "stage_profile": {
+          "pothole": {
+            "total": {
+              "median_ms": 19.06359998974949,
+              "p95_ms": 19.49855998973362
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 3.6287000111769885,
+              "p95_ms": 3.78639999544248
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 14.792200003284961,
+              "p95_ms": 15.282919991295785
+            },
+            "postprocess": {
+              "median_ms": 0.6312000041361898,
+              "p95_ms": 0.6396999931894243
+            }
+          },
+          "lane": {
+            "total": {
+              "median_ms": 275.131300004432,
+              "p95_ms": 313.5075800062623
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 28.483500005677342,
+              "p95_ms": 36.825919995317236
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 243.06269999942742,
+              "p95_ms": 276.39027999830427
+            },
+            "postprocess": {
+              "median_ms": 5.103500006953254,
+              "p95_ms": 6.598780007334425
+            }
+          },
+          "redaction": {
+            "total": {
+              "median_ms": 286.1243000079412,
+              "p95_ms": 307.83714000717737
+            },
+            "preprocess_and_input_checks": {
+              "median_ms": 39.43930001696572,
+              "p95_ms": 58.80430001416242
+            },
+            "ort_and_finite_checks": {
+              "median_ms": 234.07189999124967,
+              "p95_ms": 256.9561999931466
+            },
+            "postprocess": {
+              "median_ms": 5.866299994522706,
+              "p95_ms": 6.668600009288639
+            }
+          }
+        }
+      }
+    },
+    "native_fast_validation": {
+      "counts": {
+        "lane": 100,
+        "pothole": 20,
+        "redaction": 40
+      },
+      "results": {
+        "lane": {
+          "cases": 100,
+          "passed": true,
+          "failed_cases": 0,
+          "max_raw_abs_error": 0.0,
+          "raw_failed_cases": 0,
+          "post_failed_cases": 0
+        },
+        "pothole": {
+          "cases": 20,
+          "passed": true,
+          "failed_cases": 0,
+          "max_raw_abs_error": 0.0,
+          "raw_failed_cases": 0,
+          "post_failed_cases": 0
+        },
+        "redaction": {
+          "cases": 40,
+          "passed": true,
+          "failed_cases": 0,
+          "max_raw_abs_error": 0.0,
+          "raw_failed_cases": 0,
+          "post_failed_cases": 0
+        }
+      },
+      "passed": true,
+      "raw_tolerance": {
+        "rtol": 0.001,
+        "atol": 0.0001
+      },
+      "plan_sha256": "b64e560c9a2cccff983329460f73d9a16ee5296806811051effca2e093b0a8b2",
+      "accuracy_or_threshold_selection_performed": false,
+      "artifact_scope": "Only the three checksum-pinned original artifacts in validated_original_artifacts; new trained artifacts require separate canonical/VAL and fast-parity proof."
+    },
+    "warmed_synthetic_pipeline": {
+      "order": [
+        "default",
+        "fast",
+        "fast",
+        "default"
+      ],
+      "frames_per_run": 8,
+      "warmup_calls_per_profile": 3,
+      "results": {
+        "default": [
+          {
+            "elapsed_seconds": 8.404665000009118,
+            "frames": 8,
+            "processing_fps": 0.9518523343870721
+          },
+          {
+            "elapsed_seconds": 7.97543140000198,
+            "frames": 8,
+            "processing_fps": 1.0030805355554828
+          }
+        ],
+        "fast": [
+          {
+            "elapsed_seconds": 3.9368169000081252,
+            "frames": 8,
+            "processing_fps": 2.0320985718140685
+          },
+          {
+            "elapsed_seconds": 3.920078099996317,
+            "frames": 8,
+            "processing_fps": 2.0407756672009967
+          }
+        ]
+      },
+      "median_processing_fps": {
+        "default": 0.9774664349712774,
+        "fast": 2.0364371195075326
+      },
+      "masked_image_bytes_same": true,
+      "source_sha256": {
+        "agent/models.py": "9e88fd1338c66245d9576b23bc22829a94402158b2926d867e62d0e217cb359f",
+        "agent/pipeline.py": "799f2e8a26050e2083fe9ced6a198e3feccad25d2ea7ea2e4b38f1965b078b2a",
+        "agent/inference_runner.py": "bd41abf9b6c20fb29bf00c1ee49dc5e41c3938b0630a87a1ec64698c3f4275cf"
+      },
+      "scope": "Actual warmed models, quality/tracking/opaque masking/PNG and JSON storage; synthetic in-memory source. Model startup/capture/decode/GNSS/calibration/API excluded.",
+      "concurrent_gpu_training_on_host_possible": true
+    },
+    "default_settings_preserved": {
+      "threads": 2,
+      "allow_spinning": true,
+      "model_workers": 1
+    },
+    "opt_in_fast_settings": {
+      "threads": 8,
+      "allow_spinning": false,
+      "model_workers": 3
+    }
+  },
+  "gpu": {
+    "diagnostic_transport": "separate process with app-generated identical input blobs; earlier disk-mediated diagnostic, not native shared-memory runtime",
+    "fixed_public_validation": {
+      "lane": {
+        "cases": 100,
+        "raw_failures": 0,
+        "post_failures": 0,
+        "max_raw_abs_error": 0.00140380859375
+      },
+      "pothole": {
+        "cases": 20,
+        "raw_failures": 0,
+        "post_failures": 0,
+        "max_raw_abs_error": 0.0032501220703125
+      },
+      "redaction": {
+        "cases": 40,
+        "raw_failures": 0,
+        "post_failures": 0,
+        "max_raw_abs_error": 0.0311431884765625
+      }
+    },
+    "all_cases_passed": true,
+    "app_preprocessing_blob_unchanged": true,
+    "ort_version": "1.20.2",
+    "cuda_libraries": "12.6",
+    "cudnn_version": 90701,
+    "use_tf32": false,
+    "providers": [
+      "CUDAExecutionProvider",
+      "CPUExecutionProvider"
+    ],
+    "network_only_seconds": {
+      "lane": {
+        "median": 0.09758500001044013,
+        "p95": 0.1191759400186129
+      },
+      "pothole": {
+        "median": 0.007313599984627217,
+        "p95": 0.007496979989809915
+      },
+      "redaction": {
+        "median": 0.10093549999874085,
+        "p95": 0.13037810000241717
+      }
+    },
+    "network_timing_limit": "Interleaved CPU reference kept GPU warmup uncontrolled; not full-pipeline throughput.",
+    "native_shared_memory_validation_status": "passed_on_measured_execution_source",
+    "native_gpu_pipeline_benchmark_status": "completed_10fps_not_met",
+    "node_placement_validation_status": "CUDA node events observed; not a claim that all host/shape work ran on CUDA",
+    "cpu_manifest_profile_modified": false,
+    "gpu_default_selected": false,
+    "runtime_status": "explicit opt-in research backend; measured old-three artifacts only, not deployment/accuracy acceptance",
+    "native_validation": {
+      "passed": true,
+      "results": {
+        "lane": {
+          "cases": 100,
+          "raw_failures": 0,
+          "post_failures": 0,
+          "max_raw_abs_error": 0.00140380859375
+        },
+        "pothole": {
+          "cases": 20,
+          "raw_failures": 0,
+          "post_failures": 0,
+          "max_raw_abs_error": 0.0032501220703125
+        },
+        "redaction": {
+          "cases": 40,
+          "raw_failures": 0,
+          "post_failures": 0,
+          "max_raw_abs_error": 0.0311431884765625
+        }
+      },
+      "profiled_node_events_by_provider": {
+        "CUDAExecutionProvider": 90260
+      },
+      "gpu_node_events_observed": true,
+      "all_nodes_claimed_gpu": false,
+      "application_preprocess_and_postprocess_unchanged": true,
+      "receipt_sha256": "3563d2e97db8e04de5e78167def69b949f18da7aa576c14db680615bf6ccd6ba"
+    },
+    "paired_pipeline": {
+      "source_sha256": {
+        "agent/models.py": "42975fa098b84bc2fa40301b1601780016d7e2d6d8d4958d73c49b8388ddf9fe",
+        "agent/inference_runner.py": "cc637c3130baefea0b627c94273450fa7a15ef2db2b9c1869c075e0a1f15398d",
+        "agent/pipeline.py": "79b54febfbc38ac70590d8cffa0b0c1f241c96c43076c1162ae23b4040d9a172",
+        "agent/gpu_worker_client.py": "632e9de118a9557dbd688a7598e6133640d9b7c78c52e766e9d95971caa6c8e9",
+        "scripts/gpu_inference_worker.py": "bd03f8fa4be19a3bbdb4a67280c5594ebbaac7f2ea5720fe2bf9f646a5a7a8ca"
+      },
+      "opaque_masked_png_bytes_same": true,
+      "native_strict_proof_sha256": "0e74e11ee63c8d633c2c22fe69c6d44f098b9542b836fad6d7740229b53b9d99",
+      "warmed_processing_includes": [
+        "application preprocessing",
+        "GPU shared-memory transport when selected",
+        "model inference",
+        "postprocess",
+        "image quality",
+        "pothole tracking",
+        "opaque redaction",
+        "PNG writes",
+        "JSON write"
+      ],
+      "separately_measured_and_excluded_from_warmed_fps": [
+        "session/process/model load",
+        "five warmup calls",
+        "worker teardown"
+      ],
+      "decode_measured": false,
+      "ten_minute_sustained_test_completed": false,
+      "ten_fps_field_acceptance": false,
+      "runs": [
+        {
+          "backend": "cpu",
+          "profile": "default",
+          "frames": 16,
+          "model_load_seconds": 1.86608539998997,
+          "warmup_calls": 5,
+          "warmup_seconds": 4.799084500002209,
+          "pipeline_wall_including_teardown_seconds": 17.062166800023988,
+          "worker_teardown_seconds": 2.5900022592395544e-05,
+          "warmed_processing_seconds_including_png_json": 17.062140900001395,
+          "warmed_processing_fps": 0.9377486737317174,
+          "model_stage_median_ms": {
+            "pothole": {
+              "preprocess_and_input_checks": 4.207649966701865,
+              "forward_transport_and_checks": 28.072349989088252,
+              "postprocess": 0.6993999995756894,
+              "total": 33.17130001960322
+            },
+            "lane": {
+              "preprocess_and_input_checks": 33.85000000707805,
+              "forward_transport_and_checks": 495.1763499993831,
+              "postprocess": 6.11610000487417,
+              "total": 542.9145499947481
+            },
+            "redaction": {
+              "preprocess_and_input_checks": 39.21154999989085,
+              "forward_transport_and_checks": 372.7797999745235,
+              "postprocess": 7.830149988876656,
+              "total": 417.69324999768287
+            }
+          },
+          "other_stage_total_ms": {
+            "quality": 173.7397001706995,
+            "tracking": 0.3551999689079821,
+            "redaction": 9.95619996683672,
+            "png_storage": 426.00309988483787,
+            "json_storage": 4.242599999997765,
+            "worker_teardown": 0.025900022592395544
+          },
+          "benchmark_batch_fps_including_load_warmup_teardown": 0.674327683814134
+        },
+        {
+          "backend": "cuda",
+          "profile": "fast",
+          "frames": 16,
+          "model_load_seconds": 7.683029400010128,
+          "warmup_calls": 5,
+          "warmup_seconds": 1.140938800002914,
+          "pipeline_wall_including_teardown_seconds": 4.182891900010873,
+          "worker_teardown_seconds": 1.5118809000123292,
+          "warmed_processing_seconds_including_png_json": 2.6710109999985434,
+          "warmed_processing_fps": 5.990241148392397,
+          "model_stage_median_ms": {
+            "pothole": {
+              "preprocess_and_input_checks": 7.625650003319606,
+              "forward_transport_and_checks": 8.15094998688437,
+              "postprocess": 0.7530500006396323,
+              "total": 16.874699969775975
+            },
+            "lane": {
+              "preprocess_and_input_checks": 47.369750012876466,
+              "forward_transport_and_checks": 37.049700011266395,
+              "postprocess": 7.133650011382997,
+              "total": 92.2724999836646
+            },
+            "redaction": {
+              "preprocess_and_input_checks": 56.029199971817434,
+              "forward_transport_and_checks": 49.729299993487075,
+              "postprocess": 6.886449962621555,
+              "total": 111.01869997219183
+            }
+          },
+          "other_stage_total_ms": {
+            "quality": 163.72330009471625,
+            "tracking": 0.3315999638289213,
+            "redaction": 10.191699955612421,
+            "png_storage": 427.7777001843788,
+            "json_storage": 4.289900010917336,
+            "worker_teardown": 1511.8809000123292
+          },
+          "benchmark_batch_fps_including_load_warmup_teardown": 1.2301200963921017
+        },
+        {
+          "backend": "cuda",
+          "profile": "fast",
+          "frames": 16,
+          "model_load_seconds": 7.562474399979692,
+          "warmup_calls": 5,
+          "warmup_seconds": 1.1604083999991417,
+          "pipeline_wall_including_teardown_seconds": 4.196265100035816,
+          "worker_teardown_seconds": 1.5469685000134632,
+          "warmed_processing_seconds_including_png_json": 2.6492966000223532,
+          "warmed_processing_fps": 6.039338894657926,
+          "model_stage_median_ms": {
+            "pothole": {
+              "preprocess_and_input_checks": 7.731349993264303,
+              "forward_transport_and_checks": 8.024649985600263,
+              "postprocess": 0.8066999725997448,
+              "total": 16.377299994928762
+            },
+            "lane": {
+              "preprocess_and_input_checks": 45.696400018641725,
+              "forward_transport_and_checks": 35.66924997721799,
+              "postprocess": 6.547650002175942,
+              "total": 88.57575000729412
+            },
+            "redaction": {
+              "preprocess_and_input_checks": 52.70395000115968,
+              "forward_transport_and_checks": 48.63875001319684,
+              "postprocess": 6.908099981956184,
+              "total": 110.32234999584034
+            }
+          },
+          "other_stage_total_ms": {
+            "quality": 171.44350003218278,
+            "tracking": 0.314700067974627,
+            "redaction": 10.828499973285943,
+            "png_storage": 436.971899936907,
+            "json_storage": 3.4641000092960894,
+            "worker_teardown": 1546.9685000134632
+          },
+          "benchmark_batch_fps_including_load_warmup_teardown": 1.2384717725835352
+        },
+        {
+          "backend": "cpu",
+          "profile": "default",
+          "frames": 16,
+          "model_load_seconds": 1.705040100030601,
+          "warmup_calls": 5,
+          "warmup_seconds": 4.175939199980348,
+          "pipeline_wall_including_teardown_seconds": 13.903758200001903,
+          "worker_teardown_seconds": 1.0200019460171461e-05,
+          "warmed_processing_seconds_including_png_json": 13.903747999982443,
+          "warmed_processing_fps": 1.1507688430501044,
+          "model_stage_median_ms": {
+            "pothole": {
+              "preprocess_and_input_checks": 3.44030000269413,
+              "forward_transport_and_checks": 21.950149995973334,
+              "postprocess": 0.6335000216495246,
+              "total": 26.062099990667775
+            },
+            "lane": {
+              "preprocess_and_input_checks": 27.08520001033321,
+              "forward_transport_and_checks": 403.57170000788756,
+              "postprocess": 5.062550015281886,
+              "total": 438.12240002444014
+            },
+            "redaction": {
+              "preprocess_and_input_checks": 32.58714999537915,
+              "forward_transport_and_checks": 309.54615003429353,
+              "postprocess": 6.183700024848804,
+              "total": 350.2483499760274
+            }
+          },
+          "other_stage_total_ms": {
+            "quality": 136.0255999607034,
+            "tracking": 0.20159996347501874,
+            "redaction": 10.368599905632436,
+            "png_storage": 412.8900999785401,
+            "json_storage": 4.627699963748455,
+            "worker_teardown": 0.010200019460171461
+          },
+          "benchmark_batch_fps_including_load_warmup_teardown": 0.8087041842222878
+        },
+        {
+          "backend": "cpu",
+          "profile": "fast",
+          "frames": 16,
+          "model_load_seconds": 1.4568756999797188,
+          "warmup_calls": 5,
+          "warmup_seconds": 1.8015872999676503,
+          "pipeline_wall_including_teardown_seconds": 6.836217599979136,
+          "worker_teardown_seconds": 1.7900019884109497e-05,
+          "warmed_processing_seconds_including_png_json": 6.836199699959252,
+          "warmed_processing_fps": 2.3404816568034676,
+          "model_stage_median_ms": {
+            "pothole": {
+              "preprocess_and_input_checks": 5.125050025526434,
+              "forward_transport_and_checks": 18.015799985732883,
+              "postprocess": 0.7793999975547194,
+              "total": 24.303700018208474
+            },
+            "lane": {
+              "preprocess_and_input_checks": 42.188549996353686,
+              "forward_transport_and_checks": 272.021950018825,
+              "postprocess": 7.746900024358183,
+              "total": 324.5659499953035
+            },
+            "redaction": {
+              "preprocess_and_input_checks": 58.49024999770336,
+              "forward_transport_and_checks": 316.0779000027105,
+              "postprocess": 5.961699993349612,
+              "total": 384.18774999445304
+            }
+          },
+          "other_stage_total_ms": {
+            "quality": 137.78580003418028,
+            "tracking": 0.267100112978369,
+            "redaction": 7.703699870035052,
+            "png_storage": 405.39739991072565,
+            "json_storage": 4.314000019803643,
+            "worker_teardown": 0.017900019884109497
+          },
+          "benchmark_batch_fps_including_load_warmup_teardown": 1.584993189394867
+        },
+        {
+          "backend": "cpu",
+          "profile": "fast",
+          "frames": 16,
+          "model_load_seconds": 1.4778623000020161,
+          "warmup_calls": 5,
+          "warmup_seconds": 1.7847887999960221,
+          "pipeline_wall_including_teardown_seconds": 7.220115599979181,
+          "worker_teardown_seconds": 1.0899966582655907e-05,
+          "warmed_processing_seconds_including_png_json": 7.220104700012598,
+          "warmed_processing_fps": 2.21603434642327,
+          "model_stage_median_ms": {
+            "pothole": {
+              "preprocess_and_input_checks": 6.145650026155636,
+              "forward_transport_and_checks": 19.168400001944974,
+              "postprocess": 0.8516499656252563,
+              "total": 26.142599992454052
+            },
+            "lane": {
+              "preprocess_and_input_checks": 44.489100022474304,
+              "forward_transport_and_checks": 290.6197999836877,
+              "postprocess": 9.127700031967834,
+              "total": 344.04920000815764
+            },
+            "redaction": {
+              "preprocess_and_input_checks": 62.29775000247173,
+              "forward_transport_and_checks": 336.8928499985486,
+              "postprocess": 5.928300000960007,
+              "total": 405.8651000086684
+            }
+          },
+          "other_stage_total_ms": {
+            "quality": 141.6826999047771,
+            "tracking": 0.29129988979548216,
+            "redaction": 7.844500069040805,
+            "png_storage": 412.2876998153515,
+            "json_storage": 2.597499988041818,
+            "worker_teardown": 0.010899966582655907
+          },
+          "benchmark_batch_fps_including_load_warmup_teardown": 1.5263146131101792
+        }
+      ],
+      "median_warmed_fps": {
+        "cpu_default": 1.0442587583909109,
+        "cuda_fast": 6.014790021525162,
+        "cpu_fast": 2.278258001613369
+      }
+    }
+  },
+  "model_weights_or_thresholds_changed": false,
+  "test_or_user_images_read": 0,
+  "ten_fps_acceptance_passed": false,
+  "limits": [
+    "CPU pipeline0.977->2.036FPS remains below10FPS.",
+    "Warmed CPU pipeline includes quality/tracking/masking/PNG/JSON; excludes capture/decode/GNSS/calibration/API and model load.",
+    "Short synthetic measurement is not the10-minute sustained SRS test or a field trial.",
+    "Conversion parity does not imply target accuracy or privacy acceptance.",
+    "GPU provider presence does not prove every node ran on CUDA.",
+    "New model artifacts require their own strict proof; existing160-case evidence cannot be inherited across weight changes."
+  ],
+  "validated_original_artifacts": {
+    "pothole": {
+      "manifest_sha256": "28efe86e7c9eacdf90d11caf0eb942dbb19b0a4d6830229069b3277cc8a45a6a",
+      "weights_sha256": "9b956d8ead74d1b11db0d1c43bac9ae5bdda2b0d6b843062319ae28de2f2f269"
+    },
+    "lane": {
+      "manifest_sha256": "6e3a9871233efa6e089c5589ae7d102bb6f48e7a806ea1114d72540c8e7baf87",
+      "weights_sha256": "0cbf89f5bfd751bc9ae2cb071f887609d9ff40a9f2f3914c129a44806dc1f548"
+    },
+    "redaction": {
+      "manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+      "weights_sha256": "bf54a5ad4211e945e71c84502a75a2d32e03de397883d70df8c64881c515aa3a"
+    }
+  },
+  "measured_execution_commit": "afb734a",
+  "post_measurement_metadata_binding_fix": {
+    "measured_execution_commit": "afb734a",
+    "transport_class_block_identical": true,
+    "models_file_identical": true,
+    "worker_file_identical": true,
+    "new_gpu_execution_performed": false,
+    "old_unbound_profile_rejected": true,
+    "new_bound_profile_metadata_valid": true,
+    "old_proof_replay_on_changed_source_rejected": true,
+    "scope": "Additional evidence-admission checks only; measured values are not retroactively attributed to this later source revision."
+  }
+}
