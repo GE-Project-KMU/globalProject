@@ -9,6 +9,7 @@
 | 범위 | 근거와 기준 |
 | --- | --- |
 | RDD2022 blind source / 별도 release | 고정 source.json, 2026-11-10 17:07:24.286159 UTC. 원2개국200 release는 전송 실패로 미생성·선택 범위 |
+| rdd2022-domain-v11 | 별도 full-transfer phase. 원blind source.json과 새 transfer-plan.json의 최소값, 최대11/10 17:07:24.286159 UTC. 정확한 `RDD2022_released_through_CRDDC2022.zip` 및 같은 basename의 `.zip.download`만 archive 분류. 검증 실패/부분파일도 동일기한 관리하며 실제 등록은 전송·CRC writer 종료 후 |
 | research-pothole-rdd2022-us100-v7 | 별도 US100(50+50) 계획, 원source.json·완료 후 split-evidence.json. 원11/10 17:07:24.286159 UTC 유지 |
 | pothole-validation-diagnostic-v7 | VAL-only GT/예측·개별 그림, 원v6 release/provenance 최소11/10 17:14:46.862846 UTC. aggregate 보존 |
 | pothole-tiny-v7 | 고정 release와 완료 후 provenance, 최소 원행기한·최대11/10 17:14:46.862846 UTC |

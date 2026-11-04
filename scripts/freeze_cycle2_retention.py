@@ -23,6 +23,8 @@ PROTOTYPE='data/training/redaction-rescue-cpu-prototype-v8'
 PROTOTYPE_CONTEXT=PROTOTYPE+'/synthetic-artifact-context.json'
 PROTOTYPE_CAP='2026-11-04T17:37:03.942455Z'
 PROTOTYPE_NPY={'synthetic-input.npy','baseline-torch.npy','candidate-torch.npy'}
+DOMAIN_V11='data/research/rdd2022-domain-v11'
+DOMAIN_V11_ARCHIVES={'RDD2022_released_through_CRDDC2022.zip','RDD2022_released_through_CRDDC2022.zip.download'}
 PROOF_PINS={LANE:'af18e33a8cc42cebc2618776594a50fcc5d8886b3c0a4edab7f9b6b9ff668006',
  PRIVACY:'5ae56bd60700ce17a6af8e92edf630a2722ebc6148e177b798afa172cbff50dc',
  BLIND:'38a5002db939310c8d5a6a6b0977a917be6801ad148403b7647e30c054c78d6b',
@@ -31,6 +33,7 @@ PROOF_PINS={LANE:'af18e33a8cc42cebc2618776594a50fcc5d8886b3c0a4edab7f9b6b9ff6680
 LANE_CAP='2026-11-10T17:07:26.069653Z';PRIVACY_CAP='2026-11-10T16:55:19.285523Z';BLIND_CAP='2026-11-10T17:07:24.286159Z'
 POLICIES={
  'data/research/rdd2022-blind-v7':('blind_source',[BLIND],BLIND_CAP),
+ DOMAIN_V11:('domain_v11_source',[BLIND,DOMAIN_V11+'/transfer-plan.json'],BLIND_CAP),
  'data/training/research-pothole-rdd2022-blind-v7':('blind_release',[BLIND],BLIND_CAP),
  'data/training/research-pothole-rdd2022-us100-v7':('blind_release',[BLIND,'data/training/research-pothole-rdd2022-us100-v7/split-evidence.json'],BLIND_CAP),
  'data/training/pothole-validation-diagnostic-v7':('pothole_diagnostic',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json'],'2026-11-10T17:14:46.862846Z'),
@@ -92,6 +95,8 @@ def stopped_receipt(path,pin):
 
 
 def category(path,tag):
+    if tag=='domain_v11_source' and path.suffix.lower() in r.KINDS['source_archive']:
+        return 'source_archive' if path.parent==r.ROOT/DOMAIN_V11 and path.name in DOMAIN_V11_ARCHIVES else None
     if tag=='synthetic_prototype' and path.suffix.lower() in ('.npy','.npz'):
         return 'per_image_prediction' if path.parent==r.ROOT/PROTOTYPE and path.name in PROTOTYPE_NPY else None
     if path.suffix.lower()=='.bin':return 'source_range' if path.parent==r.ROOT/r.RANGE_ROOT else None
@@ -100,11 +105,12 @@ def category(path,tag):
     return value
 
 
-def minimal_control_provenance(path):
+def minimal_control_provenance(path,formats=None):
     if path.suffix.lower()!='.json':return False
     value=r.read(path)
-    if not isinstance(value,dict) or value.get('format') not in {'pothole-family-v9-validation-freeze-v1','pothole-family-one-shot-comparison-v1',
-        'pothole-family-v10-CPU-validation-freeze-v1','pothole-family-v10-one-shot-comparison-v1'}:return False
+    allowed=formats if formats is not None else {'pothole-family-v9-validation-freeze-v1','pothole-family-one-shot-comparison-v1',
+        'pothole-family-v10-CPU-validation-freeze-v1','pothole-family-v10-one-shot-comparison-v1'}
+    if not isinstance(value,dict) or value.get('format') not in allowed:return False
     def individual(item):
         if isinstance(item,dict):
             for key,child in item.items():
@@ -171,6 +177,7 @@ def freeze(receipt_path,receipt_sha256):
             for path in files:
                 if tag=='synthetic_prototype' and path==r.ROOT/PROTOTYPE_CONTEXT:preserved['prototype_context_provenance']+=1;continue
                 if tag=='family_evaluation' and minimal_control_provenance(path):preserved['nonpersonal_family_control_provenance']+=1;continue
+                if tag=='domain_v11_source' and minimal_control_provenance(path,{'rdd2022-domain-v11-bounded-acquisition-plan-v1','rdd2022-domain-v11-full-transfer-plan-v1','rdd2022-domain-v11-annotation-metadata-plan-v1'}):preserved['source_acquisition_control_provenance']+=1;continue
                 if tag=='performance' and old.performance_provenance(path):preserved['performance_source_and_aggregate']+=1;continue
                 kind=category(path,tag)
                 if kind is None:

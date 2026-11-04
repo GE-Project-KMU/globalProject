@@ -193,3 +193,48 @@ def test_v10_control_keeps_model_proof_but_never_individual_metadata(case,format
     put(path,value);assert f.minimal_control_provenance(path)
     put(path,value|{'image_sha256':'a'*64});assert not f.minimal_control_provenance(path)
     put(path,value|{'predictions':[{'bbox':[0,0,1,1]}]});assert not f.minimal_control_provenance(path)
+
+
+def test_domain_v11_only_exact_archive_and_partial_names_are_classified(case):
+    root,_,_,_=case;folder=root/f.DOMAIN_V11
+    for name in f.DOMAIN_V11_ARCHIVES:
+        assert f.category(folder/name,'domain_v11_source')=='source_archive'
+        assert f.category(folder/'nested'/name,'domain_v11_source') is None
+    for name in ('other.download','model.onnx.download','model.bin','other.zip','archive.part'):
+        assert f.category(folder/name,'domain_v11_source') is None
+    assert f.DOMAIN_V11 in r.KNOWN_ROOTS and 'data/research' not in r.KNOWN_ROOTS
+
+
+def test_domain_v11_partial_uses_fixed_source_and_plan_minimum_without_deleting(case,monkeypatch):
+    root,receipt,_,_=case;folder=root/f.DOMAIN_V11;folder.mkdir(parents=True)
+    partial=folder/'RDD2022_released_through_CRDDC2022.zip.download';partial.write_bytes(b'PK-SYNTHETIC-PARTIAL')
+    proof=folder/'transfer-plan.json';put(proof,{'format':'rdd2022-domain-v11-full-transfer-plan-v1','file_id':38030910,
+        'archive_bytes':13_264_172_619,'publisher_md5':'b62bd51d2ffcfaa76c60f234f0cc2bb3','source_expires_at':'2026-11-10T17:07:24.286159Z',
+        'expires_at':'2026-01-03T00:00:00Z'})
+    # Reuse the fixture's pinned ordinary source JSON; no real archive scanning.
+    first=next(iter(f.POLICIES.values()))[1][0]
+    policies={**f.POLICIES,f.DOMAIN_V11:('domain_v11_source',[first,proof.relative_to(root).as_posix()],'2026-01-08T00:00:00Z')}
+    monkeypatch.setattr(f,'POLICIES',policies)
+    value=r.read(root/receipt);value['roots']=sorted(policies);pin=put(root/receipt,value)
+    result=f.freeze(receipt,pin);inventory=r.read(r.STATE/'cycle2-inventory.json')
+    rows=[entry for entry in inventory['entries'].values() if entry['path'].endswith('.zip.download')]
+    assert len(rows)==1 and rows[0]['expires_at']=='2026-01-03T00:00:00Z'
+    assert partial.read_bytes()==b'PK-SYNTHETIC-PARTIAL' and result['source_files_deleted']==0
+
+
+def test_domain_v11_direct_register_eligibility_requires_exact_basename_sidecar_and_no_weight(case):
+    root,_,_,_=case;folder=root/f.DOMAIN_V11;folder.mkdir(parents=True)
+    unknown=folder/'other.download';unknown.write_bytes(b'SYNTHETIC')
+    with pytest.raises(ValueError,match='exact_domain_v11'):r.eligible(unknown,'source_archive')
+    partial=folder/(r.DOMAIN_ARCHIVE_NAME+'.download');partial.write_bytes(b'SYNTHETIC')
+    with pytest.raises(ValueError,match='file_missing'):r.eligible(partial,'source_archive')
+    put(folder/'transfer-plan.json',{'format':'rdd2022-domain-v11-full-transfer-plan-v1','file_id':38030910,
+        'archive_bytes':13_264_172_619,'publisher_md5':'WRONG','source_expires_at':f.BLIND_CAP})
+    with pytest.raises(ValueError,match='fixed_domain_v11'):r.eligible(partial,'source_archive')
+
+
+def test_source_acquisition_control_has_no_individual_image_references(case):
+    root,_,_,_=case;path=root/'acquisition-plan.json';format='rdd2022-domain-v11-bounded-acquisition-plan-v1'
+    value={'format':format,'parent_expiry_evidence':{'path':'data/research/rdd2022-blind-v7/source.json','sha256':'a'*64}}
+    put(path,value);assert f.minimal_control_provenance(path,{format})
+    put(path,value|{'image_sha256':'a'*64});assert not f.minimal_control_provenance(path,{format})
