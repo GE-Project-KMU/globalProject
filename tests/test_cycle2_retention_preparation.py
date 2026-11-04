@@ -152,3 +152,44 @@ def test_prototype_expiry_aliases_are_not_generic_and_no_now_fallback():
     assert r.evidence_expiries(value)==[]
     assert min(r.evidence_expiries(value|{'format':'redaction-rescue-synthetic-artifact-context-v1'}))==r.clock('2026-01-02T00:00:00Z')
     with pytest.raises(KeyError):r.evidence_expiries({'format':'redaction-rescue-synthetic-artifact-context-v1'})
+
+
+def test_family_minimal_control_preserved_only_without_individual_data(case):
+    root,_,_,_=case;path=root/'control.json'
+    put(path,{'format':'pothole-family-v9-validation-freeze-v1','model':{'path':'data/training/experiment/model.json','sha256':'a'*64}})
+    assert f.minimal_control_provenance(path)
+    put(path,{'format':'pothole-family-v9-validation-freeze-v1','image_sha256':'a'*64})
+    assert not f.minimal_control_provenance(path)
+    put(path,{'format':'pothole-family-one-shot-comparison-v1','path':'data/public/frame.jpg'})
+    assert not f.minimal_control_provenance(path)
+    put(path,{'format':'pothole-family-one-shot-comparison-v1','unexpected_reference':'data/public/frame.jpg'})
+    assert not f.minimal_control_provenance(path)
+
+
+def test_gpu_device_samples_and_numeric_supervisor_logs_are_not_personal(case):
+    root,_,_,_=case;path=root/'device-samples.json'
+    put(path,{'format':'small-v9-sequential-restart-supervision-v1','device_memory':{'samples':[{'receive_utc':'2026-01-01T00:00:00Z','used_bytes':123}]},'sources_unchanged':True})
+    with pytest.raises(r.PreservedResearchFile):r.eligible(path,'identifiable_manifest')
+
+
+@pytest.mark.parametrize('name,cap',[
+    ('data/training/pothole-resolution-v10','2026-11-10T17:14:46.862846Z'),
+    ('data/training/pothole-family-v10',f.BLIND_CAP),
+    ('data/training/privacy-family-v8-evaluation',f.PRIVACY_CAP)])
+def test_new_family_scopes_are_explicit_with_original_cap_and_no_parent_authority(name,cap):
+    assert f.POLICIES[name][0]=='family_evaluation'
+    assert f.POLICIES[name][2]==cap
+    assert 'data/training' not in f.POLICIES
+    assert 'data' not in f.POLICIES
+    assert all('/' in proof for proof in f.POLICIES[name][1])
+
+
+@pytest.mark.parametrize('format',[
+    'pothole-family-v10-CPU-validation-freeze-v1',
+    'pothole-family-v10-one-shot-comparison-v1'])
+def test_v10_control_keeps_model_proof_but_never_individual_metadata(case,format):
+    root,_,_,_=case;path=root/'new-control.json'
+    value={'format':format,'manifest':{'path':'data/training/experiment/model.json','sha256':'a'*64}}
+    put(path,value);assert f.minimal_control_provenance(path)
+    put(path,value|{'image_sha256':'a'*64});assert not f.minimal_control_provenance(path)
+    put(path,value|{'predictions':[{'bbox':[0,0,1,1]}]});assert not f.minimal_control_provenance(path)

@@ -13,8 +13,14 @@
 | pothole-validation-diagnostic-v7 | VAL-only GT/예측·개별 그림, 원v6 release/provenance 최소11/10 17:14:46.862846 UTC. aggregate 보존 |
 | pothole-tiny-v7 | 고정 release와 완료 후 provenance, 최소 원행기한·최대11/10 17:14:46.862846 UTC |
 | pothole-train-hardness-v8 / pothole-localization-v8 / pothole-small-v9 | 원v6 release/provenance·각 실험 plan 최소값, 최대11/10 17:14:46.862846 UTC. Small은 계획 단계에서 미생성이면 optional |
+| pothole-small-v9-retry1 | 실제 순차 재시작 root. 원v6 release/provenance·복사 plan 최소값, 최대11/10 17:14:46.862846 UTC. 실패 원실험·receipt를 덮어쓰지 않음 |
+| lane-cycle2-v5-retry1 | 별도 순차 retry root(optional). 원 lane source 최소11/10 17:07:26.069653 UTC |
+| pothole-family-v9 | family/control·US100/회귀의 개별 GT/예측 root(optional). 원blind source와 v6 최소값, 최대11/10 17:07:24.286159 UTC |
+| pothole-resolution-v10 | 동일 CPU VAL652의 해상도 옵션·개별 예측. 원v6 release/provenance 최소값, 최대11/10 17:14:46.862846 UTC. 모델·비식별 집계 보존 |
+| pothole-family-v10 | 별도 family/control·US100/회귀 root(optional). 원blind source와 v6 최소값, 최대11/10 17:07:24.286159 UTC |
 | redaction-rescue-cpu-prototype-v8 | 원root 바로 아래 지정 NPY3개만11/04 17:37:03.942455 UTC cap. 만료 여부는 실제 UTC clock과 비교하며 이번 cycle의 추가 재사용0. ONNX·context·집계·최소 provenance 보존 |
 | redaction-rescue-v8 | 계획 root(optional), 원 cycle2 privacy release 최소11/10 16:55:19.285523 UTC. prototype NPY 추가 재사용이나 기한 연장 없음 |
+| privacy-family-v8-evaluation | 별도 family VAL·개별 metadata root(optional). 원 privacy release와 protocol.json의 최소값, 최대11/10 16:55:19.285523 UTC |
 | a2d2-cycle2-v5 / lane-cycle2-v5 | 고정 source.json·완료 후 provenance, 11/10 17:07:26.069653 UTC |
 | research-redaction-cycle2-v7 / redaction-p2-cycle2-v7 | 고정 release 행별 expires_at·완료 후 provenance, 최소11/10 16:55:19.285523 UTC |
 | public-nextcycle / cycle2-evaluation / cycle2-logs | task별 근거의 최소값, 보수적으로 privacy 최소기한 상속 |
@@ -30,6 +36,8 @@ prototype의 정확한 `redaction-rescue-synthetic-artifact-context-v1` format�
 새 `source_range`는 정확히 `data/research/rdd2022-blind-v7/range-cache/<start>-<end>.bin`만 허용한다. 각 범위는4MiB 이하, 길이는 `end-start+1`과 같아야 하며 archive13,264,172,619바이트를 넘을 수 없다. link/junction·다른 디렉터리·모델 `.bin`·다른 이름은 거부한다. 옆의 동일 stem `.sha256`가 정확한64자 SHA이며 실제 바이트와 일치해야 한다. source JSON의 고정 원기한 evidence도 필수다.
 
 일반 `source_archive`에는 `.bin`을 추가하지 않았다. 가중치·최소 provenance·source/hash 근거·비식별 aggregate는 보존한다. 범위를 알 수 없는 `.partial`이나 binary 등은 임의 삭제 대상으로 삼지 않고 미분류 건수와 검토 필요를 보고한다. 미분류 자료를 완전 관리했다고 표시하지 않는다.
+
+원실험/재시작 감독 receipt·소스·숫자 로그·GPU device memory/관측 timestamp는 개별 이미지 정보가 없으면 최소 provenance로 보존한다. 개별 이미지 ID·SHA·경로·좌표를 포함한 로그/예측은 원TTL 대상이다. family/control의 정확한 V9/V10 freeze·comparison format은 모델·코드·JSON proof pointer만 있고 개별 이미지 필드가 없을 때만 보존한다. 같은 format이라도 image ID/좌표가 섞이면 보호하지 않는다.
 
 ## 종료 인계와 수동 freeze
 

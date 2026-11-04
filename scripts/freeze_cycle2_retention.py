@@ -38,11 +38,17 @@ POLICIES={
  'data/training/pothole-train-hardness-v8':('pothole_diagnostic',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json','data/training/pothole-train-hardness-v8/plan.json'],'2026-11-10T17:14:46.862846Z'),
  'data/training/pothole-localization-v8':('pothole_model',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json','data/training/pothole-localization-v8/plan.json'],'2026-11-10T17:14:46.862846Z'),
  'data/training/pothole-small-v9':('pothole_model',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json','data/training/pothole-small-v9/plan.json'],'2026-11-10T17:14:46.862846Z'),
+ 'data/training/pothole-small-v9-retry1':('pothole_model',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json','data/training/pothole-small-v9-retry1/plan.json'],'2026-11-10T17:14:46.862846Z'),
+ 'data/training/pothole-family-v9':('family_evaluation',[BLIND,'data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json'],BLIND_CAP),
+ 'data/training/pothole-resolution-v10':('family_evaluation',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json'],'2026-11-10T17:14:46.862846Z'),
+ 'data/training/pothole-family-v10':('family_evaluation',[BLIND,'data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json'],BLIND_CAP),
  PROTOTYPE:('synthetic_prototype',[PROTOTYPE_CONTEXT],PROTOTYPE_CAP),
- 'data/training/redaction-rescue-v8':('privacy_model',[PRIVACY],PRIVACY_CAP),
+ 'data/training/redaction-rescue-v8':('privacy_model',[PRIVACY,'data/training/redaction-rescue-v8/plan.json'],PRIVACY_CAP),
+ 'data/training/privacy-family-v8-evaluation':('family_evaluation',[PRIVACY,'data/training/privacy-family-v8-evaluation/protocol.json'],PRIVACY_CAP),
  'data/public/a2d2-cycle2-v5':('lane_source',[LANE],LANE_CAP),
  'data/training/research-redaction-cycle2-v7':('privacy_source',[PRIVACY],PRIVACY_CAP),
  'data/training/lane-cycle2-v5':('lane_model',[LANE,'data/training/lane-cycle2-v5/provenance.json'],LANE_CAP),
+ 'data/training/lane-cycle2-v5-retry1':('lane_model',[LANE],LANE_CAP),
  'data/training/redaction-p2-cycle2-v7':('privacy_model',[PRIVACY,'data/training/redaction-p2-cycle2-v7/provenance.json'],PRIVACY_CAP),
  'data/training/public-nextcycle':('mixed',[LANE,PRIVACY],PRIVACY_CAP),
  'data/training/cycle2-evaluation':('mixed',[LANE,PRIVACY,BLIND],PRIVACY_CAP),
@@ -50,7 +56,9 @@ POLICIES={
  'data/gpu-model-sets/io-overlap-v1':('performance',[old.PERF_NEW+'/plan.json'],PRIVACY_CAP),
  'data/gpu-model-sets/cycle2-final-v7':('performance',[LANE,PRIVACY,BLIND,'data/gpu-model-sets/cycle2-final-v7/plan.json'],PRIVACY_CAP)}
 OPTIONAL_ROOTS={'data/training/cycle2-logs','data/training/research-pothole-rdd2022-blind-v7',
-                'data/training/pothole-small-v9','data/training/redaction-rescue-v8'}
+                'data/training/pothole-small-v9','data/training/redaction-rescue-v8',
+                'data/training/lane-cycle2-v5-retry1','data/training/pothole-family-v9',
+                'data/training/pothole-family-v10','data/training/privacy-family-v8-evaluation'}
 CYCLE='public-cycle2-v7'
 
 
@@ -90,6 +98,23 @@ def category(path,tag):
     value=old.kind(path,tag)
     if value=='derived_image' and tag in ('blind_source','blind_release','lane_source','privacy_source'):return 'source_image'
     return value
+
+
+def minimal_control_provenance(path):
+    if path.suffix.lower()!='.json':return False
+    value=r.read(path)
+    if not isinstance(value,dict) or value.get('format') not in {'pothole-family-v9-validation-freeze-v1','pothole-family-one-shot-comparison-v1',
+        'pothole-family-v10-CPU-validation-freeze-v1','pothole-family-v10-one-shot-comparison-v1'}:return False
+    def individual(item):
+        if isinstance(item,dict):
+            for key,child in item.items():
+                if key in r.PRIVATE_FIELDS-{'path'} or key in {'truth','predictions','detections'}:return True
+                if key=='path' and (not isinstance(child,str) or Path(child).suffix.lower() not in {'.json','.py','.pt','.pth','.onnx'}):return True
+                if individual(child):return True
+        elif isinstance(item,list):return any(individual(child) for child in item)
+        elif isinstance(item,str) and Path(item).suffix.lower() in {'.jpg','.jpeg','.png','.bmp','.webp','.npy','.npz'}:return True
+        return False
+    return not individual(value)
 
 
 def prepare_log_migration(receipt_path,receipt_sha256,manifest_path,manifest_sha256,output_path):
@@ -145,6 +170,7 @@ def freeze(receipt_path,receipt_sha256):
             files=old.list_files(root);filesets[root]=files
             for path in files:
                 if tag=='synthetic_prototype' and path==r.ROOT/PROTOTYPE_CONTEXT:preserved['prototype_context_provenance']+=1;continue
+                if tag=='family_evaluation' and minimal_control_provenance(path):preserved['nonpersonal_family_control_provenance']+=1;continue
                 if tag=='performance' and old.performance_provenance(path):preserved['performance_source_and_aggregate']+=1;continue
                 kind=category(path,tag)
                 if kind is None:
