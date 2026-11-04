@@ -22,3 +22,7 @@
 도구는 자신이 실행한 서비스6개만 종료한다. 진단 DB/계정과 로컬 로그는 점검용으로 보존하며 자동 삭제하지 않는다. 출력은 집계만 포함하고 기관·사용자 ID, 로그인 비밀, 원본 응답을 공개하지 않는다. 반복 실행은 별도 DB를 추가하므로 운영자가 로컬 보존량을 관리해야 한다.
 
 Docker 실행파일이 현재 Windows 환경에 없어 Docker/Compose build·실행은 수행하지 않았다. Ubuntu CI PostgreSQL/PostGIS job에 같은 격리 운영 진단 단계를 추가했다. CI 설정 추가와 실제 CI 성공은 다르며 해당 revision의 GitHub Actions 결과를 따로 확인한다. 전역 Docker·DB 서비스·드라이버 설치는 수행하지 않았다.
+
+## 후속 원격 CI 검증
+
+루트가 확인한 [Ubuntu CI41757570015](https://github.com/GE-Project-KMU/globalProject/actions/runs/41757570015)는 소스`f2ac8e4`의4개 job이 모두 성공했으며 실제 Docker build/start와 nginx HTTP smoke를 포함한다. 위 Windows native 실행 당시 Docker가 없었다는 기록은 유지한다. 이 CI revision에는 이후 privacy 효율 연구와 신규 frontend 변경이 포함되지 않으므로 그 변경까지 Docker로 검증했다고 확대하지 않는다.

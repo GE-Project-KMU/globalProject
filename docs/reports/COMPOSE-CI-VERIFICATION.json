@@ -1,0 +1,22 @@
+{
+  "format": "compose-runtime-smoke-v1",
+  "checks_passed": [
+    "nginx_frontend_html",
+    "production_bundle_assets",
+    "nginx_gateway_health_proxy",
+    "anonymous_request_denied",
+    "authenticated_nginx_gateway_identity_route",
+    "postgres_observation_and_summary_routes",
+    "private_media_bytes_and_anonymous_denial",
+    "invalid_input_error_envelope"
+  ],
+  "production_assets_checked": 2,
+  "http_smoke_passed": true,
+  "synthetic_seed_only": true,
+  "field_acceptance": false,
+  "scope": "Remote isolated CI Compose frontend/gateway/six MSA services/five PostgreSQL stores; Windows Docker availability is separate.",
+  "ci_url": "https://github.com/GE-Project-KMU/globalProject/actions/runs/41757570015",
+  "tested_source_commit": "f2ac8e43e10a201bc30129e92409e14fcb5893d4",
+  "windows_docker_installed": false,
+  "production_security_or_capacity_accepted": false
+}
