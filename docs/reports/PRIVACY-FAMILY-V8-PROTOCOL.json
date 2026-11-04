@@ -1,0 +1,67 @@
+{
+  "format": "privacy-family-v8-predeclared-protocol-v1",
+  "source_sha256": "95b5dc346e30f0ee8341afdcdc874754507ce4c937f55261bdcb71b15779ca10",
+  "trainer_source_sha256": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+  "trainer_plan_sha256": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d",
+  "P2_parent_protocol_sha256": "31503ca3a9e1b4da72d8bd248b655d8b101a2462cd7c1f35881a4d9578353c36",
+  "P2_original_parent_plan_sha256": "c53c55569b822a74766e4e5713a5048e6dfab8307d22bffdf0e7e30d0de98f84",
+  "development_sha256": "37cdd77565438c1254768347a7d7abe37c686ba20239c3ade2fda23cd98a8d0c",
+  "comparison_backend": "native-gpu",
+  "GPU_evaluation_requires_single_root_slot": true,
+  "baseline_manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+  "baseline_checkpoint_sha256": "6c985f7e3afb0fa061cbb82d7ec7b304eb5f9fbfcd0cf9f775dbab28873c82ad",
+  "VAL_images": 508,
+  "VAL_face": 400,
+  "VAL_plate": 108,
+  "families": [
+    "legacy_v4",
+    "rescue_v8"
+  ],
+  "P2_incomplete": "diagnostic only, never eligible; original run/state/source preserved",
+  "baseline_completeness": "Immutable model/checkpoint/DEV/runtime-bound face400 plus plate108, or explicitly evaluate full508. Never relabel mutable best400 as baseline.",
+  "backend_fairness": "Native GPU baseline508 vs completed frozen native trainer selected508; CPU mode replays BOTH models508 with identical CPU ORT runtime.",
+  "runtime_profile": {
+    "engine": "torch-native-fp32",
+    "torch": "2.7.1+cu126",
+    "cudnn_benchmark": false,
+    "TF32": false
+  },
+  "confidence_grid": [
+    0.01,
+    0.03,
+    0.05,
+    0.1,
+    0.2,
+    0.35,
+    0.5
+  ],
+  "largeface_gate": "original sqrtGTarea>=64, fixed confidence.1, recall>=legacy baseline-.01",
+  "family_winner": "complete runs only; bothRecall95-feasible→macroPrecision then minRecall; otherwise minRecall then macroPrecision; exact ties baseline first",
+  "canonical_positive_cases": "Per class, original GT area>=4096 correctly matched by BOTH baseline and winner at frozen operating thresholds; source_id ascending first; VAL-only numerical branch coverage",
+  "strict_before_TEST": {
+    "raw_rtol": 0.001,
+    "raw_atol": 0.0001,
+    "CPU_ORT": "1.31.1",
+    "face_and_plate_positive": true,
+    "both_baseline_and_winner": true,
+    "no_tolerance_relaxation": true
+  },
+  "benchmarks": {
+    "fresh": {
+      "sha256": "8230874168c8b2d4d8de09c5c11cb3197f641c0ef6a28999ef77e3ea2465c9a7",
+      "samples": 200,
+      "role": "new unseen source only; physical identity independence unverified"
+    },
+    "regression": {
+      "sha256": "03dbb7a8e60b0316e4c06508bcb76175097f594a29d0a25d40a2129998ae4c8a",
+      "samples": 1400,
+      "role": "previously examined regression only; no selection"
+    }
+  },
+  "one_shot_attempt_receipt": true,
+  "TEST_predictions_before_freeze": 0,
+  "user_recordings_used": false,
+  "source_expires_at": "2026-11-10T16:55:19.285523+00:00",
+  "research_only": true,
+  "production_approved": false
+}
