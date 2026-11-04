@@ -1,0 +1,135 @@
+{
+  "format": "pothole-resolution-v10-CPU-VAL652",
+  "complete": true,
+  "plan_sha256": "9913b5cccee29b0ee665dc29fa27a80562cdf29f3b010bff4c7be35b314a1e4d",
+  "validation_release_sha256": "43bcbd0c5160276dc8de9507e40db0a8776ff35e74faf971dcdf69fdddd6d52f",
+  "VAL_membership_sha256": "93c9565a6a51823c87f5f7e121b8293e80e5b6d09e4a1a04b625c04f9f0584aa",
+  "runtime": {
+    "engine": "onnxruntime-cpu",
+    "version": "1.31.1",
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "GPU_used": false
+  },
+  "TEST_images": 0,
+  "confidence_floor": 0.01,
+  "nms_iou": 0.5,
+  "models": {
+    "baseline": {
+      "status": "available",
+      "manifest": {
+        "path": "data/training/pothole-mwpd-v6/model.json",
+        "sha256": "b1d5c070c2b4c769531e404e887c604dee3945bf04ddbc9ebd9a01dc588cbdca"
+      },
+      "checkpoint": {
+        "path": "data/training/pothole-mwpd-v6/best.pt",
+        "sha256": "d665ea42e8b342687a681ece4935ce4b2797098799907ffb8aa262ea7fb16200"
+      },
+      "weights_sha256": "201cbb306a5f332a57a4a9b1a5a51aecca639a3088974078895429bb0b940330",
+      "input_size": [
+        640,
+        640
+      ],
+      "domains": {
+        "original": {
+          "images": 402,
+          "ap50": 0.656800996258803
+        },
+        "mwpd": {
+          "images": 250,
+          "ap50": 0.5914524916985173
+        }
+      },
+      "elapsed_seconds": 21.827242699975614
+    },
+    "nano": {
+      "status": "available",
+      "manifest": {
+        "path": "data/training/pothole-localization-v8/model-development.json",
+        "sha256": "d45897d802dfa7d13b19d52c664f06a989c685e6aa810d47b224c62edf276cc2"
+      },
+      "checkpoint": {
+        "path": "data/training/pothole-localization-v8/best.pt",
+        "sha256": "ca846f416269a860bb6002bfce7d763efd999d01b48d2257773a276fd10947e2"
+      },
+      "weights_sha256": "10844440b5a0329e54ecf1ec8c2a4bd60de9ad644e881c0935da5c7638cc4814",
+      "input_size": [
+        640,
+        640
+      ],
+      "domains": {
+        "original": {
+          "images": 402,
+          "ap50": 0.6434443057226525
+        },
+        "mwpd": {
+          "images": 250,
+          "ap50": 0.6224287485935414
+        }
+      },
+      "elapsed_seconds": 21.198133800004143
+    },
+    "nano960": {
+      "status": "available",
+      "manifest": {
+        "path": "data/training/pothole-resolution-v10/nano960/model.json",
+        "sha256": "b9afc89d3240b96d0f58f1aaa1697f81209ecdb153a45696101fd2cac9486ce8"
+      },
+      "checkpoint": {
+        "path": "data/training/pothole-resolution-v10/nano960/best.pt",
+        "sha256": "ca846f416269a860bb6002bfce7d763efd999d01b48d2257773a276fd10947e2"
+      },
+      "weights_sha256": "68e503a1186da5cfd2019d54dc4c3fb8f5f3d0ade19625b2c127531cb48a6eb5",
+      "input_size": [
+        960,
+        960
+      ],
+      "domains": {
+        "original": {
+          "images": 402,
+          "ap50": 0.5536895963912051
+        },
+        "mwpd": {
+          "images": 250,
+          "ap50": 0.4963727244377134
+        }
+      },
+      "elapsed_seconds": 47.12271620001411
+    },
+    "nano1280": {
+      "status": "available",
+      "manifest": {
+        "path": "data/training/pothole-resolution-v10/nano1280/model.json",
+        "sha256": "17eac9d158330a42c3ea24af3f48bae323b5da08d9c61f428c4260da9465e674"
+      },
+      "checkpoint": {
+        "path": "data/training/pothole-resolution-v10/nano1280/best.pt",
+        "sha256": "ca846f416269a860bb6002bfce7d763efd999d01b48d2257773a276fd10947e2"
+      },
+      "weights_sha256": "5dc79bc6135de163a5497d2684306f15bacd6898dce78419a7c2b67aa4edf573",
+      "input_size": [
+        1280,
+        1280
+      ],
+      "domains": {
+        "original": {
+          "images": 402,
+          "ap50": 0.3809294250563097
+        },
+        "mwpd": {
+          "images": 250,
+          "ap50": 0.3320485686223916
+        }
+      },
+      "elapsed_seconds": 95.56912349996855
+    },
+    "small": {
+      "status": "rejected_no_artifact",
+      "selection_freeze": {
+        "path": "data/training/pothole-small-v9-retry1/selection-freeze.json",
+        "sha256": "e1703761eaad947ec9443dfb647b1184ee8a5ebb6e6f2567f4838ebf4136f8c3"
+      }
+    }
+  }
+}

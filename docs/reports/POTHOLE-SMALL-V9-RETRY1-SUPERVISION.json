@@ -1,0 +1,29 @@
+{
+  "format": "small-v9-sequential-restart-supervision-v1",
+  "status": "completed",
+  "plan_sha256": "9578d1d2e0f85ea193d2536132f5b8fd0767b2b9ea54e8d718774aa2cafa833b",
+  "supervisor_sha256": "82c2d9401e7cc6460e6ebac92b077d633872bf9421ca493d529e12b0409d5938",
+  "owns_training_child_only": true,
+  "global_OOM_zero_claimed": false,
+  "training_math_changed": false,
+  "child_exit_code": 0,
+  "device_memory": {
+    "scope": "nvidia-smi device-level reported FB memory; WDDM OS/driver accounting, not exact process sum",
+    "query_interval_requested_ms": 100,
+    "timestamps_are_receive_times_not_hardware_sample_times": true,
+    "cannot_guarantee_no_transient_excess_between_samples": true,
+    "total_samples": 20014,
+    "retained_samples": 20014,
+    "max_device_reported_used_bytes": 2807037952,
+    "observed_receive_interval_ms": {
+      "min": 100.0229,
+      "median": 108.9623,
+      "max": 130.6682
+    },
+    "over_budget_observed": false,
+    "errors": []
+  },
+  "wall_seconds": 2188.8189938999712,
+  "sources_unchanged": true,
+  "own_child_running_after_cleanup": false
+}

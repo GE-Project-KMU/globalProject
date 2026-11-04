@@ -1,0 +1,345 @@
+{
+  "format": "public-cycle2-pothole-results-v1",
+  "selected_family_member": "nano",
+  "family_digest": "e48f4b1f5cc8070d5d055bbe0fdd84e7bf493cf2f52a720ea4edf5e4223c8372",
+  "selected_only_from_same_CPU_VAL652": true,
+  "selection_frozen_before_TEST": true,
+  "TEST_used_for_selection": false,
+  "validation": {
+    "baseline": {
+      "status": "available",
+      "domains": {
+        "original": {
+          "images": 402,
+          "ap50": 0.656800996258803
+        },
+        "mwpd": {
+          "images": 250,
+          "ap50": 0.5914524916985173
+        }
+      }
+    },
+    "nano": {
+      "status": "available",
+      "domains": {
+        "original": {
+          "images": 402,
+          "ap50": 0.6434443057226525
+        },
+        "mwpd": {
+          "images": 250,
+          "ap50": 0.6224287485935414
+        }
+      }
+    },
+    "nano960": {
+      "status": "available",
+      "domains": {
+        "original": {
+          "images": 402,
+          "ap50": 0.5536895963912051
+        },
+        "mwpd": {
+          "images": 250,
+          "ap50": 0.4963727244377134
+        }
+      }
+    },
+    "nano1280": {
+      "status": "available",
+      "domains": {
+        "original": {
+          "images": 402,
+          "ap50": 0.3809294250563097
+        },
+        "mwpd": {
+          "images": 250,
+          "ap50": 0.3320485686223916
+        }
+      }
+    },
+    "small": {
+      "status": "rejected_no_artifact"
+    }
+  },
+  "cohorts": {
+    "fresh": {
+      "samples": 100,
+      "models": {
+        "baseline": {
+          "manifest_sha256": "b1d5c070c2b4c769531e404e887c604dee3945bf04ddbc9ebd9a01dc588cbdca",
+          "weights_sha256": "201cbb306a5f332a57a4a9b1a5a51aecca639a3088974078895429bb0b940330",
+          "operating_confidence": 0.1,
+          "architecture": "YOLOX-Nano",
+          "input_size": [
+            640,
+            640
+          ],
+          "backend": "onnxruntime-cpu",
+          "backend_version": "1.31.1",
+          "ap_metrics": {
+            "classes": {
+              "pothole": {
+                "gt_count": 54,
+                "prediction_count": 240,
+                "tp": 33,
+                "fp": 207,
+                "fn": 21,
+                "ap50": 0.45490654264181213,
+                "recall": 0.6111111111111112,
+                "precision": 0.1375
+              }
+            },
+            "map50": 0.45490654264181213,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "operating_metrics": {
+            "classes": {
+              "pothole": {
+                "gt_count": 54,
+                "prediction_count": 70,
+                "tp": 30,
+                "fp": 40,
+                "fn": 24,
+                "ap50": 0.4331441531231822,
+                "recall": 0.5555555555555556,
+                "precision": 0.42857142857142855
+              }
+            },
+            "map50": 0.4331441531231822,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.1
+          },
+          "fixed_035_reference": {
+            "classes": {
+              "pothole": {
+                "gt_count": 54,
+                "prediction_count": 28,
+                "tp": 20,
+                "fp": 8,
+                "fn": 34,
+                "ap50": 0.3281754842150882,
+                "recall": 0.37037037037037035,
+                "precision": 0.7142857142857143
+              }
+            },
+            "map50": 0.3281754842150882,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.35
+          }
+        },
+        "candidate": {
+          "manifest_sha256": "d45897d802dfa7d13b19d52c664f06a989c685e6aa810d47b224c62edf276cc2",
+          "weights_sha256": "10844440b5a0329e54ecf1ec8c2a4bd60de9ad644e881c0935da5c7638cc4814",
+          "operating_confidence": 0.1,
+          "architecture": "YOLOX-Nano",
+          "input_size": [
+            640,
+            640
+          ],
+          "backend": "onnxruntime-cpu",
+          "backend_version": "1.31.1",
+          "ap_metrics": {
+            "classes": {
+              "pothole": {
+                "gt_count": 54,
+                "prediction_count": 250,
+                "tp": 34,
+                "fp": 216,
+                "fn": 20,
+                "ap50": 0.42252844678473594,
+                "recall": 0.6296296296296297,
+                "precision": 0.136
+              }
+            },
+            "map50": 0.42252844678473594,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "operating_metrics": {
+            "classes": {
+              "pothole": {
+                "gt_count": 54,
+                "prediction_count": 80,
+                "tp": 29,
+                "fp": 51,
+                "fn": 25,
+                "ap50": 0.4000971390485819,
+                "recall": 0.5370370370370371,
+                "precision": 0.3625
+              }
+            },
+            "map50": 0.4000971390485819,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.1
+          },
+          "fixed_035_reference": {
+            "classes": {
+              "pothole": {
+                "gt_count": 54,
+                "prediction_count": 43,
+                "tp": 23,
+                "fp": 20,
+                "fn": 31,
+                "ap50": 0.34500682731642623,
+                "recall": 0.42592592592592593,
+                "precision": 0.5348837209302325
+              }
+            },
+            "map50": 0.34500682731642623,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.35
+          }
+        }
+      }
+    },
+    "regression": {
+      "samples": 145,
+      "models": {
+        "baseline": {
+          "manifest_sha256": "b1d5c070c2b4c769531e404e887c604dee3945bf04ddbc9ebd9a01dc588cbdca",
+          "weights_sha256": "201cbb306a5f332a57a4a9b1a5a51aecca639a3088974078895429bb0b940330",
+          "operating_confidence": 0.1,
+          "architecture": "YOLOX-Nano",
+          "input_size": [
+            640,
+            640
+          ],
+          "backend": "onnxruntime-cpu",
+          "backend_version": "1.31.1",
+          "ap_metrics": {
+            "classes": {
+              "pothole": {
+                "gt_count": 292,
+                "prediction_count": 1355,
+                "tp": 230,
+                "fp": 1125,
+                "fn": 62,
+                "ap50": 0.6003350881853623,
+                "recall": 0.7876712328767124,
+                "precision": 0.16974169741697417
+              }
+            },
+            "map50": 0.6003350881853623,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "operating_metrics": {
+            "classes": {
+              "pothole": {
+                "gt_count": 292,
+                "prediction_count": 432,
+                "tp": 200,
+                "fp": 232,
+                "fn": 92,
+                "ap50": 0.5692447843517686,
+                "recall": 0.684931506849315,
+                "precision": 0.46296296296296297
+              }
+            },
+            "map50": 0.5692447843517686,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.1
+          },
+          "fixed_035_reference": {
+            "classes": {
+              "pothole": {
+                "gt_count": 292,
+                "prediction_count": 225,
+                "tp": 159,
+                "fp": 66,
+                "fn": 133,
+                "ap50": 0.487614622718428,
+                "recall": 0.5445205479452054,
+                "precision": 0.7066666666666667
+              }
+            },
+            "map50": 0.487614622718428,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.35
+          }
+        },
+        "candidate": {
+          "manifest_sha256": "d45897d802dfa7d13b19d52c664f06a989c685e6aa810d47b224c62edf276cc2",
+          "weights_sha256": "10844440b5a0329e54ecf1ec8c2a4bd60de9ad644e881c0935da5c7638cc4814",
+          "operating_confidence": 0.1,
+          "architecture": "YOLOX-Nano",
+          "input_size": [
+            640,
+            640
+          ],
+          "backend": "onnxruntime-cpu",
+          "backend_version": "1.31.1",
+          "ap_metrics": {
+            "classes": {
+              "pothole": {
+                "gt_count": 292,
+                "prediction_count": 1123,
+                "tp": 232,
+                "fp": 891,
+                "fn": 60,
+                "ap50": 0.6339986569266215,
+                "recall": 0.7945205479452054,
+                "precision": 0.20658949243098843
+              }
+            },
+            "map50": 0.6339986569266215,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.01
+          },
+          "operating_metrics": {
+            "classes": {
+              "pothole": {
+                "gt_count": 292,
+                "prediction_count": 406,
+                "tp": 202,
+                "fp": 204,
+                "fn": 90,
+                "ap50": 0.5985957641330861,
+                "recall": 0.6917808219178082,
+                "precision": 0.4975369458128079
+              }
+            },
+            "map50": 0.5985957641330861,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.1
+          },
+          "fixed_035_reference": {
+            "classes": {
+              "pothole": {
+                "gt_count": 292,
+                "prediction_count": 242,
+                "tp": 170,
+                "fp": 72,
+                "fn": 122,
+                "ap50": 0.5333371390364338,
+                "recall": 0.5821917808219178,
+                "precision": 0.7024793388429752
+              }
+            },
+            "map50": 0.5333371390364338,
+            "matching": "one_to_one_IoU0.5_AP101",
+            "confidence": 0.35
+          }
+        }
+      }
+    }
+  },
+  "fresh_scope": "US-only frozen 50 positive plus 50 publisher no-D40 images; source proxy, physical routes not independently verified",
+  "regression_scope": "Previously examined MWPD97 positive plus RDD48 no-D40 images, not new independent final data",
+  "target_AP50": 0.8,
+  "fresh_target_met": false,
+  "production_approved": false,
+  "project_acceptance_eligible": false,
+  "user_recordings_used": false,
+  "source_expiries_extended": false,
+  "weights_uploaded": false,
+  "original_images_uploaded": false,
+  "limits": [
+    "AP50 is a labeled source-proxy detection score, not field or depth accuracy",
+    "Known publisher D40 coverage does not certify complete real-road negatives",
+    "Fresh point score is below baseline; no post-TEST model/threshold change or automatic retest",
+    "CPU validation and evaluation ran under shared host load; latency is not pipeline FPS"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "format": "pothole-small-v9-completed-retry-results-v1",
+  "status": "completed_predeclared_stop_rejected",
+  "selection": {
+    "candidate_selected": false,
+    "selected": {
+      "epoch": 0,
+      "old_validation_ap50": 0.6567948325821571,
+      "new_validation_ap50": 0.5914524916985173,
+      "optimizer_updates": 0,
+      "mean_training_loss": null
+    },
+    "baseline_validation": {
+      "epoch": 0,
+      "old_validation_ap50": 0.6567948325821571,
+      "new_validation_ap50": 0.5914524916985173,
+      "optimizer_updates": 0,
+      "mean_training_loss": null
+    },
+    "optimizer_updates": 5112,
+    "epochs_completed": 20,
+    "diagnostic_checkpoint_sha256": "40e0bd4c249060c76cbb73eea5e9b7842d96377a723df3d151c3c9e822b3d352",
+    "TEST_inference_performed": false,
+    "elapsed_seconds": 2166.868392400036
+  },
+  "last_validation": {
+    "epoch": 20,
+    "old_validation_ap50": 0.5477404841055958,
+    "new_validation_ap50": 0.7132981522155036,
+    "optimizer_updates": 5112,
+    "mean_training_loss": 4.111826594918966
+  },
+  "best_ungated_mean_validation": {
+    "epoch": 14,
+    "old_validation_ap50": 0.5494578012009461,
+    "new_validation_ap50": 0.7231459245260679,
+    "optimizer_updates": 3577,
+    "mean_training_loss": 4.6679675043560565
+  },
+  "attempts": 5120,
+  "own_peak_reserved_GiB": 1.822265625,
+  "ONNX_exported": false,
+  "final_TEST_inferences": 0,
+  "original_failed_run_preserved": true,
+  "training_recipe_changed_on_restart": false,
+  "new_training_started_from_official_COCO": true,
+  "weights_uploaded": false
+}
