@@ -112,5 +112,10 @@
       "error_line_count": 0
     }
   },
-  "unexpected_service_errors_during_final_python_tests": 0
+  "unexpected_service_errors_during_final_python_tests": 0,
+  "subsequent_focused_verification": {
+    "retention_scope_17_tests_passed": 60,
+    "elapsed_seconds": 2.26,
+    "scope": "One additional exact RTK screenshot collection and writer receipt guard; runtime/model/API unchanged after full 702-test run."
+  }
 }
