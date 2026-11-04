@@ -1,0 +1,64 @@
+{
+  "format": "cycle2-shared-GPU-abort-v1",
+  "status": "aborted_budget_guard_not_completed_training",
+  "peak_device_reported_bytes": 11081351168,
+  "device_budget_bytes": 9663676416,
+  "scope": "sampled nvidia-smi device-reported WDDM FB memory; not exact process sum",
+  "own_OOM_signature_observed": {
+    "privacy_P2": false,
+    "lane": false
+  },
+  "own_child_stopped_after_identity_check": {
+    "privacy_P2": true,
+    "lane": true
+  },
+  "own_children_running_after_cleanup": {
+    "privacy_P2": false,
+    "lane": false
+  },
+  "original_sources_unchanged": true,
+  "original_receipts_sha256": {
+    "privacy_P2": "6ca051555e1d0bb5230dfff99067a727393a43e720d9e297531653f2f9b7e111",
+    "lane": "e1dc25e806312c6dec3f11eb831ab6491fd66e4927a8141d2fbb83fa57f06f4c"
+  },
+  "root_reported_third_SmallV9_also_aborted": true,
+  "third_run_independently_verified_by_this_report": false,
+  "privacy_P2": {
+    "planned_epochs": 12,
+    "completed_epochs": 9,
+    "interrupted_partial_epoch": 10,
+    "completed_epoch_optimizer_updates": 6731,
+    "last_logged_optimizer_updates_lower_bound": 7132,
+    "exact_total_optimizer_updates": null,
+    "development_best_AP50": 0.7033389794785281,
+    "large_face_gate_ever_passed": false,
+    "final_model_manifest_exported": false,
+    "final_ONNX_exported": false,
+    "research_checkpoint_preserved": true,
+    "further_training_scheduled": false
+  },
+  "lane": {
+    "completed_epochs": 0,
+    "epoch0_validation_not_completed": true,
+    "optimizer_updates": 0,
+    "final_model_exported": false,
+    "original_source_sha256": "401fab5253cfa29492ca4747d9a3eee1ee57a17304cbd414731b32200f513a84",
+    "original_plan_sha256": "210a0a7db06348a63a9c17b249a394c85e655bf960488a1584ad31c05cba04ab"
+  },
+  "diagnosis": {
+    "confirmed_environment_difference": "Lane training sets cudnn.benchmark=True; its bounded memory probe left the default False",
+    "causal_hypothesis": "cuDNN algorithm search/workspace during first lane forward may have contributed to combined peak",
+    "causation_proven": false,
+    "preflight_coverage_was_insufficient": true,
+    "reference": "https://docs.pytorch.org/docs/2.7/notes/randomness.html#cuda-convolution-benchmarking"
+  },
+  "next_policy": "One GPU training job at a time; CPU/design tasks may run in parallel",
+  "lane_retry": "New source/output/parentplan; benchmark=False; same data/loss/optimizer/scheduler/selection; full restart from v4 warmstart, never resume aborted optimizer",
+  "bitwise_training_equivalence_claimed": false,
+  "blind_TEST_predictions": 0,
+  "user_recordings_used": false,
+  "source_expiries_extended": false,
+  "accuracy_target_claimed": false,
+  "production_approved": false,
+  "failed_files_overwritten": false
+}

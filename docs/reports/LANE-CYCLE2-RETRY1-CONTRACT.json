@@ -1,0 +1,41 @@
+{
+  "format": "lane-retry1-CPU-contract-v1",
+  "passed": true,
+  "GPU_operations": 0,
+  "optimizer_updates": 0,
+  "weights_saved": false,
+  "TEST_images_loaded": 0,
+  "user_recordings_used": false,
+  "original_source_sha256": "401fab5253cfa29492ca4747d9a3eee1ee57a17304cbd414731b32200f513a84",
+  "retry_source_sha256": "4ba5a419a0af2b2c85a5b2e7f2090f57f2231ad6270a9aa17c18bd95bc3ccde7",
+  "retry_plan_sha256": "cfdade6dd97417a50837c9e0fec4cbbd349bff7a047c8b444fb8793909d0fc56",
+  "contract_source_sha256": "2fe9a32ca4f137734ebb1401801cc68ea2860fb3b7b6b0a11dbe34a4150d2170",
+  "learning_math_and_geometry_AST_identical": true,
+  "AST_digests": {
+    "paint_loss": "deb43323d4f460a55fadce61acfbe108147b42b6156d145794daada1c45236df",
+    "full_context_sample": "222bcc34ba41d553cab70eb5d216f34445dd111e56f073c0d3de7bb17db2445c",
+    "validation_scores": "612d30829359dbea8558ef349193ea4f2146b1e5c11ca26c0122eac7374fe7f3",
+    "export_fp64_mean": "239b9eb8f7730c1c14a16af59a4a03290b13e6bad0d7c2a7341e4c0c0ca18cbf"
+  },
+  "learning_recipe_fields_identical": true,
+  "old_cudnn_benchmark": true,
+  "retry_cudnn_benchmark": false,
+  "bitwise_training_equivalence_claimed": false,
+  "full_restart_not_resume": true,
+  "same_v4_warmstart": true,
+  "real_TRAIN_loss": 0.7094590067863464,
+  "tensor_shape": [
+    1,
+    3,
+    1024,
+    1024
+  ],
+  "valid_GT_pixels": 439736,
+  "positive_GT_pixels": 21019,
+  "ignore_loss_gradient_zero": true,
+  "source_expiries_extended": false,
+  "limits": [
+    "Runtime algorithm-selection policy changed; no bitwise learning equivalence",
+    "CPU/backward smoke, not accuracy or GPU memory acceptance"
+  ]
+}

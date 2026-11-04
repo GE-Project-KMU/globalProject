@@ -1,0 +1,38 @@
+{
+  "format": "lane-shared-training-supervision-v1",
+  "status": "failed_supervision",
+  "learning_source_sha256": "401fab5253cfa29492ca4747d9a3eee1ee57a17304cbd414731b32200f513a84",
+  "learning_plan_sha256": "210a0a7db06348a63a9c17b249a394c85e655bf960488a1584ad31c05cba04ab",
+  "supervision_plan_sha256": "a1da23cc3cd5e69dd83dd7a3f35e30a0498e494cedf2f4f9af31deef8c495303",
+  "supervisor_source_sha256": "73fee0fc2e94b3c0b85fb9b18b942fb5ef7bd7fc621175054ce18edae22b99a1",
+  "training_math_changed": false,
+  "global_OOM_zero_claimed": false,
+  "OOM_detection_scope": "own child log only",
+  "owns_training_child_only": true,
+  "other_process_controlled": false,
+  "source_expiries_extended": false,
+  "source_expiry": "2026-11-10T17:07:26.069653+00:00",
+  "own_child_stopped_after_identity_check": true,
+  "device_memory": {
+    "scope": "nvidia-smi device-level reported FB memory; WDDM OS/driver accounting, not exact process sum",
+    "query_interval_requested_ms": 100,
+    "timestamps_are_receive_times_not_hardware_sample_times": true,
+    "cannot_guarantee_no_transient_excess_between_samples": true,
+    "total_samples": 240,
+    "retained_samples": 240,
+    "max_device_reported_used_bytes": 11081351168,
+    "observed_receive_interval_ms": {
+      "min": 100.1662,
+      "median": 108.8467,
+      "max": 126.2773
+    },
+    "over_budget_observed": true,
+    "errors": []
+  },
+  "whole_supervised_wall_seconds": 26.23413649998838,
+  "failure_reason": "ValueError:device_reported_global_memory_over_9GiB",
+  "own_OOM_signature_observed": false,
+  "child_exit_code": 1,
+  "own_child_running_after_cleanup": false,
+  "sources_unchanged": true
+}
