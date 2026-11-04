@@ -1,0 +1,22 @@
+{
+  "format": "fresh-public-no-D40-evaluation-cohort-v1",
+  "source_url": "https://data.mendeley.com/datasets/5ty2wb6gvg/1",
+  "release_sha256": "37b890cb52e8f9b34a6cbfd787cab8ed363418be77e69d5b403e011c987ccae3",
+  "samples": 48,
+  "countries": {
+    "Czech": 48
+  },
+  "available_unseen_source_groups": {
+    "Czech": 48
+  },
+  "acquisition_plan_revision": "Initial >=100 total groups unavailable; before any model prediction allow countries with >=30 safe groups, cap100 per country. No reusing old evaluated groups.",
+  "one_candidate_per_unseen_filename20_block": true,
+  "old_hash_and_connected_visual_filter": true,
+  "removed": {},
+  "all_objects_empty_publisher_no_D40": true,
+  "training_or_selection_use": false,
+  "model_predictions_performed": false,
+  "source_expiry": "2026-11-10T17:14:46.862846+00:00",
+  "physical_route_independence_verified": false,
+  "limits": "Fresh source-image/block proxies only; no verified independent drive, exhaustive human reannotation, FP/km, or actual-route acceptance. No-D40 images may contain other road defects."
+}
