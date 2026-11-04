@@ -9,7 +9,7 @@ from scripts import research_retention as r
 def proc(pid,args,cwd,ppid=0):
     return SimpleNamespace(info=dict(pid=pid,ppid=ppid,cmdline=args,cwd=str(cwd),create_time=123.5))
 
-@pytest.mark.parametrize('name',['supervise_redaction_rescue_v8_retry1.py','privacy_family_v8_retry1_authorized_queue.py','gpu_inference_worker.py','gpu_model_set.py','benchmark_representative_pipeline.py','probe_gpu_pipeline_soak.py','evaluate_lane_retry1.py','compare_privacy_family_parallel.py','verify_gpu_runtime.py','create_gpu_runtime_profiles.py','probe_cycle2_gpu_memory.py'])
+@pytest.mark.parametrize('name',['supervise_redaction_rescue_v8_retry1.py','privacy_family_v8_retry1_authorized_queue.py','gpu_inference_worker.py','gpu_model_set.py','benchmark_representative_pipeline.py','probe_gpu_pipeline_soak.py','evaluate_lane_retry1.py','compare_privacy_family_parallel.py','verify_gpu_runtime.py','create_gpu_runtime_profiles.py','probe_cycle2_gpu_memory.py','export_redaction_final12.py','finalize_privacy_family_v9_results.py'])
 def test_project_writer_is_detected_without_leaking_args(tmp_path,name):
     row=proc(11,[str(tmp_path/'scripts'/name),'private-image.jpg'],tmp_path)
     report=g.inspect_writers(tmp_path,[row],99)
@@ -38,7 +38,7 @@ def test_pinned_controls_fail_on_change(tmp_path,monkeypatch):
     p.write_bytes(b'changed')
     with pytest.raises(ValueError,match='control_changed'):f.protected_controls()
 
-@pytest.mark.parametrize('name',['baseline-VAL508','rescue-VAL508-import','winner-freeze','strict-baseline-face','strict-winner-plate','fresh','regression'])
+@pytest.mark.parametrize('name',['baseline-VAL508','rescue-VAL508-import','winner-freeze','strict-baseline-face','strict-winner-license_plate','fresh','regression'])
 def test_exact_operator_logs_only(name):
     assert f.valid_log_source('.cache/privacy-family-v8-operator-retry1/'+name+'.log')
     assert f.valid_log_source('.cache/privacy-family-v8-operator-retry1/'+name+'-observer.log')
@@ -79,3 +79,9 @@ def test_lexical_boundary_rejects_prefix_sibling(tmp_path):
     assert not g.lexical_inside(str(tmp_path)+'-sibling/train_x.py',tmp_path)
     assert not g.lexical_inside(tmp_path/'..'/'train_x.py',tmp_path)
     assert g.lexical_inside(tmp_path/'scripts/train_x.py',tmp_path)
+
+
+@pytest.mark.parametrize('phase',['CPU-fixed12-export','baseline-VAL508','rescue-VAL508-import','fixed12-VAL508','winner-freeze','strict-baseline-face','strict-baseline-license_plate','strict-winner-face','strict-winner-license_plate','fresh','regression'])
+def test_new_V9_operator_phase_logs_have_exact_allowlist(phase):
+    assert f.valid_log_source('.cache/privacy-family-v9-operator/'+phase+'.log')
+    assert not f.valid_log_source('.cache/privacy-family-v9-operator/'+phase+'-receipt.json')

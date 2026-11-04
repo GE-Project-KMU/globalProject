@@ -72,3 +72,11 @@ summary에는 건수·기한 집계·변경 거부·삭제0·미분류 현황만
 ### 미승인 synthetic MP4 처리 제안
 
 soak의 `generated-nonpersonal.mp4`는 일반 영상 suffix 허용에 추가하지 않았다. 후속 승인 시 정확 basename·생성 설정·파일 SHA·순수 합성 증거에 결합하고 생성 후 2시간과 원 source cap의 최소로 제한하는 방안을 제안한다. 현재는 미분류 검토 대상이며 이 문서만으로 등록·삭제하거나 2시간 cap을 기존 자료에 소급하지 않는다.
+
+
+## V9 개인정보 후보 후속 범위
+
+이후 준비 범위는 정확히 `data/training/redaction-rescue-v8-final12`와 `data/training/privacy-family-v9-evaluation` 두 optional root를 추가한29개다. 원27개 행·원8control pin·원TTL은 바꾸지 않는다. 각각 원 개인정보 release와 고정 final12 plan / V9 protocol의 기한을 확인하고 PRIVACY_CAP 이하만 허용한다. V9 protocol/winner-freeze의 정확 format도 개별 이미지 필드가 없는 경우만 최소 control로 보존한다. 같은 format에 sample ID·image SHA·좌표·사진 경로가 있으면 예외 처리하지 않고 원TTL 대상이다. exporter는 알려진 writer guard의 명시 대상이다. 현재 범위 추가는 코드 준비일 뿐 실제 scan/register/move/delete가 아니다.
+
+
+V9 operator의 개인별 phase 로그도 정확한 `.cache/privacy-family-v9-operator/<등록phase>.log`와 SHA 목록만 이관 계획에 허용한다. 목적지 prefix는 `operator-v9--`이며 원 V8/retry1과 충돌하지 않는다. `strict-*-license_plate.log`처럼 실제 canonical label을 정확히 사용한다. queue JSON·receipt/control JSON은 이동하지 않으며 metadata 안의 private 필드를 일반 provenance로 보존하지 않는다. 새 exporter와 정확한 V9 publisher script도 writer 차단 대상이다.
