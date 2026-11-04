@@ -1,0 +1,302 @@
+{
+  "format": "final-cycle2-gpu-numeric-results-v1",
+  "status": "blocked_strict_raw_parity_failed",
+  "CPU_reference": "application ORT1.31.1 CPU",
+  "raw_tolerance": {
+    "rtol": 0.001,
+    "atol": 0.0001,
+    "unchanged": true
+  },
+  "postprocess_contract_unchanged": true,
+  "full_validation": {
+    "stage": "diagnostic",
+    "cases": 160,
+    "plan_sha256": "fda53437ca10b9fa7e0f87eb2b8160adcbde076c39c0fa2c80aa52104a5f443c",
+    "aggregate_sha256": "e74fff4f5639ac74bd1c09f113f641430b0452de275bc997b0cfa100658d249e",
+    "private_checks_sha256": "a28ca1c108fe8dba874dd529cd0bc59b5497574c8546af1adbff4c6855960d28",
+    "source_sha256": {
+      "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+      "agent/gpu_worker_client.py": "d444966f4db0b56a1b6590baeb958873bb5fb4fe993fc394035e4b9073b19d74",
+      "scripts/gpu_inference_worker.py": "bd03f8fa4be19a3bbdb4a67280c5594ebbaac7f2ea5720fe2bf9f646a5a7a8ca",
+      "scripts/gpu_model_set.py": "7a9e92cd6103e7f506884b222a9db4c0b02fca9c9bfbd7c11c5d2763a04822c9",
+      "scripts/verify_trained_models.py": "378e8d5b68c5a48aeb27fc85fac35b507d2e5aa0c28a3fde5bbcf444adf2933f",
+      "scripts/benchmark_inference_cpu.py": "2490fa73aebb6513e8e9eca9fc35d210397c3bffddc6ab4417220496801acc50"
+    },
+    "models": {
+      "pothole": {
+        "manifest_sha256": "d45897d802dfa7d13b19d52c664f06a989c685e6aa810d47b224c62edf276cc2",
+        "weights_sha256": "10844440b5a0329e54ecf1ec8c2a4bd60de9ad644e881c0935da5c7638cc4814"
+      },
+      "lane": {
+        "manifest_sha256": "79d07ddbda872433cb5eba1b7c40d13641522375b8d5371eb954ad93204dcff0",
+        "weights_sha256": "e4b187fa33e7bd133bbec37800090d192f12d4ccaf2ee4a7be22f4cdfcecfc97"
+      },
+      "redaction": {
+        "manifest_sha256": "35d05364eb1596a3dc634ea95a42aa29371a398c3f322f5be31eebb4e292b2dd",
+        "weights_sha256": "a9df6a605d0349a19ef394fcf83752b80377ef09ecf7deb5fdaabb995afdadbc"
+      }
+    },
+    "results": {
+      "pothole": {
+        "cases": 20,
+        "raw_failures": 0,
+        "post_failures": 0,
+        "max_raw_abs_error": 0.00251007080078125
+      },
+      "lane": {
+        "cases": 100,
+        "raw_failures": 0,
+        "post_failures": 0,
+        "max_raw_abs_error": 0.0004730224609375
+      },
+      "redaction": {
+        "cases": 40,
+        "raw_failures": 1,
+        "post_failures": 0,
+        "max_raw_abs_error": 0.43658447265625
+      }
+    },
+    "passed": false,
+    "platform": {
+      "engine": "onnxruntime-cuda-worker",
+      "version": "1.20.2",
+      "system": "Windows",
+      "machine": "AMD64",
+      "providers": [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "use_tf32": "0",
+      "device_capability": [
+        7,
+        5
+      ]
+    },
+    "profiled_node_events_by_provider": {
+      "CUDAExecutionProvider": 98120
+    },
+    "all_nodes_claimed_GPU": false
+  },
+  "single_validation_numerical_probes": [
+    {
+      "name": "CUDA12_DEFAULT",
+      "VAL_cases": 1,
+      "same_original_failing_validation_case": true,
+      "result_sha256": "df3f10b7fb940285aca3af269a7978fa659adeaed1d276a904e9a255e9abc666",
+      "protocol_sha256": "7ffa21e2d8fa0e7f7adc2e55d7ee6f523dd55c062dd0d0c0f27d7f29e8ece8d2",
+      "runtime": {
+        "ORT_GPU": "1.20.2",
+        "CUDA_runtime": "12.6",
+        "cuDNN_API": 90701,
+        "TF32": false,
+        "GPU_memory_limit_bytes": 2147483648,
+        "search": "DEFAULT",
+        "graph": "ORT_ENABLE_ALL"
+      },
+      "raw_passed": false,
+      "post_passed": true,
+      "violating_elements": 59,
+      "violations_by_output_column": {
+        "cx": 0,
+        "cy": 0,
+        "width": 59,
+        "height": 0,
+        "objectness": 0,
+        "face_probability": 0,
+        "plate_probability": 0
+      },
+      "violations_by_model_component": {
+        "legacy_global_face": 0,
+        "legacy_face_tile0": 0,
+        "legacy_face_tile1": 0,
+        "legacy_face_tile2": 0,
+        "legacy_face_tile3": 0,
+        "legacy_plate": 0,
+        "rescue_P2_tile0": 0,
+        "rescue_P2_tile1": 0,
+        "rescue_P2_tile2": 59,
+        "rescue_P2_tile3": 0
+      },
+      "max_raw_abs_error": 0.4404296875,
+      "max_abs_error_is_actual_violation": false,
+      "cache_only_nonadopted_diagnostic": true,
+      "TEST_images": 0,
+      "raw_arrays_persisted": false,
+      "worker_cleanup_evidence": "original diagnostic finally closes worker; no separate PID/create_time receipt"
+    },
+    {
+      "name": "CUDA12_HEURISTIC_disable_graph",
+      "VAL_cases": 1,
+      "same_original_failing_validation_case": true,
+      "result_sha256": "60095d3d472827470a9d5481245c246b83193d4fd3cd66b2e92424d72862c6fd",
+      "protocol_sha256": "7ffa21e2d8fa0e7f7adc2e55d7ee6f523dd55c062dd0d0c0f27d7f29e8ece8d2",
+      "runtime": {
+        "ORT_GPU": "1.20.2",
+        "CUDA_runtime": "12.6",
+        "cuDNN_API": 90701,
+        "TF32": false,
+        "GPU_memory_limit_bytes": 2147483648,
+        "search": "HEURISTIC",
+        "graph": "ORT_DISABLE_ALL"
+      },
+      "raw_passed": false,
+      "post_passed": true,
+      "violating_elements": 58,
+      "violations_by_output_column": {
+        "cx": 0,
+        "cy": 0,
+        "width": 58,
+        "height": 0,
+        "objectness": 0,
+        "face_probability": 0,
+        "plate_probability": 0
+      },
+      "violations_by_model_component": {
+        "legacy_global_face": 0,
+        "legacy_face_tile0": 0,
+        "legacy_face_tile1": 0,
+        "legacy_face_tile2": 0,
+        "legacy_face_tile3": 0,
+        "legacy_plate": 0,
+        "rescue_P2_tile0": 0,
+        "rescue_P2_tile1": 0,
+        "rescue_P2_tile2": 58,
+        "rescue_P2_tile3": 0
+      },
+      "max_raw_abs_error": 0.43658447265625,
+      "max_abs_error_is_actual_violation": false,
+      "cache_only_nonadopted_diagnostic": true,
+      "TEST_images": 0,
+      "raw_arrays_persisted": false,
+      "worker_cleanup_evidence": "original diagnostic finally closes worker; no separate PID/create_time receipt"
+    },
+    {
+      "name": "CUDA13_ORT1311_HEURISTIC",
+      "VAL_cases": 1,
+      "same_original_failing_validation_case": true,
+      "result_sha256": "8850df4b962a71e49644e95e16af006b6b22475daf556ecd808bbf88dd4ce013",
+      "protocol_sha256": "183b2d2e404745d38a0b2f04407ee4efde56d1e44244ff47bf86409005421c56",
+      "runtime": {
+        "ORT_GPU": "1.31.1",
+        "CUDA_runtime": "Windows display-driver runtime",
+        "cuDNN_API": 91301,
+        "TF32": false,
+        "GPU_memory_limit_bytes": 2147483648,
+        "search": "HEURISTIC",
+        "graph": "ORT_ENABLE_ALL",
+        "CUDA_toolkit_runtime_package": "13.0.96",
+        "Windows_display_driver_runtime_cudaRuntimeGetVersion": 13030,
+        "driver": "610.88"
+      },
+      "raw_passed": false,
+      "post_passed": true,
+      "violating_elements": 59,
+      "violations_by_output_column": {
+        "cx": 0,
+        "cy": 0,
+        "width": 59,
+        "height": 0,
+        "objectness": 0,
+        "face_probability": 0,
+        "plate_probability": 0
+      },
+      "violations_by_model_component": {
+        "legacy_global_face": 0,
+        "legacy_face_tile0": 0,
+        "legacy_face_tile1": 0,
+        "legacy_face_tile2": 0,
+        "legacy_face_tile3": 0,
+        "legacy_plate": 0,
+        "rescue_P2_tile0": 0,
+        "rescue_P2_tile1": 0,
+        "rescue_P2_tile2": 59,
+        "rescue_P2_tile3": 0
+      },
+      "max_raw_abs_error": 0.43658447265625,
+      "max_abs_error_is_actual_violation": false,
+      "cache_only_nonadopted_diagnostic": true,
+      "TEST_images": 0,
+      "raw_arrays_persisted": false,
+      "identity_bound_worker_cleanup": {
+        "status": "exited",
+        "exit_code": 0,
+        "own_child_running_after_cleanup": false
+      }
+    }
+  ],
+  "separate_pre_forward_guard_errors": [
+    {
+      "phase": "before_GPU_forward",
+      "reason": "system NVIDIA nvcuda64 driver path rejected",
+      "result_sha256": "648c8b2b6ce5a0489a82745c2ba883fee6f9cd7d2b7b0381c653a06701269e61",
+      "protocol_sha256": "03662c122f8f00f31d6bcda871efc2b9528fa0d73ab0a8ca91fc95c639c2e16f",
+      "numeric_comparison_performed": false,
+      "preserved_without_overwrite": true,
+      "identity_receipt_available": false,
+      "cleanup_scope": "subsequent command-path process inventory found no worker; no historical exact PID receipt"
+    },
+    {
+      "phase": "before_GPU_forward",
+      "reason": "system NVIDIA hybrid runtime driver path rejected",
+      "result_sha256": "a31b418e0935e5d7ee5f2534044fc2d575d0b9563449a8fd751f574d0b8e2a6b",
+      "protocol_sha256": "aa6ef8d056e5f9a76939982de393c9e7e983b177a27e2558e9b38a4bf7e73908",
+      "numeric_comparison_performed": false,
+      "preserved_without_overwrite": true,
+      "identity_bound_worker_cleanup": {
+        "status": "exited",
+        "exit_code": 2,
+        "own_child_running_after_cleanup": false
+      }
+    },
+    {
+      "phase": "before_GPU_forward",
+      "reason": "installed ORT pybind extension wrongly rejected by DLL-only classifier",
+      "result_sha256": "8d8a40f39f27ad5f920e4d9c24061bf07a21099daea3227ae02ad6c8216bb565",
+      "protocol_sha256": "2ed62e6c1c3d89abcebfc6ffce76407ecd201c0da559f54872e4284a00faeed2",
+      "numeric_comparison_performed": false,
+      "preserved_without_overwrite": true,
+      "identity_bound_worker_cleanup": {
+        "status": "exited",
+        "exit_code": 2,
+        "own_child_running_after_cleanup": false
+      }
+    }
+  ],
+  "interpretation": {
+    "all_three_numerical_probes_failed_default_strict_raw": true,
+    "all_three_postprocess_passed": true,
+    "all_probe_violations_in_rescue_P2_tile2_width": true,
+    "causal_localization": "Observed decoded width path discrepancy; upstream convolution versus exp contribution not isolated. Runtime upgrade and two declared execution variants did not resolve it.",
+    "postprocess_agreement_does_not_override_raw_failure": true,
+    "no_tolerance_relaxation_or_output_manipulation": true,
+    "further_GPU_runtime_variant_search_stopped": true
+  },
+  "environment_preservation": {
+    "before_snapshot_sha256": "da2809fcd6105ca8cbc61eb9a62362e26b2e7eff1654cd86f06d99536ab17f9f",
+    "after_snapshot_sha256": "da2809fcd6105ca8cbc61eb9a62362e26b2e7eff1654cd86f06d99536ab17f9f",
+    "original_environment_package_maps_unchanged": true,
+    "new_environment_isolated_project_cache": true
+  },
+  "current_model_set_admission": {
+    "staging_performed": false,
+    "native_performed": false,
+    "registration_performed": false,
+    "GPU_FPS_measured": false,
+    "600_second_soak_performed": false,
+    "deployment_approved": false,
+    "old_profile_proofs_not_reused": true
+  },
+  "safety": {
+    "TEST_or_user_images": 0,
+    "weights_or_threshold_selection_from_diagnostics": false,
+    "raw_model_weights_and_images_local_only": true,
+    "source_expiry_extended": false,
+    "individual_image_identifiers_paths_hashes_bboxes_raw_values_not_published": true
+  },
+  "reproduction": {
+    "original_full_validation_command": ".venv/Scripts/python.exe scripts/gpu_model_set.py diagnose data/gpu-model-sets/cycle2-final-v7/plan.json --output <fresh-project-output-directory>",
+    "command_is_documentation_not_new_execution_authorization": true,
+    "requires_original_pinned_sources_environment_weights_and_unexpired_validation_data": true,
+    "cache_probe_sources": "local ignored cache only; nonadopted diagnostics, not committed runtime implementation"
+  }
+}

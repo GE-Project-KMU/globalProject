@@ -1,3 +1,33 @@
+# 현재 cycle2 모델: GPU 수치 검증 차단
+
+현재 cycle2의 포트홀·차선·개인정보 조합은 **GPU raw 수치 검증 실패로 등록하지 않았다**. 기본 `rtol=0.001, atol=0.0001`과 후처리 기준을 유지했다. [현재 공개 집계](reports/FINAL-CYCLE2-GPU-NUMERIC-RESULTS.json)에 실제 plan·모델·가중치·실행 소스와 부모 결과 SHA를 기록했다. 아래의 `final-v6` 통과·7.793FPS 기록은 이전 모델 조합의 이력이다.
+
+| 현재 전체 GPU 진단 | VAL 수 | raw 실패 | 후처리 실패 |
+| --- | ---: | ---: | ---: |
+| 포트홀 | 20 | 0 | 0 |
+| 차선 | 100 | 0 | 0 |
+| 개인정보 | 40 | 1 | 0 |
+
+Windows/RTX2080Ti·SM75·TF32off, 앱 CPU ORT1.31.1과 GPU ORT1.20.2/CUDA12.6/cuDNN9.7.1을 비교했다. 실제 CUDA node event 98,120개를 확인했지만 모든 노드가 GPU였다는 뜻은 아니다. 개인정보 최대 raw 절대오차는 0.436584이며, 최대 절대오차 위치 자체는 허용오차 위반 위치가 아니다.
+
+원래 실패한 개발 VAL 사례 하나만 고정하여 추가 진단했다. ORT1.20.2의 `DEFAULT` convolution search는 59개, `HEURISTIC`+graph optimization 비활성화는 58개 원소가 기본 허용오차를 넘었다. 완전히 분리한 ORT-GPU1.31.1/CUDA13 환경의 `HEURISTIC`+기본 graph도 59개 위반으로 실패했다. 세 진단 모두 위반은 rescue P2의 같은 tile width 출력에 모였고, 최종 후처리는 일치했다. 후처리 일치를 raw 통과로 대체하지 않았다. 상위 convolution과 width decode의 오차 기여는 분리 입증하지 못했다.
+
+CUDA13 패키지 runtime은 13.0.96, 실제 Windows `cudaRuntimeGetVersion` 값은 13030, cuDNN API는 91301이었다. Windows CUDA13의 해당 API는 디스플레이 드라이버 runtime을 보고하므로 패키지 버전과 구분한다. 기존 세 환경의 패키지 스냅샷은 그대로이며 Torch/CUDA12 DLL을 새 환경에 혼합하지 않았다.
+
+새 runtime의 수치 비교 전에 발생한 세 DLL 경계 검사 오류는 별도 보존했다. NVIDIA 시스템 드라이버 두 모듈과 설치된 ORT `.pyd`의 경로 분류 오류였으며 **GPU forward 전 실패이므로 수치 실패 횟수에 합산하지 않았다**. 수정한 검사에는 실제 preload 모듈 14개 전체 회귀를 적용했다. 이후 실제 수치 진단은 정상 종료했으나 위 기준에 실패했다. 새 retry worker의 PID/생성시각에 연결된 종료 증거를 보존했고, 최초 시도에는 과거 exact PID receipt가 없다는 한계도 집계에 구분했다.
+
+추가 runtime·설정 탐색은 종료했다. 현재 조합의 stage/native 검증·등록·GPU FPS·600초 지속 검사는 수행하지 않았다. 현재 10FPS 또는 GPU 지원 완료를 주장하지 않는다. 모델·threshold·TEST 선택, 원소스 보관기한은 변경하지 않았으며 사용자 녹화는 사용하지 않았다. 가중치·사진·개별 결과는 로컬에만 둔다. cache 진단 코드는 채택하지 않은 로컬 진단이며 추적 runtime 수정이 아니다.
+
+원래 전체 진단의 재현 명령은 다음과 같다. 원래 고정 소스·환경·가중치·유효한 VAL 자료가 필요하며, 이 명령의 기록은 새 실행이나 profile 승인을 뜻하지 않는다.
+
+```powershell
+.\.venv\Scripts\python.exe scripts/gpu_model_set.py diagnose data/gpu-model-sets/cycle2-final-v7/plan.json --output <새로운-프로젝트-내-출력경로>
+```
+
+---
+
+## 이전 모델 조합 검증 이력
+
 # 새 연구 후보 세 모델의 GPU 구현 검증
 
 새 포트홀·차선·개인정보 모델을 각 CPU canonical 통과 후 별도로 고정하여 GPU를 검사했다. 이전 세 모델의160건 통과나6.015FPS를 새 가중치에 소급하지 않았다. [공개 집계](reports/FINAL-MODEL-GPU-VALIDATION.json)에 정확한 부모 manifest·weights·실행 source·plan·profile·proof SHA를 기록했다. 개별 이미지 ID·SHA·경로·좌표는 공개하지 않는다.
