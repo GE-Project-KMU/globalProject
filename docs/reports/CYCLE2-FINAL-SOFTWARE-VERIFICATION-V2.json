@@ -1,0 +1,202 @@
+{
+  "format": "cycle2-final-software-verification-v2",
+  "completed_at": "2026-11-04T18:24:18.614411+00:00",
+  "parent_report_sha256": "df8ebac376e6661f0930f8653e3f0bd88deefeecfbd3e0107921a32ccbeed47c",
+  "source_revision_reported_by_root": "b8660f5",
+  "scope": "Complete Windows Python and live HTTP suite after 70 added contracts; source unchanged by this verification task.",
+  "python": "3.14.7",
+  "command": "python -m pytest tests -q --tb=short --junitxml=data/cycle2-final-pytest-v2-junit.xml",
+  "result": {
+    "exit_code": 0,
+    "unique_test_cases": 1159,
+    "passed_unique_cases": 1157,
+    "skipped_unique_cases": 2,
+    "subtests_passed": 189,
+    "failed": 0,
+    "errors": 0,
+    "JUnit_tests_including_subtests": 1348,
+    "elapsed_seconds": 124.274,
+    "pytest_display_seconds": 124.28
+  },
+  "live_HTTP": {
+    "cases": 75,
+    "passed": 75,
+    "failed": 0,
+    "skipped": 0,
+    "modules": {
+      "tests.test_http": 54,
+      "tests.test_media_source_retention": 6,
+      "tests.test_privacy": 15
+    },
+    "fixtures": "Dedicated isolated synthetic test tenants; no user/photo dataset substitution."
+  },
+  "skips": [
+    {
+      "test": "test_actual_opt_in_cuda_profile_smoke",
+      "reason": "Requires approved exclusive CUDA slot and local pinned model assets; CPU protocol tests are not GPU support proof."
+    },
+    {
+      "test": "test_symbolic_link_refused",
+      "reason": "OS account cannot create symlinks; junction detection tested separately"
+    }
+  ],
+  "logs": {
+    "services_checked": 8,
+    "start_offsets_pinned": true,
+    "ERROR_or_CRITICAL_lines": 0,
+    "Traceback_lines": 0,
+    "HTTP_5xx_lines": 0,
+    "observed_truncations": 0,
+    "service_deltas": [
+      {
+        "service": "analysis",
+        "appended_bytes": 30698,
+        "appended_lines": 316,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "frontend",
+        "appended_bytes": 0,
+        "appended_lines": 0,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "gateway_tls",
+        "appended_bytes": 609,
+        "appended_lines": 10,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "gateway",
+        "appended_bytes": 56443,
+        "appended_lines": 664,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "identity",
+        "appended_bytes": 54839,
+        "appended_lines": 729,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "inspection",
+        "appended_bytes": 39805,
+        "appended_lines": 486,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "media",
+        "appended_bytes": 20205,
+        "appended_lines": 210,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "reporting",
+        "appended_bytes": 9443,
+        "appended_lines": 89,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      }
+    ]
+  },
+  "service_health": {
+    "checks": 8,
+    "HTTP200": 7,
+    "services": [
+      {
+        "name": "identity",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "media",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "inspection",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "analysis",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "reporting",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "gateway",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "frontend",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "gateway_tls",
+        "healthy": false,
+        "error_type": "ConnectError"
+      }
+    ],
+    "optional_TLS_gateway_registered": false,
+    "optional_TLS_limit": "HTTPS8443 unavailable/unregistered; no TLS handshake claim or service restart."
+  },
+  "environment": {
+    "TEMP_TMP_TMPDIR_and_bytecode_cache": "project .cache only",
+    "pytest_temp_guard": "unique project-scoped PID/UUID default",
+    "actual_CUDA_optin_enabled": false,
+    "CUDA_VISIBLE_DEVICES": "",
+    "concurrent_workloads_reported_at_start": [
+      "lane GPU training near epoch9 with CPU three threads"
+    ]
+  },
+  "evidence_sha256": {
+    "cycle2-final-pytest-v2.log": "e34591253145c96dbeed39d524a408d27b6ccca4c852098650adc4e2a6ecb0e1",
+    "cycle2-final-pytest-v2-junit.xml": "cb5eb018a81e1d2b1991269f72c77564221a802ff1c640eea9f4dbfa107df818",
+    "cycle2-final-v2-log-offsets.json": "321d9bedbd6d1fcbeb7947294d249b7b0df46f040195f3591d7b51f8077e3f87",
+    "cycle2-final-v2-log-delta.json": "a474167166b2b4724d80314a4346e44bbd595b0c1bc6600f6e33eca0bda0930e",
+    "cycle2-final-v2-service-health.json": "c3e538e162d25bd88b8cc718448892fb9da8821ec5c55204abe84b0c0d38e956",
+    "cycle2-final-v2-exit.json": "bdf776f02ef0dc26db1e10b8876b4205df74c6bf91b42e49ee96b7fa8d01e753"
+  },
+  "source_files_changed": false,
+  "original_or_model_weights_changed": false,
+  "existing_retention_inventories_changed": false,
+  "Git_actions": false,
+  "frontend_UI_repeated": false,
+  "frontend_build_repeated": false,
+  "production_or_field_acceptance_claim": false,
+  "limits": [
+    "Actual CUDA support and trained-model accuracy are outside this software regression.",
+    "Windows symlink privilege unavailable; skipped test is not represented as executed.",
+    "Shared-host elapsed time is not camera/pipeline FPS.",
+    "Existing V1 report and evidence preserved; unchanged flags apply only to this verification task."
+  ]
+}
