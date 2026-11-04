@@ -1,0 +1,151 @@
+{
+  "format": "lane-cycle2-retry1-final-public-accuracy-v1",
+  "artifact_digest": "23f3b9eb6d1724ce91c842af10bc2c9eba54628c9906155b7bcdff64997860ce",
+  "aggregation_source_sha256": "b9933c8d1e5587cd8a19739430fc399e210e9d537d3d4d572cabdfa1a2576dbb",
+  "evaluation_source_sha256": {
+    "agent/dataset.py": "f12146e88934d5320767d9eafb8771dc20bc5f7217af5c73dfa78214af7f7af3",
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "scripts/check_lane_cycle2_runtime.py": "5a96a618af5199c820500598c2dbf3a6254ca3ae600825ebf03f1b0a899a1072",
+    "scripts/compare_lane_models.py": "01eab04f519fe002683bcae15992c646df5db2fc94455f83753b764eaa61ee5e",
+    "scripts/evaluate_cycle2.py": "4af30037745430ecb7f4ea8789e53c0111dcd3a0508cd00ed150531d73b1b36e",
+    "scripts/evaluate_lane_model.py": "747c58cdbe1f2d25b596d5364b18f2ed4c6501cc01cc20acde0701c3e87ebfd9",
+    "scripts/evaluate_lane_retry1.py": "dceda5abce4e9f3021db46ca267b9bd75b6d6401feff13c09c9ab6794ab599ec",
+    "scripts/gpu_model_set.py": "7a9e92cd6103e7f506884b222a9db4c0b02fca9c9bfbd7c11c5d2763a04822c9",
+    "scripts/verify_trained_models.py": "378e8d5b68c5a48aeb27fc85fac35b507d2e5aa0c28a3fde5bbcf444adf2933f"
+  },
+  "evaluation_policy_sha256": "acf71d2d49ef72a704d8d601e7aa10b7d3f9793908555f2d530775caf5519069",
+  "candidate_manifest_sha256": "79d07ddbda872433cb5eba1b7c40d13641522375b8d5371eb954ad93204dcff0",
+  "candidate_weights_sha256": "e4b187fa33e7bd133bbec37800090d192f12d4ccaf2ee4a7be22f4cdfcecfc97",
+  "candidate_checkpoint_sha256": "10922400312f18d5a894130615ad15281061b7f3d1b7eb23afd5a5930a998329",
+  "canonical_proof_sha256": [
+    "0c9f0102a173ed2ae25caeacb7ab58c8ba30f01245a48e25975189ef0bebbb81",
+    "ed859c4fd93028b3eb2b67976300c39d7eee0d00479434ae8fa41da87d629a03",
+    "c2b4d597a88f2a3ded245f196f8d3d0d48ba3b08705bda78f298611a95f95800"
+  ],
+  "all179_proof_sha256": "d67dc2e6790ca6845ac762782178674c9e33164a6639d0e1de066d8f03a8a0f0",
+  "epochs_completed": 20,
+  "actual_optimizer_updates": 13952,
+  "selected_epoch": 18,
+  "development_mean_recording_IoU": 0.7648229043200139,
+  "development_score_is_independent_accuracy": false,
+  "results": {
+    "fresh": {
+      "samples": 119,
+      "scope": "new_unseen_source_recording_only_not_physical_independence",
+      "models": {
+        "baseline": {
+          "manifest_sha256": "b0c4f5fd65a4cc0c0e4fb93d9dc4034f4fdcfd419961240b4e9300bf81b07691",
+          "weights_sha256": "1266b3dfed2e79ab84b1d8e81a7a4e8b751b4de3e37d1eff9657b5c1462dcec6",
+          "paint_threshold": 0.2,
+          "confusion": {
+            "tp": 2639694,
+            "fp": 613878,
+            "fn": 576759,
+            "tn": 272173509,
+            "ignored": 0
+          },
+          "paint_iou": 0.6891555847262286,
+          "paint_precision": 0.811321833357307,
+          "paint_recall": 0.8206847729470942,
+          "paint_dice": 0.815976445222391
+        },
+        "candidate": {
+          "manifest_sha256": "79d07ddbda872433cb5eba1b7c40d13641522375b8d5371eb954ad93204dcff0",
+          "weights_sha256": "e4b187fa33e7bd133bbec37800090d192f12d4ccaf2ee4a7be22f4cdfcecfc97",
+          "paint_threshold": 0.6,
+          "confusion": {
+            "tp": 2676316,
+            "fp": 446301,
+            "fn": 540137,
+            "tn": 272341086,
+            "ignored": 0
+          },
+          "paint_iou": 0.7306840699648407,
+          "paint_precision": 0.8570746908762746,
+          "paint_recall": 0.8320706069698516,
+          "paint_dice": 0.8443875836676358
+        }
+      },
+      "paint_iou_change_percentage_points": 4.152848523861207
+    },
+    "regression": {
+      "samples": 180,
+      "scope": "previously_examined_regression_only",
+      "models": {
+        "baseline": {
+          "manifest_sha256": "b0c4f5fd65a4cc0c0e4fb93d9dc4034f4fdcfd419961240b4e9300bf81b07691",
+          "weights_sha256": "1266b3dfed2e79ab84b1d8e81a7a4e8b751b4de3e37d1eff9657b5c1462dcec6",
+          "paint_threshold": 0.2,
+          "confusion": {
+            "tp": 3434884,
+            "fp": 1355600,
+            "fn": 1272511,
+            "tn": 411421781,
+            "ignored": 24
+          },
+          "paint_iou": 0.5665325470332732,
+          "paint_precision": 0.7170223301027621,
+          "paint_recall": 0.7296783040301483,
+          "paint_dice": 0.7232949588008017
+        },
+        "candidate": {
+          "manifest_sha256": "79d07ddbda872433cb5eba1b7c40d13641522375b8d5371eb954ad93204dcff0",
+          "weights_sha256": "e4b187fa33e7bd133bbec37800090d192f12d4ccaf2ee4a7be22f4cdfcecfc97",
+          "paint_threshold": 0.6,
+          "confusion": {
+            "tp": 3438296,
+            "fp": 1037078,
+            "fn": 1269099,
+            "tn": 411740303,
+            "ignored": 24
+          },
+          "paint_iou": 0.5985398486510425,
+          "paint_precision": 0.7682700931810392,
+          "paint_recall": 0.7304031210467785,
+          "paint_dice": 0.7488582147716011
+        }
+      },
+      "paint_iou_change_percentage_points": 3.2007301617769324
+    }
+  },
+  "evidence_sha256": {
+    "fresh": {
+      "plan": "d179b61e9bc1fa4482a1169becb4bdf6e84952b28695836e206613a2d03673b8",
+      "attempt": "48d2ebb603d1d8c5818222473d46b87812ae152eaa9b33f86e76d4c1e2f5cb2e",
+      "completion": "ce9cebb48f5c1f25fd9d9aae691f5d02e8722ec053c3f20a2af3592132f65df5",
+      "comparison": "c0e9a49c18ec7ae58e1ce526b5c03807e86ce5ca7a09797154f0eef200837641",
+      "comparison-freeze": "ded51de30434e135dafe5cc345da3e3ad7538723e908d6ce9c119674a91d8456",
+      "comparison-per-image": "d8b6c1d0a9921f3ed9768119da2aa64dc126304e94a411ce4a628e4d7f57c79c"
+    },
+    "regression": {
+      "plan": "b385d0f3da6a3226e51b3e0b9cd9d7391f13c023dd9f5538170dac0017f38a71",
+      "attempt": "1a58e7a18695e4f35bbb4ee66a953d8ea54aa579e79092c76a26a6eaa50192c8",
+      "completion": "66fdfee9be9c91ccecce002cba13ab27d7515075506ef1bfe023780729e51de2",
+      "comparison": "29dcda24428012c2b9ab3179a682cced19fad8e96afabcb23b09cf3ff4f60586",
+      "comparison-freeze": "c680ed5ac07432ea151c9ee74912b647894d9968ea717bde182cda5aba6ebb73",
+      "comparison-per-image": "49abf8c73fd32eb0c71205b9b23001e188a0dd8c01d3545a7c7242ab74d69eb5"
+    }
+  },
+  "paint_IoU_target": 0.75,
+  "fresh_paint_IoU_target_passed": false,
+  "fresh_target_shortfall_percentage_points": 1.93159300351593,
+  "TEST_used_for_selection": false,
+  "post_TEST_reselection_or_training_performed": false,
+  "additional_inference_performed_by_aggregation": false,
+  "GPU_used_by_aggregation": false,
+  "physical_route_independence_verified": false,
+  "wear_ratio_accuracy_validated": false,
+  "production_approved": false,
+  "project_acceptance_eligible": false,
+  "operational_promotion_performed": false,
+  "source_expiries_extended": false,
+  "raw_images_or_per_case_metadata_published": false,
+  "limits": [
+    "Fresh recording-heldout only; physical roads/dates/person independence unverified",
+    "Publisher paint segmentation proxy; no lane outline/gap/valid wear-ratio ground truth",
+    "Existing180 cohort is regression only; no independent-performance claim",
+    "Each model uses its own frozen VAL-selected threshold; training and calibration gains are not isolated",
+    "Shared-host single-model CPU latency is not10FPS full-pipeline evidence",
+    "Numerical CPU parity does not establish GPU or production support"
+  ]
+}
