@@ -1,5 +1,13 @@
 # 추론 속도 개선과 검증 범위
 
+## 최신 추가 학습 모델의 검증 상태
+
+2026-11-05 기준, 포트홀 Nano V8·차선 retry1·고정12회차 비식별화 모델의 CPU 합성16장 ABBA 결과는 기본 median1.0516FPS, fast median2.0322FPS다. 기본/fast의 원시 출력 차이는0이며 PNG·품질·추적·차선 결과가 같았다. 각 run에서 세 모델 모두16번 실제 추론했다. 전처리·추론·후처리·품질·추적·비식별·PNG/JSON·최종 flush를 포함하며 load/warmup/별도 동등성 검사/teardown은 제외한다. 영상 decode·카메라·GNSS·API·10분 지속 검증은 포함하지 않는다. [현재 시험과 재현 절차](FINAL-CPU-PIPELINE-BENCHMARK.md)를 참조한다.
+
+새 모델 구성의 GPU160건 진단은 포트홀20·차선100건에서 raw/post가 통과했지만 비식별화40건 중1건의 raw가 기본 rtol.001/atol.0001에 실패했다. post 검출 결과는 모두 통과했으나 strict GPU profile은 등록하지 않았다. 아래 기존 모델의 GPU 처리량과 프로파일은 과거 artifact에 한정되며 최신 세 모델의10FPS 증거가 아니다. 정확도 목표 미달은 [포트홀](POTHOLE-CYCLE2-RESULTS.md)·[차선](LANE-CYCLE2-RESULTS.md)·[비식별화](reports/privacy-family-v10-count-retry1-results.md)에 별도로 기록했다.
+
+## 기존 모델의 개선 이력
+
 기존 가중치·입력 크기·threshold를 바꾸지 않고 CPU 실행 설정과 모델별 병렬 실행을 추가했다. **기본은 기존 CPU2threads/spinning/직렬**이다. 명시적 `fast`는8threads/no-spinning/서로 다른 모델3worker를 사용한다. CPU2D 분석 pipeline의 짧은 warmed 합성 측정은 median0.977→2.036FPS였으며 **10FPS 목표에는 미달**했다. [공개 집계](reports/INFERENCE-PERFORMANCE-RESULTS.json)에 실패·범위를 함께 기록했다.
 
 ## CPU 실제 병목과 개선
