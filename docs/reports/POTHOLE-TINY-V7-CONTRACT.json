@@ -1,0 +1,39 @@
+{
+  "format": "pothole-tiny-contract-v1",
+  "trainer_sha256": "d5ca0f01e3ac6c597618bd973d7236becfaf2a368af645f3cb1b53b5141e6fd1",
+  "release_sha256": "43bcbd0c5160276dc8de9507e40db0a8776ff35e74faf971dcdf69fdddd6d52f",
+  "pretrained_sha256": "9de513de589ac98bb92d3bca53b5af7b9acfa9b0bacb831f7999d0f7afaee8f0",
+  "transfer": {
+    "transferred_tensors": 456,
+    "reinitialized_keys": [
+      "head.cls_preds.0.bias",
+      "head.cls_preds.0.weight",
+      "head.cls_preds.1.bias",
+      "head.cls_preds.1.weight",
+      "head.cls_preds.2.bias",
+      "head.cls_preds.2.weight"
+    ]
+  },
+  "batch_shape": [
+    2,
+    3,
+    640,
+    640
+  ],
+  "targets_shape": [
+    2,
+    120,
+    5
+  ],
+  "decoded_output_shape": [
+    1,
+    8400,
+    6
+  ],
+  "finite_loss": 22.827455520629883,
+  "finite_nonzero_gradients": true,
+  "all_GT_preserved": true,
+  "TEST_images_used": 0,
+  "optimizer_updates": 0,
+  "GPU_initialized": false
+}
