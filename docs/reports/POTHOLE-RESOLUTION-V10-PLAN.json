@@ -1,0 +1,74 @@
+{
+  "format": "pothole-resolution-v10-predeclared-plan-v1",
+  "source_sha256": "77603a16629660e3a2591b26d4f7c9c53fafb31dc603050908cb05d8c5d45545",
+  "dependencies": {
+    "scripts/verify_trained_models.py": "378e8d5b68c5a48aeb27fc85fac35b507d2e5aa0c28a3fde5bbcf444adf2933f",
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "agent/evaluate.py": "e339691310e61dbd7baeacfbbe777085eb495525c02172e9c8755079272d0d2c",
+    "agent/dataset.py": "f12146e88934d5320767d9eafb8771dc20bc5f7217af5c73dfa78214af7f7af3"
+  },
+  "parent_manifest": {
+    "path": "data/training/pothole-localization-v8/model-development.json",
+    "sha256": "d45897d802dfa7d13b19d52c664f06a989c685e6aa810d47b224c62edf276cc2"
+  },
+  "checkpoint": {
+    "path": "data/training/pothole-localization-v8/best.pt",
+    "sha256": "ca846f416269a860bb6002bfce7d763efd999d01b48d2257773a276fd10947e2"
+  },
+  "validation_release": {
+    "path": "data/training/pothole-localization-v8/release.json",
+    "sha256": "43bcbd0c5160276dc8de9507e40db0a8776ff35e74faf971dcdf69fdddd6d52f"
+  },
+  "parent_family_policy": {
+    "path": "docs/reports/POTHOLE-FAMILY-V9-ONE-SHOT-PLAN.json",
+    "sha256": "732b850fe3873f56eaeb9859367ef92c41ad2703af7cd4a9c204dd12fc15bbac"
+  },
+  "baseline_manifest": {
+    "path": "data/training/pothole-mwpd-v6/model.json",
+    "sha256": "b1d5c070c2b4c769531e404e887c604dee3945bf04ddbc9ebd9a01dc588cbdca"
+  },
+  "small_learning_plan": {
+    "path": "data/training/pothole-small-v9-retry1/plan.json",
+    "sha256": "9578d1d2e0f85ea193d2536132f5b8fd0767b2b9ea54e8d718774aa2cafa833b"
+  },
+  "small_retry_protocol": {
+    "path": "data/training/pothole-small-v9-retry1/retry-plan.json",
+    "sha256": "805609357c979d3b37c1354127e4c8069486c0be0434e46e33978cf78b904ceb"
+  },
+  "input_sizes": [
+    640,
+    960,
+    1280
+  ],
+  "new_exports": [
+    960,
+    1280
+  ],
+  "parameter_or_checkpoint_changes": false,
+  "new_training_updates": 0,
+  "rationale": "VAL localization-overlap errors motivate a bounded inference-resolution trial; larger input need not improve and is never selected from TEST",
+  "VAL_images": 652,
+  "domains": {
+    "original": 402,
+    "mwpd": 250
+  },
+  "VAL_membership_sha256": "93c9565a6a51823c87f5f7e121b8293e80e5b6d09e4a1a04b625c04f9f0584aa",
+  "source_expires_at": "2026-11-10T17:14:46.862846+00:00",
+  "source_expiry_extended": false,
+  "CPU_family_members": [
+    "baseline",
+    "nano",
+    "small",
+    "nano960",
+    "nano1280"
+  ],
+  "selection": "Same actual-app ORTCPU1.31.1 VAL for every available member; oldAP>=CPUbaseline-.03; maximum mean two-domain AP50; tie baseline,nano,small,nano960,nano1280",
+  "confidence_floor": 0.01,
+  "operating_confidence": 0.1,
+  "nms_iou": 0.5,
+  "TEST_images": 0,
+  "TEST_used_for_choice": false,
+  "user_recordings_used": false,
+  "GPU_used": false,
+  "production_approved": false
+}
