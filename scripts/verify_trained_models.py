@@ -41,17 +41,18 @@ def validate_architecture(info):
         if not isinstance(rates,(list,tuple)) or len(rates)!=3 or any(type(x) is not int or not 1<=x<=64 for x in rates):raise ValueError("invalid_lane_aspp_dilations")
     elif task in ("pothole","redaction"):
         p2=architecture=="YOLOX-Nano P2 face640 global plus four tiles and frozen plate640"
-        tiled=architecture=="two YOLOX-Nano specialists global plus four tiles" or p2
+        rescue=architecture=='frozen legacy YOLOX-Nano specialists plus four tile P2 rescue'
+        tiled=architecture=="two YOLOX-Nano specialists global plus four tiles" or p2 or rescue
         if not tiled and any(key in info for key in ("shared_input_size","face_tile_grid")):raise ValueError("unexpected_tiled_geometry")
         if "architecture" not in info or architecture=="YOLOX-Nano":return
-        if task=="pothole" and architecture=="YOLOX-Tiny":
+        if task=="pothole" and architecture in ("YOLOX-Tiny","YOLOX-S"):
             if info.get('input_size')!=[640,640] or any(type(v) is not int for v in info['input_size']):raise ValueError('invalid_tiny_geometry')
             return
         if task=="redaction" and p2:
             if (info.get('input_size')!=[1920,1920] or info.get('shared_input_size')!=1920 or info.get('face_input_size')!=640 or info.get('plate_input_size')!=640 or info.get('face_tile_grid')!=2):raise ValueError('invalid_P2_geometry')
             if any(type(info.get(key)) is not int for key in ('shared_input_size','face_input_size','plate_input_size','face_tile_grid')):raise ValueError('invalid_P2_geometry')
             return
-        if task!="redaction" or architecture not in ("two YOLOX-Nano specialists","two YOLOX-Nano specialists global plus four tiles"):raise ValueError("unsupported_detector_architecture")
+        if task!="redaction" or architecture not in ("two YOLOX-Nano specialists","two YOLOX-Nano specialists global plus four tiles",'frozen legacy YOLOX-Nano specialists plus four tile P2 rescue'):raise ValueError("unsupported_detector_architecture")
         if not isinstance(info.get("input_size"),list) or len(info["input_size"])!=2 or any(type(x) is not int for x in info["input_size"]):raise ValueError("invalid_specialist_geometry")
         if type(info.get("face_input_size")) is not int or info["face_input_size"]!=960 or type(info.get("plate_input_size")) is not int or info["plate_input_size"]!=640:raise ValueError("invalid_specialist_geometry")
         if tiled:
@@ -68,6 +69,12 @@ def build_torch_reference(info,yolox_source):
         from agent.lane_network import make_lane_network
         return make_lane_network(pretrained=False,aspp_dilations=info.get("aspp_dilations",[12,24,36]))
     source=scoped(yolox_source,exists=False)
+    if info.get('architecture')=='YOLOX-S':
+        from agent.pothole_small_network import make_pothole_small
+        return make_pothole_small(yolox_root=source)[0]
+    if info.get('architecture')=='frozen legacy YOLOX-Nano specialists plus four tile P2 rescue':
+        from agent.redaction_rescue_network import build_redaction_rescue_network
+        return build_redaction_rescue_network(yolox_root=source,shared_input_size=info['shared_input_size'],face_input_size=info['face_input_size'],plate_input_size=info['plate_input_size'])
     if info.get('architecture')=='YOLOX-Nano P2 face640 global plus four tiles and frozen plate640':
         from agent.redaction_p2_network import build_redaction_p2_network
         return build_redaction_p2_network(yolox_root=source)
@@ -90,6 +97,8 @@ def check_model_output(info,array):
     if info.get("architecture")=="two YOLOX-Nano specialists global plus four tiles" and tuple(array.shape)!=(1,102900,7):raise ValueError("invalid_tiled_output_shape")
     if info.get('architecture')=='YOLOX-Nano P2 face640 global plus four tiles and frozen plate640' and tuple(array.shape)!=(1,176400,7):raise ValueError('invalid_P2_output_shape')
     if info.get('architecture')=='YOLOX-Tiny' and tuple(array.shape)!=(1,8400,6):raise ValueError('invalid_tiny_output_shape')
+    if info.get('architecture')=='YOLOX-S' and tuple(array.shape)!=(1,8400,6):raise ValueError('invalid_small_output_shape')
+    if info.get('architecture')=='frozen legacy YOLOX-Nano specialists plus four tile P2 rescue' and tuple(array.shape)!=(1,333300,7):raise ValueError('invalid_rescue_output_shape')
 
 def validate_metadata(path):
     from datetime import datetime,timezone
@@ -131,7 +140,9 @@ def validate_metadata(path):
         if m.get("release_summary_sha256")!=digest(source):raise ValueError("release_summary_hash_mismatch")
     else:raise ValueError("invalid_release_metadata")
     if m.get("dataset_release")!="manifest-sha256:"+source_hash or provenance.get("release_sha256")!=source_hash:raise ValueError("dataset_provenance_hash_mismatch")
-    if any(type(counts.get(split)) is not int or counts[split]<1 for split in ("train","validation","test")):raise ValueError("three_nonempty_splits_required")
+    if m.get('development_only_release') is True:
+        if (any(type(counts.get(s)) is not int or counts[s]<1 for s in ('train','validation')) or type(counts.get('test')) is not int or counts['test']!=0 or m.get('exported_before_final_test') is not True):raise ValueError('explicit_development_only_release_required')
+    elif any(type(counts.get(split)) is not int or counts[split]<1 for split in ("train","validation","test")):raise ValueError("three_nonempty_splits_required")
     if not splits or any(split not in ("train","validation") for split in splits):raise ValueError("test_or_unknown_asset_in_training")
     for asset in provenance["assets"]:
         expiry=datetime.fromisoformat(asset["expires_at"].replace("Z","+00:00"))

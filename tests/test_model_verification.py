@@ -26,6 +26,18 @@ def test_metadata_only_does_not_open_unfinished_weights(artifact):
     assert result["production_approved"] is False and result["accuracy_evaluation_performed"] is False
     assert result["split_counts"]=={"train":1,"validation":1,"test":1}
 
+def test_development_only_export_requires_explicit_zero_test_contract(artifact):
+    rows=json.loads(artifact.release.read_text())[:2]
+    artifact.release.write_text(json.dumps(rows),encoding='utf-8')
+    p=json.loads(artifact.provenance.read_text());p['release_sha256']=digest(artifact.release)
+    artifact.provenance.write_text(json.dumps(p),encoding='utf-8')
+    m=artifact.model|{'dataset_release':'manifest-sha256:'+digest(artifact.release)}
+    for extra in ({},{'development_only_release':True},{'development_only_release':True,'exported_before_final_test':False}):
+        artifact.manifest.write_text(json.dumps(m|extra),encoding='utf-8')
+        with pytest.raises(ValueError):validate_metadata(artifact.manifest)
+    artifact.manifest.write_text(json.dumps(m|{'development_only_release':True,'exported_before_final_test':True}),encoding='utf-8')
+    assert validate_metadata(artifact.manifest)['split_counts']=={'train':1,'validation':1,'test':0}
+
 
 def test_expanded_release_metadata_has_a_bounded_40mb_read(artifact):
     from scripts.verify_trained_models import read,MAX_METADATA_BYTES
