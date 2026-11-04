@@ -1,0 +1,197 @@
+{
+  "format": "cycle2-final-software-verification-v1",
+  "completed_at": "2026-11-04T17:52:08.624166+00:00",
+  "scope": "Complete Python suite and live HTTP regression; UI/build retained separately; no source edits or actual opt-in CUDA run.",
+  "python": "3.14.7",
+  "command": "python -m pytest tests -q --tb=short --junitxml=data/cycle2-final-pytest-junit.xml",
+  "result": {
+    "exit_code": 0,
+    "unique_test_cases": 1089,
+    "passed_unique_cases": 1087,
+    "skipped_unique_cases": 2,
+    "subtests_passed": 189,
+    "failed": 0,
+    "errors": 0,
+    "JUnit_tests_including_subtests": 1278,
+    "elapsed_seconds": 118.216,
+    "pytest_display_seconds": 118.22
+  },
+  "live_HTTP": {
+    "cases": 75,
+    "passed": 75,
+    "failed": 0,
+    "skipped": 0,
+    "modules": {
+      "tests.test_http": 54,
+      "tests.test_media_source_retention": 6,
+      "tests.test_privacy": 15
+    },
+    "fixtures": "Dedicated isolated synthetic test tenants; no user/photo dataset source substitution."
+  },
+  "skips": [
+    {
+      "test": "actual_opt_in_cuda_profile_smoke",
+      "reason": "Approved exclusive CUDA slot/local pinned assets required; opt-in disabled in this run."
+    },
+    {
+      "test": "symbolic_link_refused",
+      "reason": "Windows account could not create symlink; separate junction detection tests passed."
+    }
+  ],
+  "logs": {
+    "services_checked": 8,
+    "start_offsets_pinned": true,
+    "ERROR_or_CRITICAL_lines": 0,
+    "Traceback_lines": 0,
+    "HTTP_5xx_lines": 0,
+    "observed_truncations": 0,
+    "service_deltas": [
+      {
+        "service": "analysis",
+        "appended_bytes": 30867,
+        "appended_lines": 318,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "frontend",
+        "appended_bytes": 0,
+        "appended_lines": 0,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "gateway_tls",
+        "appended_bytes": 608,
+        "appended_lines": 10,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "gateway",
+        "appended_bytes": 56206,
+        "appended_lines": 662,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "identity",
+        "appended_bytes": 54679,
+        "appended_lines": 727,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "inspection",
+        "appended_bytes": 39862,
+        "appended_lines": 487,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "media",
+        "appended_bytes": 20264,
+        "appended_lines": 211,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "reporting",
+        "appended_bytes": 9098,
+        "appended_lines": 86,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      }
+    ],
+    "independent_literal_ERROR_Traceback_tokens": {
+      "ERROR_tokens": 0,
+      "Traceback_tokens": 0
+    }
+  },
+  "service_health": {
+    "checks": 8,
+    "HTTP200": 7,
+    "services": [
+      {
+        "name": "identity",
+        "http_status": 200,
+        "healthy": true
+      },
+      {
+        "name": "media",
+        "http_status": 200,
+        "healthy": true
+      },
+      {
+        "name": "inspection",
+        "http_status": 200,
+        "healthy": true
+      },
+      {
+        "name": "analysis",
+        "http_status": 200,
+        "healthy": true
+      },
+      {
+        "name": "reporting",
+        "http_status": 200,
+        "healthy": true
+      },
+      {
+        "name": "gateway",
+        "http_status": 200,
+        "healthy": true
+      },
+      {
+        "name": "frontend",
+        "http_status": 200,
+        "healthy": true
+      },
+      {
+        "name": "gateway_tls",
+        "healthy": false,
+        "error_type": "ConnectError"
+      }
+    ],
+    "optional_TLS_gateway_registered": false,
+    "optional_TLS_limit": "HTTPS8443 connection failed and no managed gateway_tls record exists; TLS availability/certificate handshake not verified by this run. No service was started/restarted."
+  },
+  "environment": {
+    "TEMP_TMP_TMPDIR_and_bytecode_cache": "project .cache only",
+    "pytest_temp_guard": "unique project-scoped PID/UUID default",
+    "actual_CUDA_optin_enabled": false,
+    "CUDA_VISIBLE_DEVICES": "",
+    "concurrent_workloads_reported_at_start": [
+      "CPU resolution VAL four models, two threads",
+      "lane GPU training, CPU three threads"
+    ]
+  },
+  "evidence_sha256": {
+    "cycle2-final-pytest.log": "99d1ad9ed2f1cec63135e65eb77820b15d9950d535ec76dc12bcb5e37bc6116a",
+    "cycle2-final-pytest-junit.xml": "16ddd9937d8a6fb86fa2d0333e4b9e2e663f2182bc6953df23313ae5348a648d",
+    "cycle2-final-log-offsets.json": "afe1beb184adece0a1de56e893ccec26523fa01e5f3e0d453f8e0bbc9cbdce16",
+    "cycle2-final-log-delta.json": "72225c3a0543e5e51a2e42b09cad1b688831d8ecbe15d86d9b19a3bb143b4b5f",
+    "cycle2-final-service-health.json": "170000a4f2c0063e9188cb6efaad08132eeb37eefb94af7661cf9ed7c727cf3b"
+  },
+  "source_files_changed": false,
+  "original_or_model_weights_changed": false,
+  "existing_retention_inventories_changed": false,
+  "Git_actions": false,
+  "frontend_UI_repeated": false,
+  "production_or_field_acceptance_claim": false,
+  "limits": [
+    "Actual CUDA inference remains a separate approved exclusive-slot verification.",
+    "Windows symlink privilege was unavailable; no skip is presented as an executed symlink test.",
+    "Optional development TLS gateway was unreachable/unregistered; the75live HTTP cases use the active HTTP gateway.",
+    "Shared-host elapsed time is software regression time, not camera/pipeline FPS or model accuracy."
+  ],
+  "change_scope": "All unchanged flags describe this verification task only; concurrent model training may update its own artifacts."
+}
