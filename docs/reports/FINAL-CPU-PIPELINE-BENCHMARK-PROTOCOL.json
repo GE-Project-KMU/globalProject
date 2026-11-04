@@ -1,0 +1,150 @@
+{
+  "format": "final-frozen-models-synthetic16-CPU-ABBA-v1",
+  "model_set": {
+    "path": "data/gpu-model-sets/cycle2-final-v7/plan.json",
+    "sha256": "fda53437ca10b9fa7e0f87eb2b8160adcbde076c39c0fa2c80aa52104a5f443c"
+  },
+  "models": {
+    "pothole": {
+      "manifest": {
+        "path": "data/training/pothole-localization-v8/model-development.json",
+        "sha256": "d45897d802dfa7d13b19d52c664f06a989c685e6aa810d47b224c62edf276cc2"
+      },
+      "weights_sha256": "10844440b5a0329e54ecf1ec8c2a4bd60de9ad644e881c0935da5c7638cc4814",
+      "cpu_verifications": [
+        {
+          "path": "data/training/pothole-localization-v8/verification-final.json",
+          "sha256": "b5bc90a6d03ef6e42fc4fd4780d0e942785b045997e02af01258eca00ddcd3c3"
+        },
+        {
+          "path": "data/training/pothole-localization-v8/verification-mwpd-positive-1.json",
+          "sha256": "a0574a4695d20c4d4c9fe9e6605468a88ad5735778c65fa82115b80df2405113"
+        },
+        {
+          "path": "data/training/pothole-localization-v8/verification-mwpd-positive-2.json",
+          "sha256": "0255f944b938c239875c0ad1e7f3b83b55467df0a9467a19dda2b2d67b9a2e58"
+        }
+      ],
+      "provenance": {
+        "path": "data/training/pothole-localization-v8/provenance.json",
+        "sha256": "c92f7407c10bdf9e2946028f878b4e5c311aa6beca96e77dddd0e6b5daabbfce"
+      }
+    },
+    "lane": {
+      "manifest": {
+        "path": "data/training/lane-cycle2-v5-retry1/lane.json",
+        "sha256": "79d07ddbda872433cb5eba1b7c40d13641522375b8d5371eb954ad93204dcff0"
+      },
+      "weights_sha256": "e4b187fa33e7bd133bbec37800090d192f12d4ccaf2ee4a7be22f4cdfcecfc97",
+      "cpu_verifications": [
+        {
+          "path": "data/training/lane-cycle2-v5-retry1/verification-final.json",
+          "sha256": "0c9f0102a173ed2ae25caeacb7ab58c8ba30f01245a48e25975189ef0bebbb81"
+        },
+        {
+          "path": "data/training/lane-cycle2-v5-retry1/verification-val-1.json",
+          "sha256": "ed859c4fd93028b3eb2b67976300c39d7eee0d00479434ae8fa41da87d629a03"
+        },
+        {
+          "path": "data/training/lane-cycle2-v5-retry1/verification-val-2.json",
+          "sha256": "c2b4d597a88f2a3ded245f196f8d3d0d48ba3b08705bda78f298611a95f95800"
+        }
+      ],
+      "provenance": {
+        "path": "data/training/lane-cycle2-v5-retry1/provenance.json",
+        "sha256": "7ca486ba6172b38bb45ffcd36f223cc5cd7144020407959c64e850d58bfbde9a"
+      }
+    },
+    "redaction": {
+      "manifest": {
+        "path": "data/training/privacy-family-v10-evaluation/models/winner/model.json",
+        "sha256": "35d05364eb1596a3dc634ea95a42aa29371a398c3f322f5be31eebb4e292b2dd"
+      },
+      "weights_sha256": "a9df6a605d0349a19ef394fcf83752b80377ef09ecf7deb5fdaabb995afdadbc",
+      "cpu_verifications": [
+        {
+          "path": "data/training/privacy-family-v10-evaluation/models/winner/verification-final.json",
+          "sha256": "44813164aa4f21bf2207a9a254c7cb859f77276de213a03c14ee989fc3a706ea"
+        },
+        {
+          "path": "data/training/privacy-family-v10-evaluation/models/winner/verification-plate.json",
+          "sha256": "be82317fee2e710a974afbd9a6e8d85ca7cae811bc5556787e6f5093633fda91"
+        }
+      ],
+      "provenance": {
+        "path": "data/training/privacy-family-v10-evaluation/models/winner/provenance.json",
+        "sha256": "6678c245170444036d34d128e2ac90ab0ded29b4431f51da2ba64b9aae6f804e"
+      }
+    }
+  },
+  "source_sha256": {
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "agent/gpu_worker_client.py": "d444966f4db0b56a1b6590baeb958873bb5fb4fe993fc394035e4b9073b19d74",
+    "scripts/gpu_inference_worker.py": "bd03f8fa4be19a3bbdb4a67280c5594ebbaac7f2ea5720fe2bf9f646a5a7a8ca",
+    "scripts/gpu_model_set.py": "7a9e92cd6103e7f506884b222a9db4c0b02fca9c9bfbd7c11c5d2763a04822c9",
+    "scripts/verify_trained_models.py": "378e8d5b68c5a48aeb27fc85fac35b507d2e5aa0c28a3fde5bbcf444adf2933f",
+    "scripts/benchmark_inference_cpu.py": "2490fa73aebb6513e8e9eca9fc35d210397c3bffddc6ab4417220496801acc50",
+    "agent/pipeline.py": "2676daa2607cbaf926d4709edbec1ce6bf3271c5cf5d2b9e4c76cae918834dc6",
+    "agent/inference_runner.py": "cc637c3130baefea0b627c94273450fa7a15ef2db2b9c1869c075e0a1f15398d",
+    "agent/evidence_writer.py": "6746223ef3bb14e425f56b5e864c3d1535ecdc569c04e62f6b4117eb2eba6386",
+    "agent/material_policy.py": "c5f2026f0e10d0f97e430e60bb2a68af18d8b397b4bd8f7b28287d779f1e9b72",
+    "agent/governance.py": "fe6704cbe7c28753df490bbe5bc8bcd41af5f113f115380d6b90150d51f35baf",
+    "scripts/benchmark_final_cpu_pipeline.py": "c80bcd18d588838570382a5672ad0455698e8b5fa9dc8fe2708a23c692e6f425"
+  },
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "opencv": "5.0.0",
+    "system": "Windows",
+    "machine": "AMD64"
+  },
+  "frames_per_timed_run": 16,
+  "input_size": [
+    1280,
+    720
+  ],
+  "OpenCV_threads": 1,
+  "seed": 20261112,
+  "order": [
+    "default",
+    "fast",
+    "fast",
+    "default"
+  ],
+  "profiles": {
+    "default": {
+      "cpu_threads": 2,
+      "allow_spinning": true,
+      "model_workers": 1
+    },
+    "fast": {
+      "cpu_threads": 8,
+      "allow_spinning": false,
+      "model_workers": 3
+    }
+  },
+  "io_profile": "overlap",
+  "model_sessions_per_run": 3,
+  "maximum_concurrent_profiles": 1,
+  "warmups_per_run": 5,
+  "raw_post_proof": "Untimed synthetic16 default then fast, same three sessions before timed work; raw arrays RAM-only, input blob SHA and post exact",
+  "raw_tolerance": {
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "timed_predict_calls_each_model": 16,
+  "quality_bad_does_not_permit_model_skip": true,
+  "raw_reference_budget": 536870912,
+  "main_rss_budget": 8589934592,
+  "output_budget": 1073741824,
+  "model_source_expires_at": "2026-11-10T16:55:19.285523+00:00",
+  "synthetic_expiry_rule": "min(actual nonpersonal generation UTC+2h, original model source expiry)",
+  "source_capture_is_physical": false,
+  "GPU_operations": 0,
+  "TEST_or_user_images_used": false,
+  "scope": "FP32 CPU pipeline preprocessing/inference/post/quality/tracking/redaction/PNG/JSON/finalflush; load/warm/proof/teardown separate; no capture/decode/GNSS/API",
+  "independent_accuracy_proven": false,
+  "ten_fps_field_acceptance": false,
+  "ten_minute_sustained_test": false,
+  "automatic_retry_allowed": false
+}
