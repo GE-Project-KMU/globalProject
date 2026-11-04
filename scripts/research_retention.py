@@ -8,8 +8,14 @@ from contextlib import contextmanager
 ROOT=Path(__file__).resolve().parents[1]
 STATE=ROOT/"data/research-retention"
 KNOWN_ROOTS={"data/research/redaction","data/research/rdd2020","data/research/rdd2022","data/research/rdd2022-official-v5","data/research/mwpd-v6","data/demo-reference","data/public/rtk","data/public/a2d2","data/public/a2d2-improvement-v2","data/public/a2d2-refinement-v3","data/cpu-inference-benchmark","data/gpu-inference-probe","data/gpu-model-sets/final-v6"}
+KNOWN_ROOTS.update({'data/research/rdd2022-blind-v7','data/public/a2d2-cycle2-v5',
+                    'data/gpu-model-sets/io-overlap-v1','data/gpu-model-sets/cycle2-final-v7'})
 WEIGHTS={".pt",".pth",".onnx",".safetensors",".ckpt",".pkl",".pickle"}
 KINDS={"source_archive":{ ".zip",".tar",".gz",".xz",".7z",".download",".part",".assembled"},"source_image":{ ".jpg",".jpeg",".png",".bmp",".webp",".tif",".tiff"},"derived_image":{ ".jpg",".jpeg",".png",".bmp",".webp",".tif",".tiff"},"source_annotation":{ ".txt",".xml",".mat",".json",".jsonl",".csv"},"per_image_prediction":{ ".json",".jsonl",".csv",".npy",".npz",".jpg",".jpeg",".png"},"identifiable_manifest":{ ".json",".jsonl",".csv",".log"}}
+KINDS['source_range']={'.bin'}  # Never a generic archive/model-binary extension.
+RANGE_ROOT='data/research/rdd2022-blind-v7/range-cache'
+RANGE_ARCHIVE_BYTES=13_264_172_619
+RANGE_MAX_BYTES=4*1024*1024
 EXPIRIES={"expires_at","source_expires_at","collection_expires_at","mask_expires_at","license_expires_at","retention_expires_at"}
 PRESERVED={"provenance.json","source.json","source-qc.json","source-metadata.json","acquisition.json","license-evidence.json","license.json","license.txt","license.md","license","notice","readme.md","readme.txt","environment-report.json","install-receipt.json"}
 PRIVATE_FIELDS={"source_member","path","image_path","mask_path","source_path","filename","file_name","sample_id","source_id","image_id","image_sha256","bbox_xywh_px","paint_mask_rle"}
@@ -99,6 +105,16 @@ def roots(values):
 
 def eligible(path,kind):
     if kind not in KINDS or path.suffix.lower() not in KINDS[kind] or any(suffix.lower() in WEIGHTS for suffix in path.suffixes):raise ValueError("unsupported_research_file_kind")
+    if kind=='source_range':
+        relative=path.relative_to(ROOT).as_posix()
+        if path.parent!=ROOT/RANGE_ROOT or not re.fullmatch(r'(?:0|[1-9][0-9]*)-(?:0|[1-9][0-9]*)\.bin',path.name):raise ValueError('exact_official_range_cache_required')
+        project_path(relative,file=True)
+        start,end=map(int,path.stem.split('-'));expected=end-start+1
+        if start<0 or end<start or end>=RANGE_ARCHIVE_BYTES or expected>RANGE_MAX_BYTES or path.stat().st_size!=expected:raise ValueError('official_range_bounds_or_size_mismatch')
+        proof=project_path(path.with_suffix('.sha256').relative_to(ROOT).as_posix(),file=True)
+        if proof.stat().st_size!=64:raise ValueError('bounded_range_hash_sidecar_required')
+        if valid_hash(proof.read_text(encoding='ascii'))!=file_snapshot(path)[0]:raise ValueError('range_hash_sidecar_mismatch')
+        return
     name=path.name.lower()
     legal_document=re.search(r"(?:^|[-_.])(?:license|licence|readme)(?:\.(?:txt|md|json|rst|html?))?$",name)
     if name in PRESERVED or name.endswith(".source.json") or legal_document:raise PreservedResearchFile("minimal_source_or_provenance_is_preserved")
