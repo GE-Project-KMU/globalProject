@@ -1,0 +1,52 @@
+{
+  "format": "roadwatch-operational-probe-v1",
+  "synthetic_data_only": true,
+  "docker_executable_available": false,
+  "docker_build_executed": false,
+  "field_or_five_user_acceptance": false,
+  "live_service_processes_stopped": 0,
+  "detail_database_backup_supported": false,
+  "postgresql_version": "16.15",
+  "bounded_load": {
+    "requests": 160,
+    "concurrency": 4,
+    "statuses": {
+      "200": 160
+    },
+    "elapsed_seconds": 6.528117599984398,
+    "median_ms": 163.42430000077002,
+    "p95_ms": 189.16700000409037,
+    "max_ms": 215.72789998026565,
+    "synthetic_observations": 1,
+    "capacity_or_user_acceptance_claim": false
+  },
+  "queue_recovery": {
+    "report_completed": true,
+    "injected_dependency_failures": 1,
+    "deletion_failed_then_manual_retry_completed": true,
+    "blocked_during_failure": true,
+    "observation_image_and_report_unavailable_after_delete": true,
+    "automatic_retry_claim": false
+  },
+  "http_permissions": {
+    "anonymous": 401,
+    "device_admin_route": 403,
+    "cross_org": 404,
+    "invalid_uuid": 422,
+    "wrong_method": 405,
+    "error_envelopes_verified": true
+  },
+  "postgis_version": "3.6 USE_GEOS=1 USE_PROJ=1 USE_STATS=1",
+  "cross_service_table_read_denied": true,
+  "service_migrations_verified": 5,
+  "configuration_backup_restore": {
+    "files_restored": 11,
+    "all_hashes_match": true,
+    "detail_records_restored": 0,
+    "secrets_included": false,
+    "backup_sha256": "fda0b57b2b1d1bdb270fc02e1aa7b24edc9d074661bf7c559f13c0fd6cba21cb"
+  },
+  "unexpected_service_log_errors": 0,
+  "isolated_processes_stopped": 6,
+  "retained_synthetic_databases": 5
+}
