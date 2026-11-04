@@ -1,0 +1,71 @@
+{
+  "automatic_schedule_configured": false,
+  "deadline_date_counts": {
+    "2026-11-10": 35,
+    "2026-11-11": 2,
+    "2027-02-01": 20
+  },
+  "deadline_policy": "Earliest original pinned source expiry. Preview pack/crops/screenshots inherit original RTK90day expiry; model probes inherit original research source expiry.",
+  "dry_run": {
+    "automatic_schedule_configured": false,
+    "counts": {
+      "deleted": 0,
+      "missing": 0,
+      "modified_refused": 0,
+      "not_due": 57,
+      "retired": 0,
+      "scope_refused": 0,
+      "would_delete": 0
+    },
+    "dry_run": true,
+    "model_weights_deleted": 0,
+    "private_plan_counts": {
+      "deleted": 0,
+      "missing": 0,
+      "modified_refused": 0,
+      "not_due": 1,
+      "retired": 0,
+      "scope_refused": 0,
+      "would_delete": 0
+    }
+  },
+  "explicit_new_roots": 9,
+  "format": "completed-followup-retention-v1",
+  "model_weights_deleted": 0,
+  "new_eligible_file_hashes_verified": true,
+  "new_inventory_sha256": "007ed6277aa1c4d1fe97e0cda8f319f0b9e2b224116db00e17002e64dd45680f",
+  "new_plan_sha256": "889cd5301ae7a4527ef9d5b5f769d866784c35402ec3f72845637a829e4f196c",
+  "new_registered_bytes": 72113923,
+  "new_registered_files": 57,
+  "new_roots_disjoint_from_prior_scopes": true,
+  "preserved_counts": {
+    "aggregate_or_unclassified_json_is_preserved": 18,
+    "aggregate_or_unclassified_log_is_preserved": 8,
+    "minimal_source_or_provenance_is_preserved": 9,
+    "model_or_minimal_provenance_is_preserved": 4,
+    "weights": 18
+  },
+  "prior_inventory_sha256": [
+    "a54f568d2c7c2b49427dc8d1b3ac925364f8f5c90160c2ac526b6c4e34b8bc91",
+    "d9d1802992930412572c7f23cc17aab58d51920ccf1cf67f2ca26ae620d26e1d"
+  ],
+  "prior_inventory_snapshots_unchanged": true,
+  "prior_registered_file_count": 39053,
+  "prior_source_file_contents_rehashed_by_this_run": false,
+  "prior_source_scope": "Previous hash checks remain recorded in the original reports; this run registers only disjoint new roots.",
+  "registration": {
+    "inventory_files": 57,
+    "registered_files": 57,
+    "source_deadlines_extended": false,
+    "source_files_modified": false
+  },
+  "source_deadlines_extended": false,
+  "source_files_deleted": 0,
+  "unclassified_extensions": {
+    ".lock": 1,
+    ".md": 1,
+    ".py": 1
+  },
+  "uncovered_new_candidates": 0,
+  "verified_at": "2026-11-04T02:21:17.980538Z"
+}
