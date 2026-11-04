@@ -1,0 +1,120 @@
+{
+  "format": "hardware-free-workflow-contract-v1",
+  "scope": "deterministic ONNX fixture + generated nonpersonal video; not trained model accuracy or field acceptance",
+  "workflow": {
+    "fixture_kind": "deterministic_contract_graph_not_trained_AI",
+    "hardware_connected": false,
+    "user_recordings_read": false,
+    "public_source_images_or_weights_uploaded": false,
+    "generated_nonpersonal_video_frames": 6,
+    "diagnostic_analyzed_frames": 6,
+    "workflow_analyzed_frames": 6,
+    "tracked_frame_observations": 6,
+    "observations_uploaded": 2,
+    "retained_redacted_photos": 1,
+    "mask_changed_generated_checkerboard": true,
+    "runtime": "onnxruntime-cpu",
+    "production_fixture_readiness_rejected": true,
+    "unreviewed_ingestion_rejected": true,
+    "missing_reviewer_blocked": true,
+    "injected_local_503_count": 1,
+    "queue_reopened_and_recovered": true,
+    "encrypted_queue_payload": true,
+    "stale_review_conflict": true,
+    "scoped_report_contains_workflow_observations": true,
+    "http_methods": {
+      "GET": 10,
+      "POST": 13,
+      "PUT": 1,
+      "PATCH": 3
+    },
+    "http_statuses": {
+      "200": 13,
+      "201": 10,
+      "422": 1,
+      "409": 1,
+      "202": 1
+    },
+    "unexpected_live_5xx": 0,
+    "real_AI_accuracy_measured": false,
+    "real_human_privacy_approval_claimed": false,
+    "field_calibration_or_GNSS_verified": false,
+    "private_deletion_pending": false,
+    "privacy_delete_job_succeeded": true,
+    "deleted_observations_unavailable": true,
+    "deleted_images_unavailable": true,
+    "prior_report_invalidated": true,
+    "server_tombstone_blocks_reupload": true,
+    "local_review_photos_removed": true,
+    "local_outbox_removed": true,
+    "local_revocation_blocks_requeue": true
+  },
+  "verification": {
+    "offline_new_tests": 7,
+    "new_plus_vision_tests": 68,
+    "http_existing_tests": 54,
+    "http_plus_new_tests": 61,
+    "browser_all_tests": 25,
+    "browser_page_errors": 0,
+    "browser_console_errors": 0,
+    "browser_failed_requests": 0,
+    "browser_unexpected_api_errors": 0,
+    "typescript_build": "passed",
+    "vite_build": "passed",
+    "isolated_repeat_browser_test": "passed",
+    "new_service_log_errors": {
+      "analysis": {
+        "new_tracebacks": 0,
+        "new_error_lines": 0
+      },
+      "frontend": {
+        "new_tracebacks": 0,
+        "new_error_lines": 0
+      },
+      "gateway": {
+        "new_tracebacks": 0,
+        "new_error_lines": 0
+      },
+      "gateway_tls": {
+        "new_tracebacks": 0,
+        "new_error_lines": 0
+      },
+      "identity": {
+        "new_tracebacks": 0,
+        "new_error_lines": 0
+      },
+      "inspection": {
+        "new_tracebacks": 0,
+        "new_error_lines": 0
+      },
+      "media": {
+        "new_tracebacks": 0,
+        "new_error_lines": 0
+      },
+      "reporting": {
+        "new_tracebacks": 0,
+        "new_error_lines": 0
+      }
+    }
+  },
+  "source_sha256": {
+    "scripts/probe_synthetic_workflow.py": "20d390fc0820f2da4c5a091052117088dc6c5af258831b03dd7ea316cd9dbbf0",
+    "tests/test_synthetic_workflow_probe.py": "806b271c9accf4951a6e2f2bf1d3029475d7c4b5df5b4ee4575479312dc1cb6f",
+    "frontend/e2e/workflow.spec.ts": "b5c9d5df8f9ac839f7e342599084d38c1f465709a2546740ffc2a446613a1973"
+  },
+  "privacy": {
+    "user_recordings_read": false,
+    "external_photos_uploaded": false,
+    "learned_weights_uploaded": false,
+    "production_approval_claimed": false,
+    "human_privacy_approval_claimed": false,
+    "private_sample_ids_published": false
+  },
+  "limitations": [
+    "Deterministic constant/Conv graphs execute in real ONNX Runtime; generated candidates are not learned AI evidence.",
+    "Generated geometry/profile/timestamps/GNSS absence are test contracts, not verified installation or road acquisition.",
+    "Reviewer approval is simulated only for generated nonpersonal pixels in an isolated test organization.",
+    "One 503 is injected locally into the test transport; real server responses contain no unexpected 5xx.",
+    "CPU throughput and model quality are not assessed by this integration test."
+  ]
+}
