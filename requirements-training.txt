@@ -22,3 +22,7 @@ ninja==1.11.1.4
 httpx==0.28.1
 pyyaml==6.0.2
 packaging==25.0
+
+# PyAV18 is the Python3.11-compatible capture-import dependency; application uses19.
+av==18.1.0
+cryptography==50.0.2

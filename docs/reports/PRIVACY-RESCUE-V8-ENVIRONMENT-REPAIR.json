@@ -1,0 +1,61 @@
+{
+  "format": "rescue-v8-environment-import-repair-v1",
+  "root_cause": "agent.evaluate imports agent.pipeline then agent.capture; dedicated training environment lacked av and cryptography",
+  "original_preflight_status": "failed_supervision",
+  "original_failure_receipt_and_log_preserved": true,
+  "original_training_source_sha256": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+  "training_source_modified": false,
+  "original_failed_preflight_success_claimed": false,
+  "actual_failed_preflight_optimizer_step_count_verified": false,
+  "training_run_started": false,
+  "GPU_retry_performed": false,
+  "failed_install_attempt": {
+    "av": "19.0.2",
+    "reason": "Requires-Python >=3.12; dedicated interpreter is3.11",
+    "existing_environment_packages_changed": false
+  },
+  "compatible_added_packages": {
+    "av": "18.1.0",
+    "cffi": "2.1.1",
+    "cryptography": "50.0.2",
+    "pycparser": "3.12"
+  },
+  "existing_package_versions_unchanged": true,
+  "CPU_import_validation": {
+    "passed": true,
+    "required_imports": [
+      "agent.evaluate",
+      "agent.pipeline",
+      "yolox.utils",
+      "torch"
+    ],
+    "GPU_used": false,
+    "cuda_initialized": false,
+    "CUDA_VISIBLE_DEVICES": "",
+    "trainer_source_sha256": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+    "requirements_snapshot_sha256": "850b0fef35c2cca7066f3dbb06ec6a2dcc83889b68e3713113904b3512eccbc6",
+    "after_sha256": "01a3232a942f93cf5b1f845f673c52c2e994c22cc8c7806458e65b78e95cde1d",
+    "module_versions": {
+      "av": "18.1.0",
+      "cryptography": "50.0.2",
+      "cffi": "2.1.1",
+      "pycparser": "3.12",
+      "torch": "2.7.1+cu126",
+      "torchvision": "0.22.1+cu126",
+      "numpy": "1.26.4",
+      "onnxruntime": "1.20.1",
+      "opencv-python-headless": "4.10.0.84"
+    },
+    "source_pixels_read": false,
+    "training_run_started": false
+  },
+  "before_snapshot_sha256": "caa25cc806aa187d49fc97a156dba54142fd61b77e0b9ffeeec27a80cc7a0f7e",
+  "after_snapshot_sha256": "01a3232a942f93cf5b1f845f673c52c2e994c22cc8c7806458e65b78e95cde1d",
+  "publisher_sources": [
+    "https://pypi.org/pypi/av/18.1.0/json",
+    "https://pypi.org/pypi/cryptography/50.0.2/json"
+  ],
+  "GPU_retry_requires_new_namespace_frozen_plan_and_root_authorization": true,
+  "source_expiries_extended": false,
+  "report_scope": "environment_repair_completed_before_any_retry"
+}
