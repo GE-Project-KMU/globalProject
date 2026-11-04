@@ -1,0 +1,38 @@
+{
+  "format": "pothole-val-refinement-plan-v1",
+  "inputs": {
+    "release": {
+      "path": "data/training/research-pothole-rdd2020-v4/release.json",
+      "sha256": "6c5618898d96dd032ae5d9579c8c79aa676a063d6557c1c2f361a37fe5a8388c"
+    },
+    "model": {
+      "path": "data/training/pothole-nano-rdd2020-v4/model.json",
+      "sha256": "28efe86e7c9eacdf90d11caf0eb942dbb19b0a4d6830229069b3277cc8a45a6a"
+    },
+    "checkpoint": {
+      "path": "data/training/pothole-nano-rdd2020-v4/best.pt",
+      "sha256": "2fb2c082964e81b918339a2a26f1a37fc2cd655aa78e9d98a2a38ed04fd89375"
+    }
+  },
+  "script_sha256": "93fc4632e5d3b7547e6cf70dd9f085430f93a65e6b7f963599d69f5b248e446b",
+  "dependency_sha256": {
+    "scripts/improve_pothole_train.py": "337be3debe9423677151ec72a20b68b123163c7de0f967b1f3dd5db1e5b7b4a4",
+    "scripts/train_yolox_research.py": "ff33c7cfcec15c4038f476127354f6e35a4052e8c03f4e4ec91a33c792572242",
+    "agent/models.py": "bb5e3590e6d299b494fd9ebfbdd3d3374fdfa7f9b1284180ceaa5f3d3dadba74"
+  },
+  "candidate_count": 1,
+  "epochs": 10,
+  "batch_size": 16,
+  "input_size": 640,
+  "learning_rate": 0.00025,
+  "seed": 20261105,
+  "optimizer": "native SGD momentum.9/Nesterov/weight_decay.0005 excluding BN and bias",
+  "augmentation": "none; native L1 box regression enabled for every update",
+  "ema": true,
+  "selection": "Best same previously used VAL402 AP50, including initial v4 checkpoint at epoch0; exact ties prefer earlier epoch. No TEST-based choice.",
+  "confidence_selection": "same VAL F2 frozen grid as v4",
+  "test_policy": "All v4 Japan86 and prior Czech231 are previously evaluated regression benchmarks only; no new independent holdout acquired. No TEST inference in trainer.",
+  "reason": "v4 plateau stopped before its scheduled no-augmentation/L1 stage. Bounded single follow-up, not a promise of improvement. Additional official-source acquisition currently HTTP403.",
+  "research_only": true,
+  "production_approved": false
+}
