@@ -1,0 +1,82 @@
+{
+  "format": "pothole-TRAIN7540-hardness-v8",
+  "plan_sha256": "5c04dbfb39f9b2416367bc3b6b7f4af0fe098d9ea6d62979e6bc6b7d9354160c",
+  "source_release_sha256": {
+    "RDD": "6c5618898d96dd032ae5d9579c8c79aa676a063d6557c1c2f361a37fe5a8388c",
+    "MWPD": "a0877b4dcde07b0115199fae2dbd30d24caa743c9b6d0cd6298a319d39772bcd",
+    "baseline_combined": "5b1798968f27eb60939d80d5952447135b6bb49bf6ad16e9f64cfe75d2f8faca"
+  },
+  "training_membership_sha256": "d09ec91ff2732380279cf0b1c5793af59d460d238c5c2c0cc29c3d16894a5537",
+  "manifest_sha256": "b1d5c070c2b4c769531e404e887c604dee3945bf04ddbc9ebd9a01dc588cbdca",
+  "weights_sha256": "201cbb306a5f332a57a4a9b1a5a51aecca639a3088974078895429bb0b940330",
+  "expires_at": "2026-11-10T17:14:46.862846+00:00",
+  "source_expires_at": "2026-11-10T17:14:46.862846+00:00",
+  "train_only": true,
+  "val_images": 0,
+  "test_images": 0,
+  "US100_used": false,
+  "source_quotas_changed": false,
+  "status": "completed",
+  "source_sha256": "453b088a8269a6f7a60b1719e1b4674d5d39601c2c3208cd9b45c5ca07797da4",
+  "train_images": 7540,
+  "strata": {
+    "RDD_positive": {
+      "images": 2676,
+      "weight_min": 1.0,
+      "weight_max": 3.0,
+      "weight_mean": 1.4209142138794606,
+      "weight_median": 1.3333333333333333,
+      "weight_p95": 2.5666666666666664,
+      "weight_equal1": 1290,
+      "weight_between1and3": 1301,
+      "weight_equal3": 85,
+      "gt": 5038,
+      "tp": 4461,
+      "fp": 2527,
+      "fn": 577
+    },
+    "RDD_negative": {
+      "images": 2676,
+      "weight_min": 1.0,
+      "weight_max": 3.0,
+      "weight_mean": 1.064025909317389,
+      "weight_median": 1.0,
+      "weight_p95": 1.6666666666666665,
+      "weight_equal1": 2452,
+      "weight_between1and3": 219,
+      "weight_equal3": 5,
+      "gt": 0,
+      "tp": 0,
+      "fp": 257,
+      "fn": 0
+    },
+    "MWPD_positive": {
+      "images": 2188,
+      "weight_min": 1.0,
+      "weight_max": 3.0,
+      "weight_mean": 1.7834400485135782,
+      "weight_median": 1.6,
+      "weight_p95": 3.0,
+      "weight_equal1": 504,
+      "weight_between1and3": 1456,
+      "weight_equal3": 228,
+      "gt": 4947,
+      "tp": 3589,
+      "fp": 3836,
+      "fn": 1358
+    }
+  },
+  "training_weights_file_sha256": "5b46e0c5d5e3bf4e99c340b2ce903d19b6e47b64f58fde6133e25774eec75c16",
+  "gpu_used": false,
+  "CPU_intra_op_threads": 2,
+  "latency_seconds": {
+    "median": 0.03143994999118149,
+    "p95": 0.04113468999858013
+  },
+  "limits": [
+    "TRAIN hardness only; not validation or independent accuracy.",
+    "Individual weights are bounded1..3; trainer must enforce source quotas separately.",
+    "Single-model CPU latency under shared training host load; not field/pipeline FPS.",
+    "Publisher-label relative FP/FN; no human privacy or deployment approval."
+  ]
+}

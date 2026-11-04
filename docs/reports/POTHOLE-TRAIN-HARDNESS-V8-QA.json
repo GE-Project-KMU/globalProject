@@ -1,0 +1,26 @@
+{
+  "format": "pothole-TRAIN7540-hardness-v8-independent-output-QA",
+  "training_weights_file_sha256": "5b46e0c5d5e3bf4e99c340b2ce903d19b6e47b64f58fde6133e25774eec75c16",
+  "plan_sha256": "5c04dbfb39f9b2416367bc3b6b7f4af0fe098d9ea6d62979e6bc6b7d9354160c",
+  "private_predictions_file_sha256": "54632d479114ed89e8f1e51dbee567d7bf3d5e3be2a7820fb68abcd62b5a6a24",
+  "images": 7540,
+  "strata": {
+    "RDD_positive": 2676,
+    "RDD_negative": 2676,
+    "MWPD_positive": 2188
+  },
+  "exact_TRAIN_membership_verified": true,
+  "sample_uniqueness_verified": true,
+  "original_image_SHA_identity_verified": true,
+  "one_to_one_counts_recomputed_via_agent_evaluate": true,
+  "weight_formula_exact_verified": true,
+  "all_weights_finite_bounded_1_to_3": true,
+  "additional_model_inferences": 0,
+  "additional_image_reads": 0,
+  "VAL_images": 0,
+  "TEST_images": 0,
+  "US100_used": false,
+  "GPU_used": false,
+  "source_expires_at": "2026-11-10T17:14:46.862846+00:00",
+  "weights_file_modified": false
+}
