@@ -1,0 +1,69 @@
+{
+  "format": "rescue-v8-external-supervision-retry1-v1",
+  "phase": "preflight",
+  "status": "completed",
+  "learning_plan_sha256": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d",
+  "training_source_sha256": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+  "supervision_plan_sha256": "cb5092c1a2726d4038d0fc51af1d4e7c3bb1d30ac81416fb7923c3b420ba3cd1",
+  "supervisor_source_sha256": "00a60af75bab8f145189e0b0502dc560ca25d4988fa8ebf8a97b03650ba48a4a",
+  "prerequisite_receipt_sha256": {
+    "Small_retry1": "b1039e36cec825c24834c800427944338f119b3635cc539cec86a78bc3f0d761",
+    "lane_retry1": "491ebca507c6ad5859ceb759864bf62cbb056947d84ff237a07afdf8d119eaa3"
+  },
+  "requires_single_GPU_training_job": true,
+  "training_math_changed": false,
+  "owns_training_child_only": true,
+  "other_process_controlled": false,
+  "global_OOM_zero_claimed": false,
+  "OOM_detection_scope": "own child log only",
+  "source_expiries_extended": false,
+  "TEST_images": 0,
+  "preflight_optimizer_step_attempts_reported": 8,
+  "preflight_is_real_training_experiment": false,
+  "separate_preflight_model_discarded": true,
+  "fresh_construct_for_train": false,
+  "parent_failed_preflight_sha256": "f1791384f7925fd1f7d9be320fb83d40cbfb1f2555f5605ab0607661fc063931",
+  "CPU_import_evidence_sha256": "be1fe14662bc1e4a2119010e1a3c49e592c595ff15fa8b0e983cd6273a4a5879",
+  "dependency_repair_only": true,
+  "GPU_child_started": true,
+  "current_environment_verification": {
+    "passed": true,
+    "packages_sha256": "8a290025b9d5626801aeddb4e3d049867b7fc31b7e665eb2164a524da9b14490",
+    "CPU_only": true,
+    "cuda_initialized": false,
+    "CUDA_VISIBLE_DEVICES": "",
+    "timeout_seconds": 60,
+    "interpreter_sha256": "5f7b89a612c9b8af1d6456cdfcd1dbe5ca630849e79aebced9bee9a6694952ec",
+    "imports": [
+      "agent.evaluate",
+      "agent.pipeline",
+      "yolox.utils",
+      "torch"
+    ]
+  },
+  "trainer_report_sha256": "9d4b9bebce04e1ecac7ea460355511c08c3554149e11f1c74559282d32de03fe",
+  "device_memory": {
+    "scope": "nvidia-smi device-level reported FB memory; WDDM OS/driver accounting, not exact process sum",
+    "query_interval_requested_ms": 100,
+    "timestamps_are_receive_times_not_hardware_sample_times": true,
+    "cannot_guarantee_no_transient_excess_between_samples": true,
+    "total_samples": 73,
+    "retained_samples": 73,
+    "max_device_reported_used_bytes": 1936719872,
+    "observed_receive_interval_ms": {
+      "min": 100.2767,
+      "median": 105.78649999999999,
+      "max": 129.797
+    },
+    "over_budget_observed": false,
+    "errors": []
+  },
+  "observer_child_stopped": true,
+  "observer_thread_stopped": true,
+  "wall_seconds": 12.019761200004723,
+  "failure_reason": null,
+  "own_OOM_signature_observed": false,
+  "child_exit_code": 0,
+  "own_child_running_after_cleanup": false,
+  "sources_unchanged": true
+}
