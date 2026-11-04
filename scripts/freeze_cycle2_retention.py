@@ -10,6 +10,20 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 from scripts import research_retention as r
 from scripts import freeze_public_cycle_retention as old
+from scripts import cycle2_research_writer_guard as writer_guard
+
+# Frozen source dependencies: exact known nonpersonal controls must stay at original paths.
+PROTECTED_CONTROLS={'.cache/cycle2-rescue-v8-preflight.log': '8fc5f869ed5d32d14ab42f0ad0567ec7865382464bb0aacc4c73593b915fa99c', '.cache/cycle2-rescue-v8-preflight-observer.log': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'data/training/redaction-rescue-v8-env-repair/before.json': 'caa25cc806aa187d49fc97a156dba54142fd61b77e0b9ffeeec27a80cc7a0f7e', 'data/training/redaction-rescue-v8-env-repair/after.json': '01a3232a942f93cf5b1f845f673c52c2e994c22cc8c7806458e65b78e95cde1d', 'data/training/redaction-rescue-v8-env-repair/import-success.json': 'be1fe14662bc1e4a2119010e1a3c49e592c595ff15fa8b0e983cd6273a4a5879', 'data/training/redaction-rescue-v8-env-repair/requirements-snapshot.txt': '850b0fef35c2cca7066f3dbb06ec6a2dcc83889b68e3713113904b3512eccbc6', 'data/training/redaction-rescue-v8-env-repair/install.log': 'f30363bc13659f869f59d25e6c3190e475f718297ff40cf3603fc24e5dd59cfd', 'data/training/redaction-rescue-v8-env-repair/install-compatible.log': 'a6b154a7881bb39af4834474715be31180f68de4981a3decc3646ed79ced4b0b', 'data/training/redaction-rescue-v8-env-repair/publisher-wheel-metadata.json': '736aadfb3f92b08b00175d25c2bd5a13a0418ecc84b94b7b4d2cac0e3a393c66'}
+
+def protected_controls():
+    for name,pin in PROTECTED_CONTROLS.items():
+        path=r.project_path(name,file=True)
+        if r.file_snapshot(path)[0]!=pin:raise ValueError('pinned_nonpersonal_control_changed')
+    return len(PROTECTED_CONTROLS)
+
+def preparation_guard():
+    writer_guard.require_stopped(r.ROOT)
+    protected_controls()
 
 STATE='data/research-retention/'
 PINS={**old.PINS,
@@ -126,8 +140,18 @@ def minimal_control_provenance(path,formats=None):
     return not individual(value)
 
 
+OPERATOR_PHASES={'idle-observer','baseline-VAL508','rescue-VAL508-import','winner-freeze','fresh','regression'}|{'strict-'+role+'-'+label for role in ('baseline','winner') for label in ('face','plate')}
+
+def valid_log_source(name):
+    if re.fullmatch(r'\.cache/cycle2[a-zA-Z0-9_.-]*\.log',name):return True
+    path=Path(name)
+    if path.as_posix()!=name:return False
+    if path.parent.as_posix() not in {'.cache/privacy-family-v8-operator','.cache/privacy-family-v8-operator-retry1'}:return False
+    return path.name in {phase+suffix for phase in OPERATOR_PHASES for suffix in ('.log','-observer.log')}
+
 def prepare_log_migration(receipt_path,receipt_sha256,manifest_path,manifest_sha256,output_path):
     """Exact operator-supplied cache logs only; write a reversible move PLAN, not a move."""
+    preparation_guard()
     stopped_receipt(receipt_path,receipt_sha256);audit_immutable()
     manifest=r.state_path(manifest_path)
     if r.file_snapshot(manifest)[0]!=r.valid_hash(manifest_sha256):raise ValueError('log_manifest_digest_mismatch')
@@ -137,28 +161,35 @@ def prepare_log_migration(receipt_path,receipt_sha256,manifest_path,manifest_sha
     if output.exists():raise ValueError('new_log_migration_plan_required')
     entries=[];snapshots={};seen=set();aggregate=0
     for item in value['logs']:
-        if set(item)!={'source','sha256'} or not re.fullmatch(r'\.cache/cycle2[a-zA-Z0-9_.-]*\.log',item['source']):raise ValueError('exact_cycle2_cache_log_required')
+        if set(item)!={'source','sha256'} or not valid_log_source(item['source']):raise ValueError('exact_cycle2_cache_log_required')
         if item['source'] in seen:raise ValueError('duplicate_log_manifest_entry')
         seen.add(item['source']);source=r.project_path(item['source'],file=True)
         snapshot=r.file_snapshot(source)
         if snapshot[0]!=r.valid_hash(item['sha256']):raise ValueError('log_source_digest_mismatch')
         snapshots[item['source']]=snapshot
+        if item['source'] in PROTECTED_CONTROLS:
+            if snapshot[0]!=PROTECTED_CONTROLS[item['source']]:raise ValueError('pinned_nonpersonal_control_changed')
+            aggregate+=1;continue
         try:r.eligible(source,'identifiable_manifest')
         except r.PreservedResearchFile:aggregate+=1;continue
-        destination='data/training/cycle2-logs/'+source.name
+        prefix='operator-retry1--' if '/privacy-family-v8-operator-retry1/' in item['source'] else 'operator-original--' if '/privacy-family-v8-operator/' in item['source'] else ''
+        destination='data/training/cycle2-logs/'+prefix+source.name
         if r.project_path(destination).exists():raise ValueError('log_migration_destination_exists')
         entries.append({'from_log':item['source'],'to_log':destination,'sha256':snapshot[0]})
     for name,snapshot in snapshots.items():
         if r.file_snapshot(r.project_path(name,file=True))!=snapshot:raise ValueError('log_changed_during_preparation')
+    preparation_guard()
     stopped_receipt(receipt_path,receipt_sha256);audit_immutable()
     r.write(output,{'format':'cycle2-reversible-log-move-plan-v1','writer_receipt_sha256':receipt_sha256,
         'exact_log_manifest_sha256':manifest_sha256,'moves':entries,'aggregate_logs_preserved':aggregate,
         'moves_executed':False,'source_files_deleted':0,'requires_manual_scoped_move_and_result_receipt':True})
+    preparation_guard()
     return {'planned_private_log_moves':len(entries),'aggregate_logs_preserved':aggregate,'moves_executed':False,'source_files_deleted':0}
 
 
 def freeze(receipt_path,receipt_sha256):
     # Handoff first: no source proofs, file lists or asset hashes while active.
+    preparation_guard()
     receipt=stopped_receipt(receipt_path,receipt_sha256)
     plan=r.state_path(STATE+'cycle2-frozen-plan.json');inventory=r.state_path(STATE+'cycle2-inventory.json');summary=r.state_path(STATE+'cycle2-summary.json')
     if any(os.path.lexists(path) for path in (plan,inventory,summary)):raise ValueError('new_cycle2_outputs_required')
@@ -208,6 +239,7 @@ def freeze(receipt_path,receipt_sha256):
         for name,snapshot in snapshots.items():
             if r.file_snapshot(r.project_path(name,file=True))!=snapshot:raise ValueError('cycle2_asset_or_proof_changed')
         stopped_receipt(receipt.relative_to(r.ROOT).as_posix(),receipt_sha256);audit_immutable()
+        preparation_guard()
         r.roots(list(filesets))
         r.write(plan,{'schema_version':1,'roots':list(filesets),'entries':entries,'writer_receipt_sha256':receipt_sha256})
         registered=r.register(plan.relative_to(r.ROOT).as_posix(),inventory.relative_to(r.ROOT).as_posix())
@@ -220,6 +252,7 @@ def freeze(receipt_path,receipt_sha256):
             'preserved_counts':dict(preserved),'unclassified_extensions':dict(unknown),'historical_controls_unchanged':True,
             'source_deadlines_extended':False,'source_files_deleted':0,'model_weights_deleted':0,'automatic_schedule_configured':False,
             'registration':registered,'dry_run':dry,'unclassified_requires_operator_review':bool(unknown)}
+        preparation_guard()
         r.write(summary,result);return result
 
 

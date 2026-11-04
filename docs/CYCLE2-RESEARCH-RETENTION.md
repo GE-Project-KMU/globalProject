@@ -43,7 +43,7 @@ prototype의 정확한 `redaction-rescue-synthetic-artifact-context-v1` format�
 
 ## 종료 인계와 수동 freeze
 
-인계 JSON은 ignored `data/research-retention`에 두고 `cycle=public-cycle2-v7`, `writers_stopped=true`, timezone-aware `confirmed_at`, 코드의 **전체 정확 root 목록**을 담아 hash로 고정한다. 이는 외부 writer를 자동 탐지하거나 종료하는 기능이 아니라 운영자의 확인 기록이다. 인계가 틀리면 source proof·자료 목록을 읽기 전에 중단한다.
+인계 JSON은 ignored `data/research-retention`에 두고 `cycle=public-cycle2-v7`, `writers_stopped=true`, timezone-aware `confirmed_at`, 코드의 **전체 정확 root 목록**을 담아 hash로 고정한다. 이는 운영자의 수동 확인 기록이며 계속 필수다. 추가 읽기 전용 guard는 이 프로젝트의 알려진 연구 script·대기 queue·감독/자손·메모리 observer·GPU worker·평가/성능 helper를 시작 전과 publication 전후에 검사하여 발견 시 차단한다. 자체 PID와 일반 MSA resident는 제외한다. 조회할 수 없는 프로세스나 알려지지 않은 writer까지 없다고 증명하지 않으며 프로세스를 종료하지 않는다. 인계가 틀리면 source proof·자료 목록을 읽기 전에 중단한다.
 
 ```powershell
 # control만 확인; asset scan/등록/삭제 없음
@@ -56,8 +56,19 @@ summary에는 건수·기한 집계·변경 거부·삭제0·미분류 현황만
 
 ## cache 로그 이관 준비
 
-모든 writer가 끝나면 담당자가 정확한 `.cache/cycle2*.log` 파일명과 SHA 목록을 제공한다. `prepare_log_migration()`은 pin된 목록·global 종료 인계를 확인하고 원/대상 resolved path가 프로젝트 안인지 검사한다. 대상은 `data/training/cycle2-logs/<동일이름>`이며 이미 있으면 거부한다. 개별 자료를 포함하지 않는 숫자 로그는 최소 provenance로 남긴다.
+모든 writer가 끝나면 담당자가 정확한 `.cache/cycle2*.log` 파일명과 SHA 목록을 제공한다. `prepare_log_migration()`은 pin된 목록·수동 종료 인계·알려진 writer guard를 확인하고 원/대상 resolved path가 프로젝트 안인지 검사한다. 대상은 `data/training/cycle2-logs/<동일이름>`이며 이미 있으면 거부한다. 개별 자료를 포함하지 않는 숫자 로그는 최소 provenance로 남긴다.
 
 현재 구현은 원/대상과 SHA를 담은 **가역 이동 계획만** 만들며 실제 파일 이동은 하지 않는다. root가 계획을 검토한 뒤 정확한 파일만 수동 이동하고 결과 mapping receipt/SHA를 보존해야 한다. parent directory를 재귀 이동하거나 전체 `.cache`를 허용하지 않는다. 현재 실제 이동0이다.
 
 합성 회귀는 정확 범위·sidecar·archive 경계·link 거부·dry-run 불변·모델 binary 보존·종료 전 scan 거부·과거 control 불변·짧은 cap 상속·로그 계획의 이동0을 검사한다. 실제 자료는 모든 writer 종료 후 별도로 확인한다.
+
+
+## retry1 동결 입력과 정확 operator 로그
+
+새 감독 계획에 고정된 원 preflight 로그 두 개와 `redaction-rescue-v8-env-repair`의 정확한 7개 control은 원경로·고정 SHA로 검사한다. 변경·누락이면 준비를 거부한다. 두 preflight 로그는 비개인 warning/error_type 및 빈 observer이며 설치 로그 두 개도 원경로 의존성이다. 이 예외는 임의 로그나 같은 namespace의 새 파일을 비개인 자료로 인정하지 않는다. 코드·원 queue/stop/spawn/import-control JSON은 이동 입력으로 허용하지 않는다.
+
+`.cache/privacy-family-v8-operator[-retry1]/`에서는 코드에 명시한 phase 로그만 정확 파일명+SHA manifest로 받는다. strict verifier stdout의 개별 이미지 SHA/좌표는 원 PRIVACY_CAP 이하로 관리한다. private 로그의 이동 목적지는 `cycle2-logs/operator-original--<이름>` 또는 `operator-retry1--<이름>`으로 분리한다. 비개인 aggregate 검사에 통과한 observer 로그는 보존한다. 실제 이동은 계속 수동이다. 전/후 guard는 TOCTOU를 완전히 없애는 락이 아니므로 writer를 새로 시작하지 않는 운영자 통제도 필요하다.
+
+### 미승인 synthetic MP4 처리 제안
+
+soak의 `generated-nonpersonal.mp4`는 일반 영상 suffix 허용에 추가하지 않았다. 후속 승인 시 정확 basename·생성 설정·파일 SHA·순수 합성 증거에 결합하고 생성 후 2시간과 원 source cap의 최소로 제한하는 방안을 제안한다. 현재는 미분류 검토 대상이며 이 문서만으로 등록·삭제하거나 2시간 cap을 기존 자료에 소급하지 않는다.

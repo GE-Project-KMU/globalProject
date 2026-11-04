@@ -15,6 +15,8 @@ def put(path,value):
 def case(tmp_path,monkeypatch):
     assert tmp_path.is_relative_to(r.ROOT)
     monkeypatch.setattr(r,'ROOT',tmp_path);monkeypatch.setattr(r,'STATE',tmp_path/'data/research-retention')
+    monkeypatch.setattr(f,'PROTECTED_CONTROLS',{})
+    monkeypatch.setattr(f.writer_guard,'inspect_writers',lambda root:{'known_writers':[]})
     state=r.STATE;plan=state/'historical-plan.json';plan_pin=put(plan,{'schema_version':1,'entries':[]})
     inventory=state/'historical-inventory.json';inventory_pin=put(inventory,{'entries':{},'control_plans':{
         'original':{'status':'registered','path':f.STATE+plan.name,'sha256':plan_pin}}})
@@ -240,3 +242,40 @@ def test_source_acquisition_control_has_no_individual_image_references(case):
     value={'format':format,'parent_expiry_evidence':{'path':'data/research/rdd2022-blind-v7/source.json','sha256':'a'*64}}
     put(path,value);assert f.minimal_control_provenance(path,{format})
     put(path,value|{'image_sha256':'a'*64});assert not f.minimal_control_provenance(path,{format})
+
+
+def test_operator_logs_receive_collision_safe_prefix_and_keep_inputs(case):
+    root,receipt,pin,_=case;entries=[]
+    for namespace in ('privacy-family-v8-operator','privacy-family-v8-operator-retry1'):
+        path=root/'.cache'/namespace/'strict-winner-face.log';path.parent.mkdir(parents=True)
+        path.write_text('{"image_sha256":"SYNTHETIC"}')
+        entries.append({'source':path.relative_to(root).as_posix(),'sha256':r.file_snapshot(path)[0]})
+    manifest=r.STATE/'logs.json';digest=put(manifest,{'format':'cycle2-exact-log-list-v1','logs':entries})
+    output=r.STATE/'moves.json';f.prepare_log_migration(receipt,pin,manifest.relative_to(root).as_posix(),digest,output.relative_to(root).as_posix())
+    moves=r.read(output)['moves'];assert len({x['to_log'] for x in moves})==2
+    assert all((root/x['from_log']).exists() for x in moves)
+    assert all(not (root/x['to_log']).exists() for x in moves)
+
+
+def test_pinned_nonpersonal_log_never_moved_and_changes_refused(case,monkeypatch):
+    root,receipt,pin,_=case;path=root/'.cache/cycle2-rescue-v8-preflight.log';path.parent.mkdir();path.write_text('error_type=ModuleNotFoundError')
+    digest=r.file_snapshot(path)[0];monkeypatch.setattr(f,'PROTECTED_CONTROLS',{path.relative_to(root).as_posix():digest})
+    manifest=r.STATE/'logs.json';sha=put(manifest,{'format':'cycle2-exact-log-list-v1','logs':[{'source':path.relative_to(root).as_posix(),'sha256':digest}]})
+    out=r.STATE/'moves.json';result=f.prepare_log_migration(receipt,pin,manifest.relative_to(root).as_posix(),sha,out.relative_to(root).as_posix())
+    assert result['planned_private_log_moves']==0 and path.exists()
+    path.write_text('changed')
+    with pytest.raises(ValueError,match='control_changed'):f.preparation_guard()
+
+
+def test_new_writer_blocks_log_plan_before_publication(case,monkeypatch):
+    root,receipt,pin,_=case;path=root/'.cache/cycle2-private.log';path.parent.mkdir();path.write_text('{"image_sha256":"SYNTHETIC"}')
+    manifest=r.STATE/'logs.json';digest=put(manifest,{'format':'cycle2-exact-log-list-v1','logs':[{'source':path.relative_to(root).as_posix(),'sha256':r.file_snapshot(path)[0]}]})
+    count=0
+    def guard(root):
+        nonlocal count
+        count+=1
+        if count==2:raise ValueError('known_project_research_writer_active')
+    monkeypatch.setattr(f.writer_guard,'require_stopped',guard)
+    out=r.STATE/'moves.json'
+    with pytest.raises(ValueError,match='writer_active'):f.prepare_log_migration(receipt,pin,manifest.relative_to(root).as_posix(),digest,out.relative_to(root).as_posix())
+    assert count==2 and not out.exists() and path.exists()
