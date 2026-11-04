@@ -152,7 +152,15 @@ def test_persistent_shared_memory_roundtrip_and_failure_cleanup(folder,monkeypat
 def test_actual_opt_in_cuda_profile_smoke():
     from agent.inference_runner import create_models,InferenceRunner,close_models
     from scripts.benchmark_inference_cpu import MANIFESTS,synthetic_frames
-    models=create_models(MANIFESTS,'fast',inference_backend='cuda',gpu_profile='data/gpu-runtime-profiles/ort1202-v1.json')
+    profile_path=os.getenv('ROAD_VERIFIED_CUDA_PROFILE','data/gpu-runtime-profiles/ort1202-v2.json')
+    from agent.paths import workspace_path
+    profile=json.loads(workspace_path(profile_path,exists=True).read_text(encoding='utf-8'))
+    manifests=MANIFESTS
+    if profile.get('format')=='registered-cuda-model-set-v1':
+        from scripts.gpu_model_set import validate_descriptor
+        plan=validate_descriptor(profile,True)
+        manifests={task:entry['manifest']['path'] for task,entry in plan['models'].items()}
+    models=create_models(manifests,'fast',inference_backend='cuda',gpu_profile=profile_path)
     try:
         with InferenceRunner(models,'fast') as runner:
             result=runner.predict(synthetic_frames()[0])
