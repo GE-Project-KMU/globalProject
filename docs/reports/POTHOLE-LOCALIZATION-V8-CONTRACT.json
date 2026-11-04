@@ -1,0 +1,24 @@
+{
+  "format": "pothole-localization-v8-CPU-contract",
+  "source_sha256": "73e14aacde106ba074bfcfc225b59a2f4eb520b08e6af8f78e920477a739de38",
+  "development_sha256": "43bcbd0c5160276dc8de9507e40db0a8776ff35e74faf971dcdf69fdddd6d52f",
+  "hardness_sha256": "5b46e0c5d5e3bf4e99c340b2ce903d19b6e47b64f58fde6133e25774eec75c16",
+  "batch_shape": [
+    2,
+    3,
+    640,
+    640
+  ],
+  "all_GT_preserved": true,
+  "finite_loss": 5.848007678985596,
+  "native_L1_loss": 0.8941565155982971,
+  "finite_nonzero_backward": true,
+  "source_draw_counts": {
+    "MWPD_positive": 2048,
+    "RDD_positive": 1024,
+    "RDD_negative": 1024
+  },
+  "optimizer_updates": 0,
+  "GPU_initialized": false,
+  "TEST_images_used": 0
+}
