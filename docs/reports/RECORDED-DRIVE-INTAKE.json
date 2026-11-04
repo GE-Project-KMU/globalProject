@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "recordings": 16,
+  "total_bytes": 1778740737,
+  "declared_formats": {
+    ".svo2": 16
+  },
+  "content_format_verified": false,
+  "sha256_inventory_complete": true,
+  "distinct_byte_contents": 16,
+  "duplicate_sha256_groups": 0,
+  "duplicate_extra_files": 0,
+  "playback_status": "not_verified",
+  "sdk_reader_executed": false,
+  "svo_frames_decoded": null,
+  "capture_time_known": false,
+  "original_expiry_known": false
+}
