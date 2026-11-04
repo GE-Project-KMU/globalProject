@@ -1,0 +1,129 @@
+{
+  "format": "hardware-free-inference-soak-v1",
+  "status": "completed",
+  "planned_seconds": 600.0,
+  "actual_seconds_including_final_JSON": 600.7817745999782,
+  "deadline_semantics": "Stop before next frame after 600 seconds; an in-flight CPU inference and final JSON may finish afterward.",
+  "inferred_frames": 633,
+  "saved_PNGs": 633,
+  "output_bytes_before_final_summary": 1766953,
+  "output_budget_bytes": 262144000,
+  "error_count": 0,
+  "memory_kind": "current_working_set",
+  "post_warmup_memory": {
+    "warmup_excluded_seconds": 30.0,
+    "samples": 603,
+    "first_bytes": 897859584,
+    "last_bytes": 897933312,
+    "min_bytes": 897769472,
+    "max_bytes": 897933312,
+    "median_bytes": 897880064,
+    "last_minus_first_bytes": 73728,
+    "sample_span_seconds": 569.2554680000176,
+    "not_a_proof_of_absent_memory_leaks": true
+  },
+  "sessions": [
+    {
+      "task": "pothole",
+      "providers": [
+        "CPUExecutionProvider"
+      ],
+      "runtime_options": {
+        "cpu_intra_op_threads": 2,
+        "cpu_inter_op_threads": 1,
+        "allow_spinning": true
+      }
+    },
+    {
+      "task": "lane",
+      "providers": [
+        "CPUExecutionProvider"
+      ],
+      "runtime_options": {
+        "cpu_intra_op_threads": 2,
+        "cpu_inter_op_threads": 1,
+        "allow_spinning": true
+      }
+    },
+    {
+      "task": "redaction",
+      "providers": [
+        "CPUExecutionProvider"
+      ],
+      "runtime_options": {
+        "cpu_intra_op_threads": 2,
+        "cpu_inter_op_threads": 1,
+        "allow_spinning": true
+      }
+    }
+  ],
+  "runtime": {
+    "engine": "onnxruntime-cpu",
+    "version": "1.31.1",
+    "models": {
+      "pothole": {
+        "engine": "onnxruntime-cpu",
+        "version": "1.31.1",
+        "runtime_options": {
+          "cpu_intra_op_threads": 2,
+          "cpu_inter_op_threads": 1,
+          "allow_spinning": true
+        }
+      },
+      "lane": {
+        "engine": "onnxruntime-cpu",
+        "version": "1.31.1",
+        "runtime_options": {
+          "cpu_intra_op_threads": 2,
+          "cpu_inter_op_threads": 1,
+          "allow_spinning": true
+        }
+      },
+      "redaction": {
+        "engine": "onnxruntime-cpu",
+        "version": "1.31.1",
+        "runtime_options": {
+          "cpu_intra_op_threads": 2,
+          "cpu_inter_op_threads": 1,
+          "allow_spinning": true
+        }
+      }
+    },
+    "device": "cpu"
+  },
+  "GPU_used": false,
+  "cv2_threads": 2,
+  "model_objects_closed_and_released": true,
+  "owned_python_threads_cleaned": true,
+  "subprocesses_created": 0,
+  "old_models_unchanged": true,
+  "model_weight_sha256": {
+    "pothole": "9b956d8ead74d1b11db0d1c43bac9ae5bdda2b0d6b843062319ae28de2f2f269",
+    "lane": "0cbf89f5bfd751bc9ae2cb071f887609d9ff40a9f2f3914c129a44806dc1f548",
+    "redaction": "bf54a5ad4211e945e71c84502a75a2d32e03de397883d70df8c64881c515aa3a"
+  },
+  "source_expires_at": "2026-11-10T16:55:19.285523+00:00",
+  "synthetic_input": true,
+  "input_size": [
+    64,
+    48
+  ],
+  "user_recordings_read": false,
+  "public_photographs_read": false,
+  "external_uploads": 0,
+  "mp4_decoding_test": false,
+  "camera_acquisition_test": false,
+  "field_accuracy_measured": false,
+  "privacy_recall_measured": false,
+  "software_synthetic_soak_FPS": 1.0536256582424468,
+  "limits": [
+    "Old research models only, not newly trained candidate verification.",
+    "Generated geometry and synthetic timestamps are not camera/GNSS evidence.",
+    "No 60-minute camera, 10FPS target or real-road accuracy claim.",
+    "CPU throughput includes concurrent unrelated training load; not an isolated benchmark.",
+    "Raw source photos/video are never read; generated local PNGs are not shared approvals."
+  ],
+  "execution_exit_code": 0,
+  "followup_retention_fix_included_in_this_execution": false,
+  "executed_probe_sha256": "8997f3715a9b89f293f5b13b36c28f3cd17f1c37b1ce2bfe5e5da5a7b8b7b3a4"
+}
