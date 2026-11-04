@@ -1,0 +1,104 @@
+{
+  "format": "RDD2022-blind-v7-acquisition-public-v1",
+  "status": "incomplete_official_transfer_failed",
+  "target_samples": 200,
+  "frozen_evaluation_samples": 0,
+  "target_met": false,
+  "model_inferences": 0,
+  "used_for_training": false,
+  "used_for_model_or_threshold_selection": false,
+  "user_recordings_used": false,
+  "primary_sources": {
+    "dataset": "https://figshare.com/articles/dataset/21431547/1",
+    "publisher_api": "https://api.figshare.com/v2/articles/21431547",
+    "author_repository": "https://github.com/sekilab/RoadDamageDetector",
+    "license": "https://creativecommons.org/licenses/by/4.0/"
+  },
+  "license": {
+    "id": "CC-BY-4.0",
+    "attribution": "Arya et al., RDD2022, DOI 10.6084/m9.figshare.21431547.v1",
+    "commercial_use_permitted_by_this_data_license": true,
+    "privacy_or_operational_approval": false,
+    "prior_RDD2020_NC_restriction_not_removed": true
+  },
+  "publisher_archive": {
+    "bytes": 13264172619,
+    "publisher_MD5": "b62bd51d2ffcfaa76c60f234f0cc2bb3",
+    "whole_archive_downloaded": false,
+    "whole_archive_MD5_verified": false,
+    "whole_country_archive_CRC_verified": false
+  },
+  "verified_partial_acquisition": {
+    "range_blocks_retained": 169,
+    "retained_range_bytes": 706426443,
+    "responses_required_exact_206_Content_Range": true,
+    "range_cache_has_SHA256_integrity_proofs": true,
+    "publisher_XML_members_read_with_inner_CRC": {
+      "United_States": 4805,
+      "Norway": 8161
+    },
+    "complete_US_candidate_image_members_at_last_progress": 240,
+    "selected_release_created": false,
+    "within_selected_cohort_QC": "not_run_no_complete_release",
+    "partial_source_bytes_not_cleared_for_sharing": true
+  },
+  "predeclared_selection": {
+    "format": "RDD2022-new-blind-selection-v1",
+    "seed": 20261107,
+    "country_preference": [
+      "United_States",
+      "Norway",
+      "China_MotorBike",
+      "China_Drone",
+      "Japan",
+      "India",
+      "Czech"
+    ],
+    "target_countries": 2,
+    "positive_per_country": 50,
+    "negative_per_country": 50,
+    "publisher_positive": "literal VOC object name D40",
+    "publisher_negative": "no literal D40; not human-confirmed clean road",
+    "one_frame_per_country_filename20_block": true,
+    "all_historical_splits_excluded": true,
+    "exact_and_connected_dhash_hamming_le3_with_horizontal_flip": true,
+    "training_or_threshold_selection_use": false,
+    "model_predictions_before_selection": 0,
+    "route_or_session_independence_verified": false,
+    "physical_route_claim": "Filename blocks are proxies only; no verified route/session metadata."
+  },
+  "historical_exclusions": {
+    "release_snapshots": 6,
+    "rows_all_splits": 19069,
+    "distinct_image_SHA256_count": 12705,
+    "all_prior_splits_excluded_from_new_cohort": true,
+    "physical_route_independence_verified": false
+  },
+  "transport_outcome": {
+    "bounded_attempts_stopped": true,
+    "final_error_type": "HTTPStatusError",
+    "successful_acquisition_not_claimed": true,
+    "additional_automatic_retry": false,
+    "signed_credentials_in_public_output": false
+  },
+  "provenance": {
+    "selection_source_sha256": "199dde6f939a23423d6d8db2db16d6564bb92b0dcf7d9994bdc59f72446260b3",
+    "protocol_sha256": "586417a773e22d07cda40bbc91a103de4d194de4695d770fbbfc16a40bdd47c2",
+    "transport_source_sha256": "d28ae2d6f61d5a892a7498445d4c789987d0c4b79387dd00fcbb461a00a6c35b",
+    "private_final_attempt_receipt_sha256": "2e04dfee92cea699e846fa9f9625e7f25ed95003de65d9d38a361b8df78ae733"
+  },
+  "retention": {
+    "source_expires_at": "2026-11-10T17:07:24.286159+00:00",
+    "earlier_existing_source_deadline_inherited": true,
+    "deadline_extended": false,
+    "raw_or_user_source_deleted": false,
+    "existing_inventories_modified": false
+  },
+  "limitations": [
+    "No complete new blind benchmark was frozen; no new external accuracy result is available.",
+    "Publisher no-D40 annotations are not a human-certified clean-road guarantee.",
+    "Filename blocks are proxies; independent physical routes or recording sessions are unverified.",
+    "Partial range and individual-member CRC checks do not verify the full 13GB publisher MD5.",
+    "All raw range cache remains local restricted research material; no privacy review or deployment approval is claimed."
+  ]
+}
