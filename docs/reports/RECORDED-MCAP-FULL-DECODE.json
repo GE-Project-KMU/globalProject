@@ -1,0 +1,64 @@
+{
+  "format": "recorded-mcap-full-decode-aggregate-v1",
+  "profile": "stereolabs-mcap-5.5.0-zed_sdk_encoded-h264-envelope-v1-experimental",
+  "status": "full_decode_verified",
+  "source_files_expected": 16,
+  "source_files_processed": 16,
+  "source_files_passed": 16,
+  "decoded_frames": 14753,
+  "timestamp_mismatches": 0,
+  "source_before_after_intake_hash_matches": 16,
+  "full_container_EOF_files": 16,
+  "fully_consumed_container_files": 16,
+  "chunks_checked": 2531,
+  "chunks_with_nonzero_CRC_checked": 2531,
+  "files_with_nonzero_data_end_CRC_checked": 0,
+  "left_and_right_resolution_frame_counts": {
+    "1920x1080": 2901,
+    "1280x720": 11852
+  },
+  "frame_time_base_missing_exact_flush_matches": 0,
+  "quality_flags": {
+    "left": {
+      "mean_lt_5": 0,
+      "mean_gt_250": 0,
+      "std_lt_2": 0,
+      "std_lt_0_25": 0,
+      "laplacian_variance_lt_10": 0,
+      "identical_sample_to_previous": 0
+    },
+    "right": {
+      "mean_lt_5": 0,
+      "mean_gt_250": 0,
+      "std_lt_2": 0,
+      "std_lt_0_25": 0,
+      "laplacian_variance_lt_10": 0,
+      "identical_sample_to_previous": 0
+    }
+  },
+  "quality_flags_are_heuristic_not_invalidity_or_GT": true,
+  "reader_sha256": "81c56f1420a9745f600d0833eac3e78f53f6849f439d044a3a4912315e718e6b",
+  "validator_sha256": "07cf958de3ba8bab77ba7f7d7f1c6845517f50f0f819116d84ac2c9330767c9f",
+  "processing_guard_checks": 301203,
+  "processing_authorized_until": "2026-11-05T23:59:00+09:00",
+  "permission_exception_for_this_validation_only": true,
+  "raw_pixel_outputs": false,
+  "original_files_written": false,
+  "uploaded": false,
+  "training_started": false,
+  "automatic_expiry_registration": false,
+  "automatic_delete": false,
+  "capture_clock_verified": false,
+  "base_retention_policy_changed": false,
+  "sdk_image_clock_verified": false,
+  "rectification_verified": false,
+  "GNSS_available": false,
+  "metric_depth_available": false,
+  "limits": [
+    "Observational proprietary profile, not general SVO/SVO2 support",
+    "Current Windows/PyAV CPU environment only",
+    "CRC verification covers nonzero provided checksums; absent CRCs are not authentication",
+    "Heuristic image statistics are not model accuracy or physical defect ground truth",
+    "No 60-minute field test or GNSS/calibration/metric-depth validation"
+  ]
+}
