@@ -16,14 +16,19 @@ from scripts.compare_detector_models import known_classes,score
 from scripts.compare_lane_models import preserve_freeze
 from scripts.evaluate_public_refinement import gates,publish
 DEST=ROOT/'data/training/refinement-evaluation'
-PROTOCOL=ROOT/'docs/reports/PRIVACY-REFINEMENT-PARALLEL-PROTOCOL.json'
+PROTOCOL=ROOT/'docs/reports/PRIVACY-REFINEMENT-PARALLEL-PROTOCOL-V2.json'
 def read(p):return json.loads(p.read_text(encoding='utf-8'))
 def private_output(path):
     path=workspace_path(path)
     if not path.is_relative_to(DEST) or path.suffix!='.json' or path.exists():raise ValueError('fresh_private_refinement_JSON_required')
     return path
 def protocol():
-    return {'format':'privacy-parallel-evaluation-protocol-v1','created_before_privacy_final_predictions':True,
+    return {'format':'privacy-parallel-evaluation-protocol-v2','created_before_privacy_final_predictions':True,
+        'parent_protocol_sha256':'32b4c6b2c5a82997d3a985db953ea03c1fabceabc4224b1c32c29beb740c5c90',
+        'parent_protocol_git_commit':'e032bfe','runtime_optimization_git_commit':'e201a8e',
+        'revision_reason':'Pre-final-evaluation source pin update for bitwise-equivalent float32 preprocessing copy optimization; not a training/threshold/NMS/normalization arithmetic change',
+        'optimization_evidence':{'bitwise_cases_per_environment':828,'environments':2,'applied_predict_setInput_exact_cases':828,'microbenchmark_report_sha256':sha256(ROOT/'docs/reports/PREPROCESSING-MICROBENCH.json')},
+        'prior_attempt':{'status':'preflight_source_pin_mismatch','TEST_predictions':0,'model_workers_spawned':0,'original_protocol_and_failure_log_preserved':True},
         'parent_fresh_plan_sha256':sha256(ROOT/'docs/reports/PRIVACY-REFINEMENT-FRESH-PLAN.json'),'parent_regression_plan_sha256':sha256(ROOT/'docs/reports/PRIVACY-REFINEMENT-REGRESSION-PLAN.json'),
         'worker_source_sha256':sha256(Path(__file__)),'canonical_model_source_sha256':sha256(ROOT/'agent/models.py'),'canonical_score_source_sha256':sha256(ROOT/'scripts/compare_detector_models.py'),
         'execution':'two concurrent independent CPU model processes, each ORT intra2/inter1 and OpenCV2; no GPU',
