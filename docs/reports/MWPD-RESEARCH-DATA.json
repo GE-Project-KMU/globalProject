@@ -1,0 +1,26 @@
+{
+  "source_url": "https://data.mendeley.com/datasets/s5hx9n2jc3/2",
+  "release_sha256": "a0877b4dcde07b0115199fae2dbd30d24caa743c9b6d0cd6298a319d39772bcd",
+  "counts": {
+    "test": 97,
+    "validation": 250,
+    "train": 2188
+  },
+  "positive_images": {
+    "test": 97,
+    "validation": 250,
+    "train": 2188
+  },
+  "removed": {
+    "publisher_cross_split_filename_group": 537,
+    "connected_cross_split_or_exact_duplicate": 15
+  },
+  "publisher_hashes_verified": true,
+  "historical_release_count": 4,
+  "physical_route_independence_verified": false,
+  "limits": "Filename groups and exact/dHash(+horizontal flip) filters reduce leakage; web-source provenance/physical route independence not established. Previously evaluated benchmarks are regression only.",
+  "max_training_targets": 14,
+  "publisher_class_map_sha256": "677aa08212ee2c178848f44c9c415e1858a9339c809e4c3cf71ecd02b2ed696c",
+  "source_expires_at": "2026-11-11T13:01:43.461962+00:00",
+  "user_recordings_used": false
+}

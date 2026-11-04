@@ -1,0 +1,26 @@
+{
+  "format": "pothole-mwpd-training-contract-v1",
+  "source_sha256": "228cede242e1a519f7f300cded81909fb2d0ef18882f2b97717e839c2187f1f4",
+  "release_sha256": "5b1798968f27eb60939d80d5952447135b6bb49bf6ad16e9f64cfe75d2f8faca",
+  "checkpoint_sha256": "2fb2c082964e81b918339a2a26f1a37fc2cd655aa78e9d98a2a38ed04fd89375",
+  "public_train_domains": 2,
+  "batch_shape": [
+    2,
+    3,
+    640,
+    640
+  ],
+  "target_shape": [
+    2,
+    120,
+    5
+  ],
+  "all_source_GT_preserved": true,
+  "max_training_targets": 14,
+  "finite_loss": 5.718491554260254,
+  "finite_nonzero_gradients": true,
+  "optimizer_updates": 0,
+  "test_images_used": 0,
+  "GPU_initialized": false,
+  "user_recordings_used": false
+}
