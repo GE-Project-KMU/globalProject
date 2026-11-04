@@ -1,0 +1,37 @@
+{
+  "format": "recorded-mcap-metadata-public-aggregate-v1",
+  "recording_count": 16,
+  "total_source_bytes": 1778740737,
+  "distinct_source_count": 16,
+  "recorded_video_time_span_seconds": {
+    "sum_of_file_spans": 730.207682,
+    "minimum_file_span": 0.803967,
+    "maximum_file_span": 111.803366
+  },
+  "recorded_video_message_count": 14753,
+  "sdk_versions": [
+    "5.5.0"
+  ],
+  "svo_header_versions": [
+    "2.0.5"
+  ],
+  "channel_kinds_counted_across_recordings": {
+    "svo_json_header": 16,
+    "zed_custom_encoded_video": 16,
+    "custom_sensor_topic": 32,
+    "other_declared_topic": 16
+  },
+  "separately_named_gnss_recordings_found": 0,
+  "gnss_status": "Only declared topics audited; custom binary not decoded. No claim that GNSS is absent everywhere.",
+  "clock_provenance": "MCAP message log_time span only; not externally verified camera UTC or SDK IMAGE timestamp.",
+  "user_capture_date_statement": "User tentatively reports Oct28; separate from unverified device-clock evidence.",
+  "actual_utc_capture_time_verified": false,
+  "original_expiry_confirmed": false,
+  "automatic_retention_registration": false,
+  "source_bytes_written": false,
+  "video_pixels_decoded": false,
+  "custom_sensor_binary_decoded": false,
+  "crc_validation_requested_all": true,
+  "sixty_minute_real_drive_acceptance_claim": false,
+  "duration_limit": "Sum of file log-time spans does not prove continuous driving, unique scene duration or field acceptance; repeated playback cannot extend it."
+}
