@@ -1,0 +1,58 @@
+{
+  "format": "privacy-family-v9-fixed-terminal-checkpoint-predeclaration-v1",
+  "declared_at": "2026-11-04T20:46:23.438357+00:00",
+  "development_informed_protocol_revision": true,
+  "completed_face_development_epochs_observed": 6,
+  "training_history_at_declaration": {
+    "path": "data/training/redaction-rescue-v8/history.json",
+    "sha256": "fc851837d2c8ddcebfe3e38cae45837ab88db2ec0cc5260018845a4bb944f698"
+  },
+  "reason": "AP-selected initial fallback can conceal recall gains; admit a fixed terminal EMA candidate without changing learning math or choosing an epoch using TEST.",
+  "parent_family_protocol": {
+    "path": "data/training/privacy-family-v8-evaluation/protocol.json",
+    "sha256": "5777de565111135f3793d247a332d5bb4c5cae4635378f8cfacfcbbff3cb4f59"
+  },
+  "original_learning_plan": {
+    "path": "docs/reports/PRIVACY-RESCUE-V8-PLAN.json",
+    "sha256": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d"
+  },
+  "V8_metadata_queue_stopped_before_family_VAL_or_TEST": {
+    "path": ".cache/privacy-family-v8-operator-retry1/V9-revision-stop.json",
+    "sha256": "4d8e065302d758d790745721c6045b583bdb4dff8555762ae52696a3919e7a1b"
+  },
+  "privacy_TEST_predictions_before_declaration": 0,
+  "final12_artifacts_exist": false,
+  "training_recipe_changed": false,
+  "fixed_training_epochs": 12,
+  "additional_checkpoint": "exact complete epoch12 EMA from original atomic recovery; no checkpoint search",
+  "families": [
+    "legacy_v4",
+    "rescue_v8_AP_selected",
+    "fixed_final12"
+  ],
+  "exact_tie_preference": [
+    "legacy_v4",
+    "rescue_v8_AP_selected",
+    "fixed_final12"
+  ],
+  "confidence_grid": [
+    0.01,
+    0.03,
+    0.05,
+    0.1,
+    0.2,
+    0.35,
+    0.5
+  ],
+  "large_face_gate": "fixed confidence0.1 recall no more than0.01 below baseline",
+  "family_selection": "If both-class Recall>=0.95 feasible, macro precision then minimum class recall; otherwise minimum class recall then macro precision",
+  "TEST_cohorts_unchanged": {
+    "fresh": 200,
+    "regression": 1400
+  },
+  "TEST_execution": "one-shot after all model/provenance/default numeric gates; no post-TEST model/threshold reselection",
+  "original_AP_checkpoint_selection_and_export_preserved": true,
+  "source_expiries_extended": false,
+  "research_only": true,
+  "production_approved": false
+}
