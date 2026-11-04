@@ -1,0 +1,16 @@
+{
+  "format": "P2-probe2-source-audit-v1",
+  "original_source_sha256": "0726d268ce914c18fdb0100ea28a8eb660f7fdaefe57042413a3bdf85b69aefc",
+  "probe2_source_sha256": "d243bbf234428d041dfd3109d20a6b5359f1fb08a2600f3a02fb39c6ee21abee",
+  "same_tensor_math_AST": true,
+  "same_GT_selection_and_views_AST": true,
+  "AST_digests": {
+    "two_TRAIN_batches": "ce5a9d2f2d95650149bd92f12613dbcc71ee133865ff4648108e88c02b00b186",
+    "FP32_VAL_forward": "fef5310b086175f6561de274860e50cad161627b3b92ec179845ae340afb5a4d",
+    "TRAIN_view_and_GT": "1eaafa7c88756c39660664ca3e3ef567ffdb8413747f7e303391e6b8e2bda7c1"
+  },
+  "learning_source_sha256": "92fe1649cddbca41439949443feb77359d6fadc51cb968ea00c0ba633d24626d",
+  "learning_plan_sha256": "31503ca3a9e1b4da72d8bd248b655d8b101a2462cd7c1f35881a4d9578353c36",
+  "training_updates": 0,
+  "new_GPU_operations": 0
+}

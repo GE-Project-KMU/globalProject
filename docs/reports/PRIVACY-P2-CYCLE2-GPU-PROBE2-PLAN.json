@@ -1,0 +1,42 @@
+{
+  "learning_plan_sha256": "31503ca3a9e1b4da72d8bd248b655d8b101a2462cd7c1f35881a4d9578353c36",
+  "training_source_sha256": "92fe1649cddbca41439949443feb77359d6fadc51cb968ea00c0ba633d24626d",
+  "factory_sha256": "40c6a1f191950334b62f5d52fec161a2539c99d6b77c422c8fd7797f32685575",
+  "observer_source_sha256": "0ce1a2d8da7ae1900945a5fc87da6f462e6772f76d02f6de13ce1ee3761e9d6d",
+  "preparation_source_sha256": "ab76ce06ab3a32f429739ff5204cfd739fb7c287cb262f02840e5f978efe8ef6",
+  "device_budget_bytes": 9663676416,
+  "device_query": [
+    "nvidia-smi",
+    "--id=0",
+    "--query-gpu=memory.used",
+    "--format=csv,noheader,nounits",
+    "--loop-ms=100"
+  ],
+  "sample_times": "monotonic receive timestamps; hardware query time and exact100ms intervals not guaranteed",
+  "scope": "device-level reported FB memory under WDDM, not exact per-process sum or hard memory quota",
+  "global_OOM_zero_claimed": false,
+  "source_expiries_extended": false,
+  "user_recordings_used": false,
+  "format": "P2-device-observed-probe2-plan-v1",
+  "created_before_probe2": true,
+  "probe2_source_sha256": "d243bbf234428d041dfd3109d20a6b5359f1fb08a2600f3a02fb39c6ee21abee",
+  "parent_probe_report_sha256": "7f2883a32e0f26db1f8a01f24b97c913d6cc016a707450e3a7a62cfcf66800d5",
+  "parent_probe_source_sha256": "0726d268ce914c18fdb0100ea28a8eb660f7fdaefe57042413a3bdf85b69aefc",
+  "training_updates": 0,
+  "optimizer_steps": 0,
+  "max_batches": 3,
+  "TRAIN_batches": 2,
+  "VAL_batches": 1,
+  "batch_size": 4,
+  "TEST_images_loaded": 0,
+  "same_predeclared_development_data_and_tensor_math": true,
+  "expected_original_TRAIN_GT": [
+    386,
+    380,
+    246,
+    200
+  ],
+  "required_device_samples_before_init": 2,
+  "required_additional_device_samples_after_batches": 2,
+  "learning_requires_further_root_slot": true
+}

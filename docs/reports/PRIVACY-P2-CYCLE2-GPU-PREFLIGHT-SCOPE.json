@@ -1,0 +1,29 @@
+{
+  "format": "P2-original-probe-scope-correction-v1",
+  "original_report_sha256": "7f2883a32e0f26db1f8a01f24b97c913d6cc016a707450e3a7a62cfcf66800d5",
+  "original_source_sha256": "0726d268ce914c18fdb0100ea28a8eb660f7fdaefe57042413a3bdf85b69aefc",
+  "original_report_and_source_unchanged": true,
+  "optimizer_steps": 0,
+  "training_updates": 0,
+  "confirmed_scope": [
+    "Own peak allocation/reservation",
+    "Finite development TRAIN/VAL loss/output",
+    "Own process OOM counter delta0",
+    "Source checksums unchanged"
+  ],
+  "not_confirmed": [
+    "Device-wide physical9GiB limit during original probe",
+    "Global OOM zero"
+  ],
+  "original_cuda_memory_peak_bytes": 3104505856,
+  "separate_post_probe_nvidia_smi_used_MiB": 3880,
+  "cuda_and_nvidia_values_were_not_simultaneous": true,
+  "global_budget_verified_by_original_probe": false,
+  "why": "WDDM memory is OS managed; cudaMemGetInfo estimate is insufficient to establish device-level cross-process FB peak. Original pass flag is preserved as executed, not promoted to global-budget acceptance.",
+  "references": [
+    "https://forums.developer.nvidia.com/t/cudamemgetinfo-no-longer-returns-free-memory-for-full-system-only-looks-at-current-process/66941",
+    "https://docs.nvidia.com/deploy/nvml-api/latest/api/group__nvmlDeviceQueries.html"
+  ],
+  "probe2_plan_sha256": "f4e124deb15200c5030fcded45b07387dc44a33231e7bd89fe06a7487a0259b8",
+  "training_authorized_by_this_receipt": false
+}

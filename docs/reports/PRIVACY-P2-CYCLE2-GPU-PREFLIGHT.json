@@ -1,0 +1,85 @@
+{
+  "format": "P2-shared-GPU-memory-probe-v1",
+  "status": "passed",
+  "optimizer_steps": 0,
+  "training_updates": 0,
+  "OOM_counter_scope": "probe_process_only",
+  "global_OOM_zero_claimed": false,
+  "ephemeral_model_BN_changes_discarded": true,
+  "model_weights_saved": false,
+  "TEST_images_loaded": 0,
+  "user_recordings_used": false,
+  "max_batches": 3,
+  "batches": [
+    {
+      "kind": "ephemeral_AMP_train_forward_backward_optimizer0",
+      "batch_size": 4,
+      "original_GT_counts": [
+        386,
+        380,
+        246,
+        200
+      ],
+      "view_GT_counts": [
+        386,
+        380,
+        246,
+        200
+      ],
+      "loss": 16.883634567260742
+    },
+    {
+      "kind": "ephemeral_AMP_train_forward_backward_optimizer0",
+      "batch_size": 4,
+      "original_GT_counts": [
+        386,
+        380,
+        246,
+        200
+      ],
+      "view_GT_counts": [
+        174,
+        154,
+        0,
+        53
+      ],
+      "loss": 15.744721412658691
+    },
+    {
+      "kind": "FP32_full_shared1920_VAL_forward",
+      "batch_size": 4,
+      "output_shape": [
+        4,
+        176400,
+        7
+      ]
+    }
+  ],
+  "limits": [
+    "Three pre-training memory batches; not a universal maximum for future learned assignments",
+    "Observed sampling includes scheduling/query time; in-flight CUDA operation is not cancelled",
+    "No optimizer update or speed/accuracy acceptance evidence"
+  ],
+  "gpu_budget_bytes": 9663676416,
+  "source_expiries_extended": false,
+  "plan_sha256": "31503ca3a9e1b4da72d8bd248b655d8b101a2462cd7c1f35881a4d9578353c36",
+  "probe_source_sha256": "0726d268ce914c18fdb0100ea28a8eb660f7fdaefe57042413a3bdf85b69aefc",
+  "trainer_source_sha256": "92fe1649cddbca41439949443feb77359d6fadc51cb968ea00c0ba633d24626d",
+  "factory_sha256": "40c6a1f191950334b62f5d52fec161a2539c99d6b77c422c8fd7797f32685575",
+  "sample_count": 150,
+  "requested_sleep_ms": 20.0,
+  "observed_interval_ms": {
+    "min": 20.7522,
+    "median": 31.4604,
+    "max": 75.0877
+  },
+  "sleep_not_guaranteed_sampling_period": true,
+  "max_observed_global_bytes": 3104505856,
+  "sampling_errors": [],
+  "sampling_thread_stopped": true,
+  "own_peak_allocated_bytes": 1762141696,
+  "own_peak_reserved_bytes": 1874853888,
+  "OOM_counter_delta": 0,
+  "guard_violation_observed": false,
+  "source_checksums_unchanged": true
+}

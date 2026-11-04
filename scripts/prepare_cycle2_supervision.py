@@ -1,0 +1,23 @@
+"""Metadata-only predeclare device-observed probe2 and own-child supervision."""
+import json,sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
+from agent.paths import sha256,atomic_json
+from scripts.supervise_cycle2_training import OOM_SIGNATURES
+
+def freeze(path,value):
+ if path.exists():
+  if json.loads(path.read_text(encoding='utf-8'))!=value:raise ValueError('predeclared_memory_protocol_changed')
+ else:atomic_json(path,value)
+def prepare():
+ prior=ROOT/'docs/reports/PRIVACY-P2-CYCLE2-GPU-PREFLIGHT.json';report=json.loads(prior.read_text());original=ROOT/'scripts/probe_cycle2_gpu_memory.py'
+ if sha256(original)!='0726d268ce914c18fdb0100ea28a8eb660f7fdaefe57042413a3bdf85b69aefc' or report['probe_source_sha256']!=sha256(original):raise ValueError('original_probe_evidence_or_source_changed')
+ common={'learning_plan_sha256':sha256(ROOT/'docs/reports/PRIVACY-P2-CYCLE2-PLAN-V2.json'),'training_source_sha256':sha256(ROOT/'scripts/train_privacy_p2_cycle2.py'),'factory_sha256':sha256(ROOT/'agent/redaction_p2_network.py'),'observer_source_sha256':sha256(ROOT/'scripts/cycle2_device_memory.py'),'preparation_source_sha256':sha256(Path(__file__)),'device_budget_bytes':9*1024**3,'device_query':['nvidia-smi','--id=0','--query-gpu=memory.used','--format=csv,noheader,nounits','--loop-ms=100'],'sample_times':'monotonic receive timestamps; hardware query time and exact100ms intervals not guaranteed','scope':'device-level reported FB memory under WDDM, not exact per-process sum or hard memory quota','global_OOM_zero_claimed':False,'source_expiries_extended':False,'user_recordings_used':False}
+ probe=dict(common,format='P2-device-observed-probe2-plan-v1',created_before_probe2=True,probe2_source_sha256=sha256(ROOT/'scripts/probe_cycle2_gpu_memory2.py'),parent_probe_report_sha256=sha256(prior),parent_probe_source_sha256=sha256(original),training_updates=0,optimizer_steps=0,max_batches=3,TRAIN_batches=2,VAL_batches=1,batch_size=4,TEST_images_loaded=0,same_predeclared_development_data_and_tensor_math=True,expected_original_TRAIN_GT=[386,380,246,200],required_device_samples_before_init=2,required_additional_device_samples_after_batches=2,learning_requires_further_root_slot=True)
+ freeze(ROOT/'docs/reports/PRIVACY-P2-CYCLE2-GPU-PROBE2-PLAN.json',probe)
+ supervision=dict(common,format='P2-shared-supervision-plan-v1',created_before_training=True,supervisor_source_sha256=sha256(ROOT/'scripts/supervise_cycle2_training.py'),command_scope='fixed workspace Python3.11 + frozen P2 train only; no arbitrary PID or command CLI',identity='direct child PID + creation_time + PPID verified before every stop; Windows Popen handle bound to our newly-created child if initial identity acquisition itself fails',own_OOM_log_signatures=OOM_SIGNATURES,only_own_training_child_can_be_stopped=True,monitor_observer_is_also_own_child=True,training_math_changed=False,TEST_selection_allowed=False)
+ freeze(ROOT/'docs/reports/PRIVACY-P2-CYCLE2-SHARED-SUPERVISION-PLAN.json',supervision)
+ scope={'format':'P2-original-probe-scope-correction-v1','original_report_sha256':sha256(prior),'original_source_sha256':sha256(original),'original_report_and_source_unchanged':True,'optimizer_steps':0,'training_updates':0,'confirmed_scope':['Own peak allocation/reservation','Finite development TRAIN/VAL loss/output','Own process OOM counter delta0','Source checksums unchanged'],'not_confirmed':['Device-wide physical9GiB limit during original probe','Global OOM zero'],'original_cuda_memory_peak_bytes':report['max_observed_global_bytes'],'separate_post_probe_nvidia_smi_used_MiB':3880,'cuda_and_nvidia_values_were_not_simultaneous':True,'global_budget_verified_by_original_probe':False,'why':'WDDM memory is OS managed; cudaMemGetInfo estimate is insufficient to establish device-level cross-process FB peak. Original pass flag is preserved as executed, not promoted to global-budget acceptance.','references':['https://forums.developer.nvidia.com/t/cudamemgetinfo-no-longer-returns-free-memory-for-full-system-only-looks-at-current-process/66941','https://docs.nvidia.com/deploy/nvml-api/latest/api/group__nvmlDeviceQueries.html'],'probe2_plan_sha256':sha256(ROOT/'docs/reports/PRIVACY-P2-CYCLE2-GPU-PROBE2-PLAN.json'),'training_authorized_by_this_receipt':False}
+ freeze(ROOT/'docs/reports/PRIVACY-P2-CYCLE2-GPU-PREFLIGHT-SCOPE.json',scope)
+ print(json.dumps({'probe2_plan_sha256':sha256(ROOT/'docs/reports/PRIVACY-P2-CYCLE2-GPU-PROBE2-PLAN.json'),'supervision_plan_sha256':sha256(ROOT/'docs/reports/PRIVACY-P2-CYCLE2-SHARED-SUPERVISION-PLAN.json'),'original_probe_source_unchanged':True,'new_GPU_operations':0,'training_updates':0}),flush=True)
+if __name__=='__main__':prepare()
