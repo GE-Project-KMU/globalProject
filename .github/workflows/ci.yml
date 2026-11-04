@@ -176,7 +176,7 @@ jobs:
       - name: Install project environments
         run: |
           python -m venv .venv
-          .venv/bin/python -m pip install -r requirements.txt
+          .venv/bin/python -m pip install -r requirements.txt -r requirements-vision.txt
           npm --prefix frontend ci
       - name: TypeScript and production build
         run: npm --prefix frontend run build

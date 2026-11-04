@@ -14,6 +14,12 @@
 
 ## 재현
 
+영상 통합 검사는 기본 API 패키지 외에 PyAV·암호화 등 영상 의존성이 필요하다. 새 환경에서는 두 고정 의존성 파일을 모두 설치한다. CI의 frontend 작업도 같은 의존성을 설치한 뒤 이 검사를 실행한다.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt -r requirements-vision.txt
+```
+
 프로젝트 루트에서 기존 서비스 상태를 확인한다. 중단돼 있다면 프로젝트 관리 도구로 시작한다.
 
 ```powershell
