@@ -59,8 +59,14 @@ def client():
 
 
 @pytest.fixture(scope="session")
-def auth(client):
-    login = data(client.post("/api/v1/auth/login", json={"org_code": "demo", "login": "admin@road.local", "password": env_values()["ROAD_BOOTSTRAP_PASSWORD"]}))
+def test_identity():
+    from scripts.http_fixture_identity import isolated_identity
+    return PrivateFixture(isolated_identity(env_values()))
+
+
+@pytest.fixture(scope="session")
+def auth(client,test_identity):
+    login = data(client.post("/api/v1/auth/login", json=dict(test_identity)))
     return PrivateFixture({"Authorization": "Bearer " + login["access_token"]})
 
 
@@ -106,7 +112,7 @@ def setup(client, auth):
                    "location": {"lat": 37.5, "lon": 127.0, "source": "vehicle_observation", "quality": "valid", "hdop": 1.2, "age_ms": 100, "accuracy_m": None},
                    "profile_id": profile_id, "model_version": bundle_body["version"], "config_hash": bundle_body["config_hash"],
                    "pothole": {"bbox_xywh_px": [100, 200, 160, 80], "confidence": 0.91, "track_observations": 5, "candidate_state": "multi_frame", "occluded": False}, "lane": None,
-                   "quality": {"usable": True, "reasons": []}, "image": {"file_id": file_id, "sha256": sha, "redacted": True, "reviewed_for_sharing": True}, "review": {"status": "unreviewed", "priority": "normal"}}
+                   "quality": {"usable": True, "reasons": []}, "image": {"file_id": file_id, "sha256": sha, "redacted": True, "reviewed_for_sharing": True}, "review": {"status": "unreviewed", "priority": "normal"}, "demo": True}
     return PrivateFixture({"device": device, "dh": dh, "run": run_body, "profile": profile_body, "profile_id": profile_id, "bundle": bundle_body, "observation": observation, "blob": blob, "metadata": metadata, "image": image_result, "approval_body": approval_body})
 
 
@@ -230,7 +236,7 @@ def test_lane_overlay_schema_rejects_invalid_rle(client,auth,setup):
     result=data(client.post("/api/v1/observations",headers=setup["dh"],json=body),201)
     assert result["lane"]["paint_mask_rle"]["counts"]==[0,4]
 
-def test_duplicate_approval_and_revoke_append_case_history(client,auth,setup):
+def test_duplicate_approval_and_revoke_append_case_history(client,auth,setup,test_identity):
     import copy
     observations=[]
     for _ in range(2):
@@ -246,7 +252,7 @@ def test_duplicate_approval_and_revoke_append_case_history(client,auth,setup):
         entries=data(client.get("/api/v1/cases/"+obs["case_id"]+"/history",headers=auth))["entries"]
         assert any(x.get("action")=="duplicate.revoke" for x in entries)
     assert data(client.get("/api/v1/observations/"+first["id"],headers=auth))["case_id"]==first["case_id"]
-    bad = client.post("/api/v1/auth/login", json={"org_code": "demo", "login": "admin@road.local", "password": "wrong-password"})
+    bad = client.post("/api/v1/auth/login", json={**test_identity,"password": "wrong-password"})
     assert bad.status_code == 401
     assert "password" not in bad.text.lower() or "wrong-password" not in bad.text
 
@@ -259,6 +265,39 @@ def test_configuration_and_actual_image_upload(client, auth, setup):
     assert photo.status_code == 200
     assert hashlib.sha256(photo.content).hexdigest() == setup["observation"]["image"]["sha256"]
     assert "no-store" in photo.headers.get("cache-control", "")
+
+
+def test_fixture_scope_and_report_cache_are_tenant_local_and_truthfully_synthetic(client,auth,setup,test_identity):
+    import copy
+    assert test_identity['org_code'].startswith('http-test-') and test_identity['org_code']!='demo'
+    payload=copy.deepcopy(setup['observation']);payload.update(observation_id=str(uuid4()),event_id=str(uuid4()))
+    created=data(client.post('/api/v1/observations',headers=setup['dh'],json=payload),201)
+    extra=copy.deepcopy(payload);extra.update(observation_id=str(uuid4()),event_id=str(uuid4()))
+    data(client.post('/api/v1/observations',headers=setup['dh'],json=extra),201)
+    assert created['demo'] is True and created['data_origin']=='http_test'
+    assert data(client.get('/api/v1/observations/'+created['id'],headers=auth))['data_origin']=='http_test'
+    for path in ('/observations','/summary','/reports'):
+        assert client.get('/api/v1'+path,headers=auth,params={'data_scope':'invalid'}).status_code==422
+    assert not data(client.get('/api/v1/observations',headers=auth,params={'data_scope':'presentation'}))['items']
+    assert any(x['id']==created['id'] for x in data(client.get('/api/v1/observations',headers=auth,params={'data_scope':'test'}))['items'])
+    assert data(client.get('/api/v1/summary',headers=auth,params={'data_scope':'presentation'}))['total']==0
+    cursor=data(client.get('/api/v1/observations',headers=auth,params={'data_scope':'test','limit':1}))['next_cursor']
+    assert cursor
+    assert client.get('/api/v1/observations',headers=auth,params={'data_scope':'all','cursor':cursor}).status_code==422
+    jobs=[]
+    for scope in ('presentation','test'):
+        job=data(client.get('/api/v1/reports',headers=auth,params={'format':'csv','run_id':setup['run']['run_id'],'data_scope':scope}),202)
+        jobs.append(job.get('job_id',job.get('id')))
+    assert jobs[0]!=jobs[1]
+    for index,job_id in enumerate(jobs):
+        for _ in range(40):
+            job=data(client.get('/api/v1/jobs/'+job_id,headers=auth))
+            if job['status'] in ('succeeded','failed'):break
+            time.sleep(.1)
+        assert job['status']=='succeeded'
+        csv=client.get('/api/v1/reports/'+job_id+'/download',headers=auth);assert csv.status_code==200
+        assert 'data_origin' in csv.text.splitlines()[0]
+        assert (created['id'] in csv.text)==(index==1)
 
 
 def test_observation_ingestion_retry_and_conflict(client, auth, setup):
@@ -362,18 +401,18 @@ def test_report_job_and_download(client, auth):
     assert len(download.content) > 10
 
 
-def test_logout_revokes_session(client):
-    login = data(client.post("/api/v1/auth/login", json={"org_code": "demo", "login": "admin@road.local", "password": env_values()["ROAD_BOOTSTRAP_PASSWORD"]}))
+def test_logout_revokes_session(client,test_identity):
+    login = data(client.post("/api/v1/auth/login", json=dict(test_identity)))
     headers = {"Authorization": "Bearer " + login["access_token"]}
     assert client.post("/api/v1/auth/logout", headers=headers).status_code == 204
     assert client.get("/api/v1/me", headers=headers).status_code == 401
 
 
-def test_viewer_permissions_and_account_revocation(client, auth):
+def test_viewer_permissions_and_account_revocation(client, auth,test_identity):
     login_name = "viewer-" + uuid4().hex[:10] + "@test.local"
     password = "Synthetic-Test-Password-2026"
     user = data(client.post("/api/v1/users", headers=auth, json={"login": login_name, "password": password, "role": "viewer"}), 201)
-    token = data(client.post("/api/v1/auth/login", json={"org_code": "demo", "login": login_name, "password": password}))["access_token"]
+    token = data(client.post("/api/v1/auth/login", json={"org_code": test_identity["org_code"], "login": login_name, "password": password}))["access_token"]
     vh = {"Authorization": "Bearer " + token}
     assert client.get("/api/v1/observations", headers=vh).status_code == 200
     assert client.post("/api/v1/devices", headers=vh, json={"name": "not-allowed"}).status_code == 403
@@ -383,10 +422,9 @@ def test_viewer_permissions_and_account_revocation(client, auth):
 
 
 def test_cross_tenant_isolation(client, auth, setup):
-    env = {**os.environ, **env_values(), "ROAD_DATA_DIR": str(ROOT / "data"), "PYTHONPATH": str(ROOT), "PYTHONPYCACHEPREFIX": str(ROOT / ".cache/pycache")}
-    result = subprocess.run([sys.executable, "-m", "services.identity.bootstrap", "--org", "isolation", "--login", "admin@road.local", "--password-env", "ROAD_BOOTSTRAP_PASSWORD"], cwd=ROOT, env=env, capture_output=True, text=True, timeout=30)
-    assert result.returncode == 0, result.stderr
-    token = data(client.post("/api/v1/auth/login", json={"org_code": "isolation", "login": "admin@road.local", "password": env["ROAD_BOOTSTRAP_PASSWORD"]}))["access_token"]
+    from scripts.http_fixture_identity import isolated_identity
+    identity=PrivateFixture(isolated_identity(env_values(),prefix='http-isolation'))
+    token = data(client.post("/api/v1/auth/login", json=dict(identity)))["access_token"]
     foreign = {"Authorization": "Bearer " + token}
     assert client.get("/api/v1/profiles/" + setup["profile_id"], headers=foreign).status_code == 404
     assert client.get("/api/v1/images/" + setup["observation"]["image"]["file_id"] + "/content", headers=foreign).status_code == 404

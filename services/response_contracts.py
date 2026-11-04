@@ -115,6 +115,7 @@ class ObservationView(Public):
     expires_at:str
     image_content_path:str
     demo:bool=False
+    data_origin:Literal['field','synthetic_demo','http_test']='field'
     deduplicated:bool|None=None
 class ObservationList(Items[ObservationView]):
     counts_by_type:dict[str,int]

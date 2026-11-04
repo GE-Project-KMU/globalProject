@@ -8,6 +8,7 @@ from fastapi import Request,Query,Response
 from pydantic import ValidationError
 from common.runtime import *
 from .schemas import Observation,ReviewPatch
+from .presentation import DataScope,data_origin,included,policy,validate_scope
 store=Store("inspection");app=app_for("inspection")
 def payload(x):return {k:v for k,v in x.items() if k not in ("id","org_id","kind","version","created","expires")}
 def canonical_case(id,org,s=None):
@@ -17,10 +18,10 @@ def canonical_case(id,org,s=None):
         seen.add(id);c=store.get(id,org,"case",s)
         if not c.get("merged_into"):return c
         id=c["merged_into"]
-def view(o,p,s=None):
+def view(o,p,s=None,presentation_rows=None):
     if o.get("privacy_blocked"):fail(410,"DATA_RESTRICTED")
     c=canonical_case(o["case_id"],p["org_id"],s)
-    return {**o["payload"],"id":o["id"],"observation_id":o["id"],"case_id":c["id"],"case_version":c["version"],
+    return {**o["payload"],"data_origin":data_origin(o['payload'],p['org_id'],presentation_rows),"id":o["id"],"observation_id":o["id"],"case_id":c["id"],"case_version":c["version"],
             "review":{"status":c["status"],"priority":c["priority"],"reason":c.get("reason"),"updated_at":c.get("updated_at")},
             "corrections":[x for x in store.list(p["org_id"],"correction",s) if x["observation_id"]==o["id"]],
             "expires_at":iso(o["expires"]),"image_content_path":"/api/v1/images/"+o["payload"]["image"]["file_id"]+"/content"}
@@ -180,8 +181,9 @@ async def ingest(b:Observation,req:Request,response:Response):
 def rank(o):
     return (0 if o["review"]["priority"]=="urgent" else 1,0 if o["type"]=="pothole" else 1 if o.get("lane",{}).get("grade")=="worn_candidate" else 2,o["captured_at"],o["id"])
 @app.get("/api/v1/observations")
-def listing(req:Request,type:str|None=None,review_status:str|None=None,quality:str|None=None,grade:str|None=None,run_id:str|None=None,bbox:str|None=None,from_:str|None=Query(None,alias="from"),to:str|None=None,limit:int=Query(50,ge=1,le=200),cursor:str|None=None):
+def listing(req:Request,type:str|None=None,review_status:str|None=None,quality:str|None=None,grade:str|None=None,run_id:str|None=None,bbox:str|None=None,from_:str|None=Query(None,alias="from"),to:str|None=None,limit:int=Query(50,ge=1,le=200),cursor:str|None=None,data_scope:DataScope='all'):
     p=principal(req);role(p,"admin","reviewer","viewer")
+    validate_scope(data_scope);presentation_rows,policy_sha=policy()
     if type not in (None,"pothole","lane_segment") or quality not in (None,"valid","degraded","unavailable") or review_status not in (None,"unreviewed","confirmed","false_positive","recapture","action_planned","completed") or grade not in (None,"visible_good","monitor","worn_candidate","unassessable"):fail(422,"INVALID_FILTER")
     if grade and type=="pothole" or bbox and quality=="unavailable":fail(422,"INVALID_FILTER")
     bounds=None
@@ -192,7 +194,7 @@ def listing(req:Request,type:str|None=None,review_status:str|None=None,quality:s
         except (ValueError,AssertionError):fail(422,"INVALID_BBOX")
     ft=stamp(from_) if from_ else None;tt=stamp(to) if to else None
     if ft is not None and tt is not None and ft>=tt:fail(422,"INVALID_TIME_RANGE")
-    fh=digest([p["org_id"],type,review_status,quality,grade,run_id,bbox,from_,to])
+    fh=digest([p["org_id"],type,review_status,quality,grade,run_id,bbox,from_,to,data_scope,policy_sha])
     after=None;snapshot=now()
     if cursor:
         try:
@@ -212,7 +214,8 @@ def listing(req:Request,type:str|None=None,review_status:str|None=None,quality:s
             if spatial_ids is not None and o["id"] not in spatial_ids:continue
             if o.get("privacy_blocked"):continue
             if o["created"]>snapshot:continue
-            v=view(o,p,s);loc=v["location"];capt=stamp(v["captured_at"])
+            if not included(data_origin(o['payload'],p['org_id'],presentation_rows),data_scope):continue
+            v=view(o,p,s,presentation_rows);loc=v["location"];capt=stamp(v["captured_at"])
             if type and v["type"]!=type or review_status and v["review"]["status"]!=review_status or quality and loc["quality"]!=quality or run_id and v["run_id"]!=run_id:continue
             if grade and (v.get("lane") or {}).get("grade")!=grade:continue
             if ft is not None and capt<ft or tt is not None and capt>=tt:continue
@@ -226,7 +229,7 @@ def listing(req:Request,type:str|None=None,review_status:str|None=None,quality:s
     if len(page)>limit:
         raw=base64.urlsafe_b64encode(json.dumps({"filter":fh,"after":rank(result[-1]),"snapshot":snapshot,"expires":now()+300}).encode()).decode()
         next_cursor=raw+"."+hmac.new(service_key("inspection"),raw.encode(),"sha256").hexdigest()
-    return ok({"items":result,"next_cursor":next_cursor,"counts_by_type":counts,"counts_unit":"observation"})
+    return ok({"items":result,"next_cursor":next_cursor,"counts_by_type":counts,"counts_unit":"observation","data_scope":data_scope})
 @app.get("/api/v1/observations/{id}")
 def detail(id:UUIDString,req:Request):
     p=principal(req);role(p,"admin","reviewer","viewer");valid_uuid(id)
@@ -259,9 +262,10 @@ def history(id:UUIDString,req:Request):
     p=principal(req);role(p,"admin","reviewer","viewer");store.get(id,p["org_id"],"case")
     return ok({"entries":[x for x in store.list(p["org_id"],"history") if x["case_id"]==id],"next_cursor":None})
 @app.get("/api/v1/summary")
-def summary(req:Request,from_:str|None=Query(None,alias="from"),to:str|None=None):
+def summary(req:Request,from_:str|None=Query(None,alias="from"),to:str|None=None,data_scope:DataScope='all'):
     p=principal(req);role(p,"admin","reviewer","viewer")
-    items=[view(o,p) for o in store.list(p["org_id"],"observation") if not o.get("privacy_blocked")]
+    validate_scope(data_scope);presentation_rows,_=policy()
+    items=[view(o,p,presentation_rows=presentation_rows) for o in store.list(p["org_id"],"observation") if not o.get("privacy_blocked") and included(data_origin(o['payload'],p['org_id'],presentation_rows),data_scope)]
     ft=stamp(from_) if from_ else None;tt=stamp(to) if to else None
     if ft is not None and tt is not None and ft>=tt:fail(422,"INVALID_TIME_RANGE")
     items=[v for v in items if (ft is None or stamp(v["captured_at"])>=ft) and (tt is None or stamp(v["captured_at"])<tt)]
@@ -363,12 +367,12 @@ async def revoke_link(id:UUIDString,req:Request,body:DuplicateRevoke):
         x=store.change(id,p["org_id"],lp,x["version"],s);store.audit(p,"duplicate.revoke",id,s)
     return ok(x)
 @app.get("/internal/report-snapshot")
-def report_snapshot(req:Request,from_:str|None=Query(None,alias="from"),to:str|None=None,type:str|None=None,review_status:str|None=None,quality:str|None=None,grade:str|None=None,run_id:str|None=None,bbox:str|None=None):
+def report_snapshot(req:Request,from_:str|None=Query(None,alias="from"),to:str|None=None,type:str|None=None,review_status:str|None=None,quality:str|None=None,grade:str|None=None,run_id:str|None=None,bbox:str|None=None,data_scope:DataScope='all'):
     p=principal(req);role(p,"admin","reviewer","viewer")
-    r=listing(req,type=type,review_status=review_status,from_=from_,to=to,quality=quality,grade=grade,run_id=run_id,bbox=bbox,limit=200,cursor=None)["data"]
+    r=listing(req,type=type,review_status=review_status,from_=from_,to=to,quality=quality,grade=grade,run_id=run_id,bbox=bbox,limit=200,cursor=None,data_scope=data_scope)["data"]
     items=r["items"]
     while r["next_cursor"]:
-        r=listing(req,type=type,review_status=review_status,from_=from_,to=to,quality=quality,grade=grade,run_id=run_id,bbox=bbox,limit=200,cursor=r["next_cursor"])["data"]
+        r=listing(req,type=type,review_status=review_status,from_=from_,to=to,quality=quality,grade=grade,run_id=run_id,bbox=bbox,limit=200,cursor=r["next_cursor"],data_scope=data_scope)["data"]
         items+=r["items"]
         if len(items)>10000:fail(422,"REPORT_TOO_LARGE")
     reps=list({x["case_id"]:x for x in items}.values())

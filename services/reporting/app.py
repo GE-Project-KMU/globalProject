@@ -32,10 +32,11 @@ def csv_cell(v):
     return "'"+s if s.lstrip().startswith(("=","+","-","@")) else s
 def render_csv(path,items):
     with path.open("w",encoding="utf-8-sig",newline="") as f:
-        w=csv.writer(f);w.writerow(["case_id","type","captured_at","status","priority","latitude","longitude","location_quality","retention_pct","grade","demo","observation_id","event_id","location_source","confidence","quality_usable","quality_reasons","unassessable_reason","valid_area_ratio","segment_support_ratio","model_version","profile_id","review_reason","reviewed_at","corrections","public_demo"])
+        w=csv.writer(f);w.writerow(["case_id","type","captured_at","status","priority","latitude","longitude","location_quality","retention_pct","grade","demo","observation_id","event_id","location_source","confidence","quality_usable","quality_reasons","unassessable_reason","valid_area_ratio","segment_support_ratio","model_version","profile_id","review_reason","reviewed_at","corrections","public_demo","data_origin"])
         for o in items:
             lane=o.get("lane") or {};quality=o.get("quality") or {}
             values=[o["case_id"],o["type"],o["captured_at"],o["review"]["status"],o["review"]["priority"],o["location"]["lat"],o["location"]["lon"],o["location"]["quality"],lane.get("retention_pct"),lane.get("grade"),o.get("demo",False),o["observation_id"],o["event_id"],o["location"].get("source"),(o.get("pothole") or {}).get("confidence"),quality.get("usable"),";".join(quality.get("reasons",[])),lane.get("unassessable_reason"),lane.get("valid_area_ratio"),lane.get("segment_support_ratio"),o.get("model_version"),o.get("profile_id"),o["review"].get("reason"),o["review"].get("updated_at"),json.dumps(o.get("corrections",[]),ensure_ascii=False),o.get("public_exported",False)]
+            values.append(o.get('data_origin','field'))
             w.writerow([csv_cell(v) if isinstance(v,str) else v for v in values])
 def public_export(items):
     import copy
@@ -62,6 +63,7 @@ def render_pdf(path,items):
     story.extend([Paragraph(f"대표 포트홀 점검 건: {counts['pothole']} · 대표 차선 구간 점검 건: {counts['lane_segment']}",style),Paragraph("위치는 차량의 관측 위치이며 손상 객체의 측량 좌표가 아닙니다. 차선 지표는 영상 잔존율로 법정 안전등급이 아닙니다.",style),Spacer(1,12)])
     for o in items:
         lane=o.get("lane") or {}
+        story.append(Paragraph("자료 출처: "+{'http_test':'합성 HTTP 테스트 · 실제 탐지 결과 아님','synthetic_demo':'합성 시연 · 실제 탐지 결과 아님','field':'일반 관측 · 출처 미확인'}.get(o.get('data_origin','field'),'미확인'),style))
         values=[("점검 ID",o["case_id"]),("종류",o["type"]),("관측 시각",o["captured_at"]),("검토 상태",o["review"]["status"]),("우선순위",o["review"]["priority"]),("위치 품질",o["location"]["quality"]),("관측 위치",f"{o['location']['lat']}, {o['location']['lon']}"),("AI 신뢰도(위험 확률 아님)",(o.get("pothole") or {}).get("confidence")),("영상 잔존율",lane.get("retention_pct")),("영상 등급",lane.get("grade")),("판정 불가 사유",lane.get("unassessable_reason")),("품질 사유",", ".join((o.get("quality") or {}).get("reasons",[]))),("유효 면적/구간 지원율",f"{lane.get('valid_area_ratio')} / {lane.get('segment_support_ratio')}"),("모델/프로파일",f"{o.get('model_version')} / {o.get('profile_id')}"),("검토·조치 근거",o["review"].get("reason")),("정정 이력",json.dumps(o.get("corrections",[]),ensure_ascii=False)),("가상 시연",o.get("demo",False))]
         for k,v in values:story.append(Paragraph(html.escape(f"{k}: {v}"),style))
         story.append(Spacer(1,12))
@@ -145,11 +147,13 @@ async def lifespan(app):
         except asyncio.CancelledError:pass
 app.router.lifespan_context=lifespan
 @app.get("/api/v1/reports",response_model=ReportingEnvelope[JobView],responses={202:{"model":ReportingEnvelope[JobView],"description":"Report queued"}})
-async def report(req:Request,format:Literal["csv","pdf"]="csv",from_:str|None=Query(None,alias="from"),to:str|None=None,type:str|None=None,review_status:str|None=None,bbox:str|None=None,quality:str|None=None,grade:str|None=None,run_id:str|None=None,snapshot_at:str|None=None,public_demo:bool=False):
+async def report(req:Request,format:Literal["csv","pdf"]="csv",from_:str|None=Query(None,alias="from"),to:str|None=None,type:str|None=None,review_status:str|None=None,bbox:str|None=None,quality:str|None=None,grade:str|None=None,run_id:str|None=None,snapshot_at:str|None=None,public_demo:bool=False,data_scope:Literal['all','presentation','test','field','synthetic']='all'):
     p=principal(req);role(p,"admin","reviewer","viewer")
     if format not in ("csv","pdf"):fail(422,"INVALID_REPORT_FORMAT")
     params=dict(req.query_params);params.pop("format",None);params.pop("public_demo",None);snapshot_at=params.pop("snapshot_at",None)
-    if set(params)-{"from","to","type","review_status","bbox","quality","grade","run_id"}:fail(422,"INVALID_FILTER")
+    if set(params)-{"from","to","type","review_status","bbox","quality","grade","run_id","data_scope"}:fail(422,"INVALID_FILTER")
+    if data_scope!='all':params['data_scope']=data_scope
+    else:params.pop('data_scope',None)
     if snapshot_at is not None:stamp(snapshot_at)
     reference_time=now()
     start=stamp(params["from"]) if "from" in params else reference_time-90*86400
