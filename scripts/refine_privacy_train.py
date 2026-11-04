@@ -45,7 +45,9 @@ def state_digest(state):
     return result.hexdigest()
 
 def plan():
-    return {'format':'privacy-refinement-plan-v1','candidate_count':1,'training_epochs':8,'include_zero_step_baseline_for_selection':True,'seed':20261105,'batch_size':4,
+    return {'format':'privacy-refinement-plan-v1','parent_plan_sha256':'9bdca7815ff2ff8615ab7a1ed6a51923aa350e30605e3d9c8bc482301efe7f2c',
+        'parent_plan_git_commit':'d8905cf','revision_reason':'metadata-only pre-training clarification: exported_before_final_test replaces ambiguous persistent test_evaluated:false; no learning, selection, data, epoch or threshold policy change',
+        'candidate_count':1,'training_epochs':8,'include_zero_step_baseline_for_selection':True,'seed':20261105,'batch_size':4,
         'face_train_images':3000,'face_validation_images':400,'plate_weights_frozen':True,'full_validation_images':508,'max_gt_count':512,
         'warmstart_checkpoint_sha256':sha256(BASE),'baseline_manifest_sha256':sha256(BASE_MANIFEST),'development_sha256':sha256(DEV),'release_sha256':sha256(RELEASE),
         'fresh_manifest_sha256':sha256(DEV.parent/'fresh-test.json'),'training_code_sha256':sha256(Path(__file__)),
@@ -140,7 +142,7 @@ def train():
         'classes':CLASSES,'weights':weights.relative_to(ROOT).as_posix(),'sha256':sha256(weights),'target_trained':True,'dataset_release':'manifest-sha256:'+sha256(RELEASE),'source_release_path':RELEASE.relative_to(ROOT).as_posix(),
         'training_provenance':pp.relative_to(ROOT).as_posix(),'input_size':[1920,1920],'output_layout':'yolox_decoded_xywh','confidence':calibration['selected_confidence'],'nms_iou':.5,
         'source_licenses':['CC-BY-NC-ND-4.0','MIT'],'research_only':True,'production_approved':False,'project_acceptance_eligible':False,'human_privacy_reviewed':False,'independent_route_verified':False,
-        'test_split_used':False,'test_evaluated':False,'test_split_used_scope':'training_and_selection','data_revoked':False,'needs_revalidation':False,'best_epoch':best_epoch,'plate_state_unchanged':True}
+        'test_split_used':False,'exported_before_final_test':True,'test_split_used_scope':'training_and_selection','data_revoked':False,'needs_revalidation':False,'best_epoch':best_epoch,'plate_state_unchanged':True}
     atomic_json(OUT/'model.json',manifest);link_model(pp,OUT/'model.json');atomic_json(OUT/'candidate-freeze.json',{'model_manifest_sha256':sha256(OUT/'model.json'),'checkpoint_sha256':sha256(OUT/'best.pt'),'onnx_sha256':sha256(weights),'confidence':manifest['confidence'],'test_evaluated':False})
     print(json.dumps({'status':'trained','epochs':8,'best_epoch':best_epoch,'validation_face_ap50':best,'plate_state_unchanged':True}),flush=True)
 

@@ -47,8 +47,17 @@ def prepare(output=DEST):
     print(json.dumps({'plan_sha256':sha256(output/'plan.json'),'train':sum(r['split']=='train' for r in rows),'new_test':sum(r['split']=='test' for r in rows)}),flush=True)
 
 
-def train(output=DEST):
-    output=workspace_path(output,exists=True);plan_path=output/'plan.json';plan=json.loads(plan_path.read_text())
+def revise_plan(output=DEST):
+    output=workspace_path(output,exists=True);old=output/'plan.json';new=output/'plan-v2.json'
+    if (output/'provenance.json').exists() or new.exists():raise ValueError('fresh_pretraining_plan_revision_required')
+    plan=json.loads(old.read_text(encoding='utf-8'))
+    plan.update(parent_plan_sha256=sha256(old),parent_training_code_sha256=plan['script_sha256'],script_sha256=sha256(Path(__file__)),
+                plan_revision_reason='Metadata-only before any training: export records exported_before_final_test, immutable external evaluation reports record later TEST execution. Training/selection unchanged.')
+    atomic_json(new,plan);print(json.dumps({'revised_plan_sha256':sha256(new)}),flush=True)
+
+
+def train(output=DEST,plan_file=None):
+    output=workspace_path(output,exists=True);plan_path=workspace_path(plan_file,exists=True) if plan_file else output/'plan.json';plan=json.loads(plan_path.read_text())
     if sha256(Path(__file__))!=plan['script_sha256'] or any(sha256(ROOT/p)!=h for p,h in plan['dependency_sha256'].items()):raise ValueError('frozen_training_source_changed')
     for path,expected in [(plan['baseline_model'],plan['baseline_model_sha256']),(plan['baseline_checkpoint'],plan['baseline_checkpoint_sha256']),(output/'release.json',plan['combined_release_sha256'])]:
         if sha256(workspace_path(path,exists=True))!=expected:raise ValueError('frozen_training_input_changed')
@@ -102,13 +111,15 @@ def train(output=DEST):
     if updates==0:raise RuntimeError('no_optimizer_updates')
     selected=choose(history);model.load_state_dict(torch.load(output/'best.pt',map_location='cpu',weights_only=True)['model']);model.cpu().eval();model.head.decode_in_inference=True
     torch.onnx.export(model,torch.zeros(1,3,640,640),str(output/'model.onnx'),input_names=['images'],output_names=['predictions'],opset_version=17,dynamo=False)
-    manifest=json.loads((ROOT/plan['baseline_model']).read_text());manifest.pop('heldout_map50',None)
-    manifest.update(weights=(output/'model.onnx').relative_to(ROOT).as_posix(),sha256=sha256(output/'model.onnx'),source_release_path=(output/'release.json').relative_to(ROOT).as_posix(),dataset_release='manifest-sha256:'+sha256(output/'release.json'),training_provenance=provenance_path.relative_to(ROOT).as_posix(),source_licenses=['CC-BY-4.0','CC-BY-NC-3.0'],best_epoch=selected['epoch'],test_evaluated=False,test_split_used=False,confidence=.1,refinement_plan_sha256=sha256(plan_path),trained_checkpoint_sha256=sha256(output/'best.pt'))
+    manifest=json.loads((ROOT/plan['baseline_model']).read_text());manifest.pop('heldout_map50',None);manifest.pop('test_evaluated',None)
+    manifest.update(weights=(output/'model.onnx').relative_to(ROOT).as_posix(),sha256=sha256(output/'model.onnx'),source_release_path=(output/'release.json').relative_to(ROOT).as_posix(),dataset_release='manifest-sha256:'+sha256(output/'release.json'),training_provenance=provenance_path.relative_to(ROOT).as_posix(),source_licenses=['CC-BY-4.0','CC-BY-NC-3.0'],best_epoch=selected['epoch'],exported_before_final_test=True,test_split_used=False,confidence=.1,refinement_plan_sha256=sha256(plan_path),trained_checkpoint_sha256=sha256(output/'best.pt'))
     atomic_json(output/'model.json',manifest);link_model(provenance_path,output/'model.json')
     atomic_json(output/'selection-freeze.json',{'plan_sha256':sha256(plan_path),'manifest_sha256':sha256(output/'model.json'),'onnx_sha256':manifest['sha256'],'checkpoint_sha256':sha256(output/'best.pt'),'selected_epoch':selected['epoch'],'selected_validation':selected,'baseline_validation':history[0],'optimizer_updates':updates,'test_inference_performed':False,'elapsed_seconds':time.perf_counter()-started})
     print(json.dumps({'status':'training_completed_test_unseen','selected_epoch':selected['epoch'],'optimizer_updates':updates}),flush=True)
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('action',choices=['prepare','train']);p.add_argument('--output',default=DEST);a=p.parse_args()
-    (prepare if a.action=='prepare' else train)(a.output)
+    p=argparse.ArgumentParser();p.add_argument('action',choices=['prepare','revise-plan','train']);p.add_argument('--output',default=DEST);p.add_argument('--plan');a=p.parse_args()
+    if a.action=='train':train(a.output,a.plan)
+    elif a.action=='prepare':prepare(a.output)
+    else:revise_plan(a.output)

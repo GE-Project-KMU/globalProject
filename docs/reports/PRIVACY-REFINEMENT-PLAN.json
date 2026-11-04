@@ -1,5 +1,8 @@
 {
   "format": "privacy-refinement-plan-v1",
+  "parent_plan_sha256": "9bdca7815ff2ff8615ab7a1ed6a51923aa350e30605e3d9c8bc482301efe7f2c",
+  "parent_plan_git_commit": "d8905cf",
+  "revision_reason": "metadata-only pre-training clarification: exported_before_final_test replaces ambiguous persistent test_evaluated:false; no learning, selection, data, epoch or threshold policy change",
   "candidate_count": 1,
   "training_epochs": 8,
   "include_zero_step_baseline_for_selection": true,
@@ -15,7 +18,7 @@
   "development_sha256": "37cdd77565438c1254768347a7d7abe37c686ba20239c3ade2fda23cd98a8d0c",
   "release_sha256": "0e9df987709aa20bf65dc579b37d64d0ccace5b2f9eb65b86303f8def5d4c5e5",
   "fresh_manifest_sha256": "3379cadd52685de1ad4abb1760fcc5293966794b84570a8fe9aeaf1e16bc5e01",
-  "training_code_sha256": "02324980b5579ac4ac4871deea7610b587b90eb91c405735dfb74d3ac23de153",
+  "training_code_sha256": "1226446a560d2b4b077762d4828a025037f4f31ab78b77d892b1dab20aaafb6e",
   "tiled_factory_sha256": "f8a1fe9121ad36cbab1e14a1f2477dd821ec6f04ee7bd6fd862996967dbd376f",
   "native_evaluation_source_sha256": "ff33c7cfcec15c4038f476127354f6e35a4052e8c03f4e4ec91a33c792572242",
   "architecture": "two YOLOX-Nano specialists global plus four tiles",
