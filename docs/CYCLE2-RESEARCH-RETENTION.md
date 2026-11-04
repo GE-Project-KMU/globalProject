@@ -13,8 +13,8 @@
 | pothole-validation-diagnostic-v7 | VAL-only GT/예측·개별 그림, 원v6 release/provenance 최소11/10 17:14:46.862846 UTC. aggregate 보존 |
 | pothole-tiny-v7 | 고정 release와 완료 후 provenance, 최소 원행기한·최대11/10 17:14:46.862846 UTC |
 | pothole-train-hardness-v8 / pothole-localization-v8 / pothole-small-v9 | 원v6 release/provenance·각 실험 plan 최소값, 최대11/10 17:14:46.862846 UTC. Small은 계획 단계에서 미생성이면 optional |
-| redaction-rescue-cpu-prototype-v8 | 원root 바로 아래 지정 NPY3개만11/04 17:37:03.942455 UTC cap. 이미 만료됐으며 추가 재사용 금지. ONNX·context·집계·최소 provenance 보존 |
-| redaction-rescue-v8 | 계획 root(optional), 원 cycle2 privacy release 최소11/10 16:55:19.285523 UTC. 만료된 prototype NPY를 학습/추론에 재사용하지 않음 |
+| redaction-rescue-cpu-prototype-v8 | 원root 바로 아래 지정 NPY3개만11/04 17:37:03.942455 UTC cap. 만료 여부는 실제 UTC clock과 비교하며 이번 cycle의 추가 재사용0. ONNX·context·집계·최소 provenance 보존 |
+| redaction-rescue-v8 | 계획 root(optional), 원 cycle2 privacy release 최소11/10 16:55:19.285523 UTC. prototype NPY 추가 재사용이나 기한 연장 없음 |
 | a2d2-cycle2-v5 / lane-cycle2-v5 | 고정 source.json·완료 후 provenance, 11/10 17:07:26.069653 UTC |
 | research-redaction-cycle2-v7 / redaction-p2-cycle2-v7 | 고정 release 행별 expires_at·완료 후 provenance, 최소11/10 16:55:19.285523 UTC |
 | public-nextcycle / cycle2-evaluation / cycle2-logs | task별 근거의 최소값, 보수적으로 privacy 최소기한 상속 |
