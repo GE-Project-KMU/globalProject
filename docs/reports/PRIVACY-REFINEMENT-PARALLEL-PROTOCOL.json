@@ -1,0 +1,17 @@
+{
+  "format": "privacy-parallel-evaluation-protocol-v1",
+  "created_before_privacy_final_predictions": true,
+  "parent_fresh_plan_sha256": "c3e4e56e88d0fe60c9177d21b5ce052f61a7299f175f7204e2d016731a6cdc83",
+  "parent_regression_plan_sha256": "f827044b9b2bc3a29f38b030e412a9869da6e64ac482ab658bf06e6d36b56fab",
+  "worker_source_sha256": "5670903da81df540bba1fd76e746ecc58b8484d4a35b435cf91be1791283dd05",
+  "canonical_model_source_sha256": "42975fa098b84bc2fa40301b1601780016d7e2d6d8d4958d73c49b8388ddf9fe",
+  "canonical_score_source_sha256": "8e427b034063c367e2630cb9f5db52a131a0696fa072d309a0cfbd63d6c86356",
+  "execution": "two concurrent independent CPU model processes, each ORT intra2/inter1 and OpenCV2; no GPU",
+  "order": "identical sorted sample_id test rows; identical OnnxModel prediction order within each row; never sort or interleave across models",
+  "math": "unchanged OnnxModel.predict confidence_floor.01/NMS and exact original score function for AP/selected_confidence/fixed.35",
+  "data": "fresh200 and oldTEST400 only, unchanged parent plans; all other historical tests remain leakage blacklist only",
+  "timing": "shared parallel CPU contention; per-model median/p95 are not isolated serial model speedups; execution wall time separately recorded",
+  "training_selection_model_threshold_changed": false,
+  "old_lane_results_changed": false,
+  "GPU_operations": 0
+}

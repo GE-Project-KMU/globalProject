@@ -1,0 +1,14 @@
+{
+  "format": "privacy-parallel-evaluation-contract-v1",
+  "synthetic_tests": 8,
+  "passed": true,
+  "combined_related_tests": 65,
+  "serial_score_and_order_equal_after_two_subprocess_JSON_roundtrip": true,
+  "thread1_vs_thread2_resize_pixels_exact_shapes_tested": 3,
+  "IoU_half_boundary_and_confidence_float_roundtrip_exact": true,
+  "synthetic_no_accuracy_or_speed_evidence": true,
+  "GPU_operations": 0,
+  "parallel_source_sha256": "5670903da81df540bba1fd76e746ecc58b8484d4a35b435cf91be1791283dd05",
+  "protocol_sha256": "32b4c6b2c5a82997d3a985db953ea03c1fabceabc4224b1c32c29beb740c5c90",
+  "test_source_sha256": "315061cba5912413b9c3d35028f221b4fb3a15dba867c9ab5309d1fe5ba5be76"
+}
