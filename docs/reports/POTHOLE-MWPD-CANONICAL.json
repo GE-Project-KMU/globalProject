@@ -1,0 +1,38 @@
+{
+  "format": "pothole-mwpd-canonical-results-v1",
+  "manifest_sha256": "b1d5c070c2b4c769531e404e887c604dee3945bf04ddbc9ebd9a01dc588cbdca",
+  "checkpoint_sha256": "d665ea42e8b342687a681ece4935ce4b2797098799907ffb8aa262ea7fb16200",
+  "plan_sha256": "da4c7014fc19c157cf534fcecfee9ef23d52e565c600f3994d2bbd858c957033",
+  "positive_validation_cases": 3,
+  "all_passed": true,
+  "rtol": 0.001,
+  "atol": 0.0001,
+  "results": [
+    {
+      "case": 0,
+      "passed": true,
+      "report_sha256": "6ed83a74396102e1986d328be71973061be190c7d793d3fa2aab47ce8d56e9e7",
+      "adapter_result_count": 4,
+      "numerical_parity_passed": true,
+      "postprocess_parity_passed": true
+    },
+    {
+      "case": 1,
+      "passed": true,
+      "report_sha256": "c465d0af1ddd7e5006a14cec4fc29e9f46afaaa29dde50515b6784a29401fac9",
+      "adapter_result_count": 2,
+      "numerical_parity_passed": true,
+      "postprocess_parity_passed": true
+    },
+    {
+      "case": 2,
+      "passed": true,
+      "report_sha256": "10d5fec935003418e42a7fa80daf91fbedbdaca4a06863755bdf46e7a8d80c9f",
+      "adapter_result_count": 3,
+      "numerical_parity_passed": true,
+      "postprocess_parity_passed": true
+    }
+  ],
+  "TEST_inference_performed": false,
+  "GPU_support_claimed": false
+}

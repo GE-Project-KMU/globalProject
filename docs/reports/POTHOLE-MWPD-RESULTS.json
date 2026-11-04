@@ -1,0 +1,195 @@
+{
+  "format": "pothole-mwpd-final-results-v1",
+  "plan_sha256": "74da5250b088c25201fa18b6835808498b00917873e490d971d18230b572d289",
+  "comparison_report_sha256": "c9e8b38f6b77bb16a98f653f1ff0b51f0dc42b7202f2d001b2b3de5368d3f4ec",
+  "samples": 145,
+  "positive_images": 97,
+  "negative_images": 48,
+  "results": {
+    "baseline": {
+      "combined": {
+        "manifest_sha256": "28efe86e7c9eacdf90d11caf0eb942dbb19b0a4d6830229069b3277cc8a45a6a",
+        "weights_sha256": "9b956d8ead74d1b11db0d1c43bac9ae5bdda2b0d6b843062319ae28de2f2f269",
+        "operating_confidence": 0.1,
+        "architecture": "YOLOX-Nano",
+        "input_size": [
+          640,
+          640
+        ],
+        "backend": "onnxruntime-cpu",
+        "backend_version": "1.31.1",
+        "ap_metrics": {
+          "classes": {
+            "pothole": {
+              "gt_count": 292,
+              "prediction_count": 764,
+              "tp": 98,
+              "fp": 666,
+              "fn": 194,
+              "ap50": 0.18043698697203184,
+              "recall": 0.3356164383561644,
+              "precision": 0.12827225130890052
+            }
+          },
+          "map50": 0.18043698697203184,
+          "matching": "one_to_one_IoU0.5_AP101",
+          "confidence": 0.01
+        },
+        "operating_metrics": {
+          "classes": {
+            "pothole": {
+              "gt_count": 292,
+              "prediction_count": 225,
+              "tp": 70,
+              "fp": 155,
+              "fn": 222,
+              "ap50": 0.15895726105883848,
+              "recall": 0.23972602739726026,
+              "precision": 0.3111111111111111
+            }
+          },
+          "map50": 0.15895726105883848,
+          "matching": "one_to_one_IoU0.5_AP101",
+          "confidence": 0.1
+        },
+        "fixed_035_reference": {
+          "classes": {
+            "pothole": {
+              "gt_count": 292,
+              "prediction_count": 107,
+              "tp": 50,
+              "fp": 57,
+              "fn": 242,
+              "ap50": 0.13629338474397631,
+              "recall": 0.17123287671232876,
+              "precision": 0.4672897196261682
+            }
+          },
+          "map50": 0.13629338474397631,
+          "matching": "one_to_one_IoU0.5_AP101",
+          "confidence": 0.35
+        },
+        "latency_seconds": {
+          "median": 0.03064569999696687,
+          "p95": 0.040150579996407025
+        }
+      },
+      "positive_only_ap50": 0.18471229685817506,
+      "negative_fp_boxes": 12,
+      "negative_fp_per_image": 0.25,
+      "negative_images_with_fp": 9,
+      "negative_any_fp_fraction": 0.1875
+    },
+    "candidate": {
+      "combined": {
+        "manifest_sha256": "b1d5c070c2b4c769531e404e887c604dee3945bf04ddbc9ebd9a01dc588cbdca",
+        "weights_sha256": "201cbb306a5f332a57a4a9b1a5a51aecca639a3088974078895429bb0b940330",
+        "operating_confidence": 0.1,
+        "architecture": "YOLOX-Nano",
+        "input_size": [
+          640,
+          640
+        ],
+        "backend": "onnxruntime-cpu",
+        "backend_version": "1.31.1",
+        "ap_metrics": {
+          "classes": {
+            "pothole": {
+              "gt_count": 292,
+              "prediction_count": 1355,
+              "tp": 230,
+              "fp": 1125,
+              "fn": 62,
+              "ap50": 0.6003350881853623,
+              "recall": 0.7876712328767124,
+              "precision": 0.16974169741697417
+            }
+          },
+          "map50": 0.6003350881853623,
+          "matching": "one_to_one_IoU0.5_AP101",
+          "confidence": 0.01
+        },
+        "operating_metrics": {
+          "classes": {
+            "pothole": {
+              "gt_count": 292,
+              "prediction_count": 432,
+              "tp": 200,
+              "fp": 232,
+              "fn": 92,
+              "ap50": 0.5692447843517686,
+              "recall": 0.684931506849315,
+              "precision": 0.46296296296296297
+            }
+          },
+          "map50": 0.5692447843517686,
+          "matching": "one_to_one_IoU0.5_AP101",
+          "confidence": 0.1
+        },
+        "fixed_035_reference": {
+          "classes": {
+            "pothole": {
+              "gt_count": 292,
+              "prediction_count": 225,
+              "tp": 159,
+              "fp": 66,
+              "fn": 133,
+              "ap50": 0.487614622718428,
+              "recall": 0.5445205479452054,
+              "precision": 0.7066666666666667
+            }
+          },
+          "map50": 0.487614622718428,
+          "matching": "one_to_one_IoU0.5_AP101",
+          "confidence": 0.35
+        },
+        "latency_seconds": {
+          "median": 0.0308705999632366,
+          "p95": 0.03985809996956959
+        }
+      },
+      "positive_only_ap50": 0.6025246494441904,
+      "negative_fp_boxes": 8,
+      "negative_fp_per_image": 0.16666666666666666,
+      "negative_images_with_fp": 7,
+      "negative_any_fp_fraction": 0.14583333333333334
+    }
+  },
+  "combined_ap50_change": 0.4198981012133305,
+  "training_epochs": 12,
+  "selected_epoch": 7,
+  "optimizer_updates": 3261,
+  "validation": {
+    "baseline": {
+      "epoch": 0,
+      "old_validation_ap50": 0.6839481787177397,
+      "new_validation_ap50": 0.1785204218744667,
+      "optimizer_updates": 0,
+      "mean_training_loss": null
+    },
+    "selected": {
+      "epoch": 7,
+      "old_validation_ap50": 0.6567948325821571,
+      "new_validation_ap50": 0.5914524916985173,
+      "optimizer_updates": 1898,
+      "mean_training_loss": 4.780080931527274
+    }
+  },
+  "test_used_for_model_or_threshold_selection": false,
+  "physical_route_independence_verified": false,
+  "project_acceptance_passed": false,
+  "source_licenses": [
+    "CC-BY-4.0",
+    "CC-BY-NC-3.0"
+  ],
+  "research_only": true,
+  "weights_uploaded": false,
+  "user_recordings_used": false,
+  "limits": [
+    "Small fixed source-image cohorts, not domestic ZED driving acceptance",
+    "No-D40 publisher labels were not exhaustively human-reannotated",
+    "Negative cohort has48 Czech images; FP/image is not FP/km",
+    "Original-domain validation noninferiority gate is development-only; old validation is not a new final test",
+    "No post-TEST model, threshold or sampling changes"
+  ]
+}
