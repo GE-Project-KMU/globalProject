@@ -1,0 +1,30 @@
+{
+  "optimizer_updates": 0,
+  "TEST_images_used": 0,
+  "source_sha256": "c20ea6545e4d6571ec7355d6f1725ce4e1a9637d2c6cec06137369d2d28ac63b",
+  "plan_sha256": "9578d1d2e0f85ea193d2536132f5b8fd0767b2b9ea54e8d718774aa2cafa833b",
+  "status": "passed",
+  "batch_size": 8,
+  "all_GT_preserved": true,
+  "loss": 13.077981948852539,
+  "own_peak_reserved_bytes": 2071986176,
+  "own_peak_allocated_bytes": 1713555456,
+  "own_OOM_counter": 0,
+  "optimizer_state_not_allocated": true,
+  "device_memory": {
+    "scope": "nvidia-smi device-level reported FB memory; WDDM OS/driver accounting, not exact process sum",
+    "query_interval_requested_ms": 100,
+    "timestamps_are_receive_times_not_hardware_sample_times": true,
+    "cannot_guarantee_no_transient_excess_between_samples": true,
+    "total_samples": 18,
+    "retained_samples": 18,
+    "max_device_reported_used_bytes": 4451205120,
+    "observed_receive_interval_ms": {
+      "min": 100.2055,
+      "median": 111.3545,
+      "max": 121.8549
+    },
+    "over_budget_observed": false,
+    "errors": []
+  }
+}
