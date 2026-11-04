@@ -1,0 +1,63 @@
+{
+  "format": "pothole-family-v9-predeclared-evaluation-v1",
+  "selection": "oldVAL>=frozen-v6-.03; maximum mean(oldVAL,newVAL); exact tie baseline then Nano then Small",
+  "candidate_members": {
+    "baseline": "data/training/pothole-mwpd-v6",
+    "tiny_rejected": "data/training/pothole-tiny-v7",
+    "nano": "data/training/pothole-localization-v8",
+    "small_retry_only": "data/training/pothole-small-v9-retry1"
+  },
+  "original_small_failed_experiment": "data/training/pothole-small-v9",
+  "retry_protocol": {
+    "path": "docs/reports/POTHOLE-SMALL-V9-RETRY1-PLAN.json",
+    "sha256": "805609357c979d3b37c1354127e4c8069486c0be0434e46e33978cf78b904ceb"
+  },
+  "cohorts": {
+    "fresh": {
+      "path": "data/training/research-pothole-rdd2022-us100-v7/release.json",
+      "sha256": "592c83e5967073354031ade9b50eb0a24b7b2f65f33abf477fc3990611221703",
+      "samples": 100,
+      "positive": 50,
+      "negative": 50
+    },
+    "regression": {
+      "path": "data/training/pothole-mwpd-v6/final-benchmark.json",
+      "sha256": "7497babaf45a3bcd652b5f0cf6a5807f5f0da1e636878475e6272792c999f415",
+      "samples": 145,
+      "positive": 97,
+      "negative": 48
+    }
+  },
+  "benchmark_parent_plans": {
+    "fresh": {
+      "path": "docs/reports/RDD2022-US100-BLIND-V7-PREBUILD-REVISION.json",
+      "sha256": "19e805b5fe1131672e80e493396a844add98a18997d26dbc3b8fa25fa83e2f43"
+    },
+    "regression": {
+      "path": "docs/reports/POTHOLE-MWPD-FINAL-PLAN.json",
+      "sha256": "74da5250b088c25201fa18b6835808498b00917873e490d971d18230b572d289"
+    }
+  },
+  "US100_original_plan": {
+    "path": "docs/reports/RDD2022-US100-BLIND-V7-PLAN.json",
+    "sha256": "9a9536771ecaaa6c5ccb72098a4bf84a3a891a3fd1f4aa440b736b0a7d322589"
+  },
+  "US100_acquisition_before_inference": {
+    "path": "docs/reports/RDD2022-US100-BLIND-V7-ACQUISITION.json",
+    "sha256": "874740c9fba85316d69a7864a1f720b3d73f53bf65b8a53533689582f85b611b"
+  },
+  "US100_actual_protocol": {
+    "path": "data/research/rdd2022-blind-v7/us100-offline-protocol-v2.json",
+    "sha256": "0f742dde6e93938c38cda345533d96153b782aaaa36053aecdd47a1860490254"
+  },
+  "AP_floor": 0.01,
+  "operating_confidence": 0.1,
+  "fixed_reference_confidence": 0.35,
+  "nms_iou": 0.5,
+  "new_candidate_TEST_inference_before_family_freeze": false,
+  "TEST_selection_allowed": false,
+  "one_permanent_attempt_per_cohort": true,
+  "user_recordings_used": false,
+  "physical_route_independence_verified": false,
+  "production_approved": false
+}
