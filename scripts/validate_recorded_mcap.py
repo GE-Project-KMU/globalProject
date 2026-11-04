@@ -11,8 +11,24 @@ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 from agent.paths import workspace_path,atomic_json,sha256
 from agent.recorded_mcap import RecordedMcapReader,PROFILE
 MAX_AUTHORIZED=datetime.fromisoformat('2026-11-05T23:59:00+09:00').astimezone(timezone.utc)
+PRIVATE_ROOT=ROOT/'data/recorded-drive-validation'
 
 class ProcessingDeadlineExceeded(RuntimeError):pass
+
+def private_output_path(value):
+    path=workspace_path(value)
+    if path==PRIVATE_ROOT or not path.is_relative_to(PRIVATE_ROOT) or path.suffix!='.json':raise ValueError('private_report_must_be_under_recorded_drive_validation')
+    if path.exists():raise ValueError('fresh_output_required')
+    return path
+
+def public_output_path(value):
+    path=workspace_path(value);public_root=ROOT/'docs/reports'
+    if not path.is_relative_to(public_root) or path.suffix!='.json':raise ValueError('public_aggregate_report_directory_required')
+    if path.exists():raise ValueError('fresh_public_report_required')
+    return path
+
+def control_metadata_unchanged(permission,inventory,report):
+    return sha256(permission)==report['permission_sha256'] and sha256(inventory)==report['source_inventory_sha256']
 
 class DeadlineGuard:
     def __init__(self,deadline,*,now=None):
@@ -26,14 +42,15 @@ class DeadlineGuard:
         if current.astimezone(timezone.utc)>=self.deadline:raise ProcessingDeadlineExceeded('recording_processing_permission_deadline_reached')
 
 def permission_guard(path,*,now=None):
-    path=workspace_path(path,exists=True);receipt=json.loads(path.read_text(encoding='utf-8'))
+    path=workspace_path(path,exists=True);raw=path.read_bytes();receipt=json.loads(raw.decode('utf-8'))
     if (receipt.get('format')!='recorded-drive-validation-permission-v1' or receipt.get('scope')!='this recording validation only' or
         receipt.get('source')!='explicit user reply in this chat'):raise ValueError('explicit_recording_validation_permission_receipt_required')
     for key in ['original_capture_date_changed','base_retention_policy_changed','automatic_delete_authorized','automatic_retention_registration','external_upload_authorized','training_authorized_by_this_exception','raw_pixel_outputs_planned']:
         if receipt.get(key) is not False:raise ValueError('permission_scope_mismatch:'+key)
     deadline=datetime.fromisoformat(receipt['authorized_until']);utc=datetime.fromisoformat(receipt['authorized_until_utc'])
     if deadline!=utc:raise ValueError('permission_deadline_disagreement')
-    return DeadlineGuard(deadline,now=now),receipt
+    guard=DeadlineGuard(deadline,now=now);guard.permission_sha256=hashlib.sha256(raw).hexdigest()
+    return guard,receipt
 
 def guarded_hash(path,guard):
     guard();digest=hashlib.sha256()
@@ -101,7 +118,7 @@ def aggregate(report):
     for row in rows:
         resolutions.update(row['resolutions'])
         for side in flags:flags[side].update(row['quality'][side]['flags'])
-    return {'format':'recorded-mcap-full-decode-aggregate-v1','profile':PROFILE,'status':'full_decode_verified' if report.get('complete') and all(r.get('full_contract_passed') for r in rows) else 'incomplete_or_failed',
+    return {'format':'recorded-mcap-full-decode-aggregate-v1','profile':PROFILE,'status':'full_decode_verified' if report.get('complete') and report.get('control_metadata_unchanged') is True and all(r.get('full_contract_passed') for r in rows) else 'incomplete_or_failed',
         'source_files_expected':report['source_files_expected'],'source_files_processed':len(rows),'source_files_passed':sum(r.get('full_contract_passed',False) for r in rows),
         'decoded_frames':sum(r['frames'] for r in rows),'timestamp_mismatches':sum(r['timestamp_mismatches'] for r in rows),
         'source_before_after_intake_hash_matches':sum(r.get('source_checksum_unchanged',False) for r in rows),'full_container_EOF_files':sum(r.get('eof',False) for r in rows),
@@ -119,18 +136,16 @@ def aggregate(report):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--inventory',required=True);p.add_argument('--permission',default='data/recorded-drive-validation/permission.json');p.add_argument('--output',required=True);p.add_argument('--public-report');a=p.parse_args()
     guard,receipt=permission_guard(a.permission);inventory_path=workspace_path(a.inventory,exists=True)
-    inventory=json.loads(inventory_path.read_text(encoding='utf-8'));rows=inventory['recordings']
+    inventory_raw=inventory_path.read_bytes();inventory=json.loads(inventory_raw.decode('utf-8'));inventory_sha=hashlib.sha256(inventory_raw).hexdigest();rows=inventory['recordings']
     if not rows or len({row['source_path'] for row in rows})!=len(rows):raise ValueError('nonempty_unique_source_inventory_required')
-    output=workspace_path(a.output)
-    if not output.is_relative_to(ROOT/'data'):raise ValueError('private_report_must_be_under_data')
-    if output.exists():raise ValueError('fresh_output_required')
-    public=workspace_path(a.public_report) if a.public_report else None
+    output=private_output_path(a.output)
+    public=public_output_path(a.public_report) if a.public_report else None
     for row in rows:
         source=workspace_path(row['source_path'],exists=True)
         if output.is_relative_to(source.parent) or public is not None and public.is_relative_to(source.parent):raise ValueError('report_must_not_modify_source_directory')
     cv2.setNumThreads(2);start=time.monotonic()
-    report={'format':'private-recorded-mcap-full-decode-v1','source_files_expected':len(rows),'permission':receipt,'permission_sha256':sha256(a.permission),
-        'source_inventory_sha256':sha256(inventory_path),'reader_sha256':sha256(ROOT/'agent/recorded_mcap.py'),'validator_sha256':sha256(Path(__file__)),
+    report={'format':'private-recorded-mcap-full-decode-v1','source_files_expected':len(rows),'permission':receipt,'permission_sha256':guard.permission_sha256,
+        'source_inventory_sha256':inventory_sha,'reader_sha256':sha256(ROOT/'agent/recorded_mcap.py'),'validator_sha256':sha256(Path(__file__)),
         'started_at_utc':datetime.now(timezone.utc).isoformat(),'results':[],'complete':False,'processing_guard_checks':guard.checks}
     atomic_json(output,report)
     for row in rows:
@@ -140,6 +155,7 @@ def main():
             'frames':sum(r['frames'] for r in report['results']),'latest_status':result['status']}),flush=True)
         if result['status']=='deadline_stopped':break
     report['complete']=len(report['results'])==len(rows);report['finished_at_utc']=datetime.now(timezone.utc).isoformat();report['elapsed_seconds']=time.monotonic()-start
+    report['control_metadata_unchanged']=control_metadata_unchanged(a.permission,inventory_path,report)
     report['processing_guard_checks']=guard.checks;atomic_json(output,report)
     summary=aggregate(report)
     if public:atomic_json(public,summary)

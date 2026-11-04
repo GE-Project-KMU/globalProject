@@ -73,13 +73,55 @@ with RecordedMcapReader("데이터/REPLACE.svo2") as reader:
 통과했다. 이 회귀 검사는 제공받은 원본 영상을 추가로 디코딩하지 않는다.
 실파일16개의 첫10프레임씩160개에서 PTS/ns 대응과 좌우 디코딩을 확인했다.
 좌측 해상도는1920×1080인6파일,1280×720인10파일이었다. 원본16개 전체 SHA256은
-인계 inventory와 일치했다. 실제 EOF flush나 전체 구간 디코딩을 검증한 것은 아니다.
+인계 inventory와 일치했다. 이 초기 prefix 실험은 실제 EOF flush나 전체 구간
+디코딩을 검증한 것은 아니다. 이후 전구간 결과는 아래 별도 항목과 구분한다.
 SDK IMAGE time·보정·물리 거리·GPS와 교차검증한 것도 아니다.
 
 최종 소스의 동일 prefix 재검증은 기간 대기 지시를 수신하기 전에 종료되었다.
-이후 원본 읽기와 픽셀 처리를 중지했다. 촬영 시계는 외부 검증되지 않았고 사용자의
-날짜 추정은 검증된 epoch가 아니다. 별도 허용 기간 확인 없이 추가 원본 처리,
-기한 연장, 자동 삭제나 retention 등록을 수행하지 않는다.
+그 뒤 원본 처리를 중지했다가, 사용자가 **이번 검증에 한해 2026-11-05
+23:59 KST까지 처리·보관**을 명시 승인한 후 전구간 검증을 별도로 시작했다.
+승인 receipt는 `data/recorded-drive-validation/permission.json`에 비공개로
+기록한다. 촬영 시계는 외부 검증되지 않았고 사용자의 날짜 추정은 검증된 epoch가
+아니다. 이번 예외는 원래 촬영일이나 기본7일 정책을 변경하지 않으며 기한 자동
+연장·원본 삭제·retention 자동 등록·외부 업로드·학습을 허용하지 않는다.
+
+전구간 도구 `scripts/validate_recorded_mcap.py`는 시작 전과 각 record·프레임
+처리 경계 및 SHA256 해시의 1MiB 읽기 경계에서 승인 deadline을 검사한다.
+기한 도달 시 reader를 닫고 중단하며 다음 원본 파일을 열지 않는다. 단일 native
+decode 호출 자체를 중간 취소하는 실시간 스케줄러는 아니지만 결과를 반환하기
+전에도 기한을 검사한다. 승인보다 늦은 deadline을 지정하면 거부한다.
+전후 전체 원본 해시, 각 프레임과 원본 메시지의 시각 대응, decoder flush,
+container EOF, 제공된 CRC, 해상도 일관성을 검사한다. 품질은 메모리에서
+160×90 grayscale로 축소해 밝기·표준편차·Laplacian 분산·연속 동일 표본만
+집계한다. dark/bright/low-contrast 같은 휴리스틱 flag는 자동 제외나 실제
+영상 무효 판정, 결함 GT 또는 정확도 검증을 의미하지 않는다.
+
+전구간 실제 완료 결과는 `docs/reports/RECORDED-MCAP-FULL-DECODE.json`이다.
+16개 파일의14,753프레임에서 EOF·메시지/프레임 개수·원본 MCAP 시각 대응·
+전후/intake 원본 SHA256이 모두 일치했다. 시각 불일치와 해상도 변경은0건이다.
+좌우 각각1920×1080인2,901프레임과1280×720인11,852프레임을 확인했다.
+제공된2,531개 chunk CRC는 모두 통과했고 DataEnd CRC는16파일 모두
+미제공이므로 그 항목의 CRC를 검증했다고 주장하지 않는다. 각 컨테이너는 끝까지
+읽고 끝 magic을 확인했다. 실제 프레임의 time_base 누락은0건이었다. 밝기·
+대비·edge 분산·연속 동일 축소 표본의 사전 정의한 품질 flag도 양안 모두0건이나,
+이것은 도로 결함의 탐지 정확도나 영상의 완전한 개인정보 검사를 뜻하지 않는다.
+
+시작과 처리 경계에서 기한을301,203회 검사했고 승인 기한 안에 종료했다.
+메모리 디코딩 외 픽셀 파일은 만들지 않았다. 전구간 검증은 약12분10초의 원본
+메시지 시각 범위를 처리한 것이며60분 실물 시험이 아니다. 외부 기준시계,
+SDK IMAGE timestamp, GNSS, 보정/정류, metric depth, 결함 GT는 여전히 미검증이다.
+
+실제 실행한 validator(v1)는 비공개 `executed-full-validator.py` 사본과 SHA256
+`07cf958de3ba8bab77ba7f7d7f1c6845517f50f0f819116d84ac2c9330767c9f`로 보존했다.
+실행 v1 소스와 실제 집계 보고서는 Git commit `dab608b`에도 보존했다.
+그 후 private 출력 경로를 `data/recorded-drive-validation`으로 제한하고 public
+출력은 `docs/reports`의 새 JSON만 허용하도록 보강했다. permission/inventory는
+파싱한 동일 bytes를 시작 해시로 고정하고 종료 시 변경 여부를 검사한다.
+이 후속 보강은 원본에 재실행하지 않았다. 합성 경계 테스트를 포함한 전구간
+도구 계약22개와 관련 회귀122개가 통과했다. 실행 v1과 후속 코드 해시를 구분한
+`docs/reports/RECORDED-MCAP-FULL-DECODE-SOURCE-AUDIT.json`에 감사 결과를 남겼다.
+사후 메타데이터 감사에서도 permission/inventory는 실제 실행 보고서의 기록과
+일치했으나, 새 종료 해시 가드가 원래 실행 중 작동했다고 소급 주장하지 않는다.
 
 ```powershell
 # 합성 테스트는 개인 원본을 읽지 않는다.
@@ -87,6 +129,9 @@ SDK IMAGE time·보정·물리 거리·GPS와 교차검증한 것도 아니다.
 
 # 추가 원본 처리가 허용된 기간에만 수행한다. 기본 한도는 파일당 첫10프레임이다.
 .\.venv\Scripts\python.exe scripts/probe_recorded_mcap.py 데이터 --all-files --max-frames 10 --source-inventory data/PRIVATE-INVENTORY.json --output data/agent/mcap-private/probe.json
+
+# 별도 명시 승인된 기간에만 전구간 검증한다. 기존 private 결과는 덮어쓰지 않는다.
+.\.venv\Scripts\python.exe scripts/validate_recorded_mcap.py --inventory data/PRIVATE-INVENTORY.json --permission data/recorded-drive-validation/permission.json --output data/recorded-drive-validation/private-full-decode.json --public-report docs/reports/RECORDED-MCAP-FULL-DECODE.json
 ```
 
 `mcap==1.6.0`, `lz4==4.4.5`, `zstandard==0.25.0`, 프로젝트의 PyAV19.0.2를 사용한다.

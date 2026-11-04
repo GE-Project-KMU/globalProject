@@ -1,0 +1,18 @@
+{
+  "format": "recorded-mcap-full-decode-source-audit-v1",
+  "executed_validator_sha256": "07cf958de3ba8bab77ba7f7d7f1c6845517f50f0f819116d84ac2c9330767c9f",
+  "postrun_guard_validator_sha256": "a9831efdfb857f9fb061761202df70821c12ba92449ea9c789541f33554c21dd",
+  "executed_source_snapshot_matches_actual_full_report": true,
+  "original_public_aggregate_sha256": "1e5fe6d749c23a08b22397ba9dbdbfc88283d3695680cca8a18835fa6c1578f1",
+  "permission_hash_matches_at_postrun_metadata_audit": true,
+  "inventory_hash_matches_at_postrun_metadata_audit": true,
+  "new_private_output_boundary": "data/recorded-drive-validation/*.json (nested paths allowed; fresh files only)",
+  "new_public_output_boundary": "docs/reports/*.json (nested paths allowed; fresh files only)",
+  "new_control_hash_guard": "pins the same bytes parsed at start; verifies permission and inventory unchanged at end",
+  "postrun_fix_executed_on_original_recordings": false,
+  "postrun_audit_redecoded_originals": false,
+  "original_execution_retroactively_claims_new_guard": false,
+  "new_full_validator_contract_tests": 22,
+  "combined_related_tests": 122,
+  "raw_pixel_outputs": false
+}
