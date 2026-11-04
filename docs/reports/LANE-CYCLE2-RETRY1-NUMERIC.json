@@ -1,0 +1,68 @@
+{
+  "format": "lane-cycle2-retry1-CPU-VAL-numeric-v1",
+  "scope": "training_and_CPU_numeric_completed_before_final_accuracy_evaluation",
+  "manifest_sha256": "79d07ddbda872433cb5eba1b7c40d13641522375b8d5371eb954ad93204dcff0",
+  "weights_sha256": "e4b187fa33e7bd133bbec37800090d192f12d4ccaf2ee4a7be22f4cdfcecfc97",
+  "checkpoint_sha256": "10922400312f18d5a894130615ad15281061b7f3d1b7eb23afd5a5930a998329",
+  "training_source_sha256": "4ba5a419a0af2b2c85a5b2e7f2090f57f2231ad6270a9aa17c18bd95bc3ccde7",
+  "learning_plan_sha256": "cfdade6dd97417a50837c9e0fec4cbbd349bff7a047c8b444fb8793909d0fc56",
+  "numeric_source_sha256": {
+    "scripts/verify_trained_models.py": "378e8d5b68c5a48aeb27fc85fac35b507d2e5aa0c28a3fde5bbcf444adf2933f",
+    "scripts/check_lane_cycle2_runtime.py": "5a96a618af5199c820500598c2dbf3a6254ca3ae600825ebf03f1b0a899a1072",
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6"
+  },
+  "full_VAL_proof_sha256": "d67dc2e6790ca6845ac762782178674c9e33164a6639d0e1de066d8f03a8a0f0",
+  "canonical_proof_sha256": [
+    "0c9f0102a173ed2ae25caeacb7ab58c8ba30f01245a48e25975189ef0bebbb81",
+    "ed859c4fd93028b3eb2b67976300c39d7eee0d00479434ae8fa41da87d629a03",
+    "c2b4d597a88f2a3ded245f196f8d3d0d48ba3b08705bda78f298611a95f95800"
+  ],
+  "epochs_completed": 20,
+  "actual_optimizer_updates": 13952,
+  "selected_epoch": 18,
+  "development_mean_recording_IoU": 0.7648229043200139,
+  "paint_threshold": 0.6,
+  "development_score_is_independent_accuracy": false,
+  "canonical_positive_VAL_cases": 3,
+  "full_VAL_cases": 179,
+  "raw_pair_comparisons_per_case": 3,
+  "raw_rtol": 0.001,
+  "raw_atol": 0.0001,
+  "raw_failures": 0,
+  "exact_mask_failures": 0,
+  "supported_profile": {
+    "engine": "onnxruntime-cpu",
+    "version": "1.31.1",
+    "system": "Windows",
+    "machine": "AMD64",
+    "providers": [
+      "CPUExecutionProvider"
+    ]
+  },
+  "reference_runtime": {
+    "status": "ready",
+    "torch": "2.7.1+cu126",
+    "ort": "1.31.1",
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "GPU_initialized": false
+  },
+  "app_runtime": {
+    "engine": "onnxruntime-cpu",
+    "version": "1.31.1"
+  },
+  "GPU_used_for_this_numeric_report": false,
+  "GPU_validation_included_in_this_CPU_report": false,
+  "working_arrays_remaining": 0,
+  "numeric_workers_exited_successfully": true,
+  "TEST_included_in_this_report": false,
+  "production_approved": false,
+  "project_acceptance_eligible": false,
+  "source_expiries_extended": false,
+  "limits": [
+    "Windows CPU ORT1.31.1 only; no general portability or GPU claim",
+    "VAL numerical parity does not establish independent segmentation accuracy",
+    "Failed original concurrent-GPU experiments remain preserved; retry is a full restart"
+  ]
+}
