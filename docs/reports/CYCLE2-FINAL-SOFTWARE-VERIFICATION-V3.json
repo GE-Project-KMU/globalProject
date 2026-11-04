@@ -1,0 +1,241 @@
+{
+  "format": "cycle2-final-software-verification-v3",
+  "completed_at": "2026-11-04T19:54:20.385227+00:00",
+  "parent_report_sha256": "be05c89dcde86dc506d57ce091a3a813c751cc6e90ada9bf93e8c000de8bb4a9",
+  "source_revision_reported_by_root": "704b69b",
+  "scope": "Complete Windows Python and real HTTP suite after final metadata/retention and Rescue retry1 supervision contracts; application/helper/test bytes unchanged from tested704b69b. One root-generated preflight aggregate report was committed during verification.",
+  "python": "3.14.7",
+  "command": "python -m pytest tests -q --tb=short --junitxml=data/cycle2-final-pytest-v3-junit.xml",
+  "result": {
+    "exit_code": 0,
+    "unique_test_cases": 1301,
+    "passed_unique_cases": 1299,
+    "skipped_unique_cases": 2,
+    "subtests_passed": 189,
+    "failed": 0,
+    "errors": 0,
+    "JUnit_tests_including_subtests": 1490,
+    "elapsed_seconds": 141.192,
+    "pytest_display_seconds": 141.2,
+    "orchestration_wall_seconds": 142.14350340003148
+  },
+  "live_HTTP": {
+    "cases": 75,
+    "passed": 75,
+    "failed": 0,
+    "skipped": 0,
+    "modules": {
+      "tests.test_http": 54,
+      "tests.test_media_source_retention": 6,
+      "tests.test_privacy": 15
+    },
+    "fixtures": "Dedicated isolated synthetic test tenants; controlled API fixture writes only, no user/photo dataset substitution."
+  },
+  "skips": [
+    {
+      "test": "test_actual_opt_in_cuda_profile_smoke",
+      "reason": "Requires approved exclusive CUDA slot and local pinned model assets; CPU protocol tests are not GPU support proof."
+    },
+    {
+      "test": "test_symbolic_link_refused",
+      "reason": "OS account cannot create symlinks; junction detection tested separately"
+    }
+  ],
+  "logs": {
+    "services_checked": 8,
+    "start_offsets_pinned": true,
+    "ERROR_or_CRITICAL_lines": 0,
+    "Traceback_lines": 0,
+    "HTTP_5xx_lines": 0,
+    "observed_truncations": 0,
+    "service_deltas": [
+      {
+        "service": "analysis",
+        "appended_bytes": 30698,
+        "appended_lines": 316,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "frontend",
+        "appended_bytes": 0,
+        "appended_lines": 0,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "gateway_tls",
+        "appended_bytes": 609,
+        "appended_lines": 10,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "gateway",
+        "appended_bytes": 56537,
+        "appended_lines": 665,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "identity",
+        "appended_bytes": 54912,
+        "appended_lines": 730,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "inspection",
+        "appended_bytes": 39803,
+        "appended_lines": 486,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "media",
+        "appended_bytes": 20205,
+        "appended_lines": 210,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      },
+      {
+        "service": "reporting",
+        "appended_bytes": 9539,
+        "appended_lines": 90,
+        "ERROR_or_CRITICAL_lines": 0,
+        "Traceback_lines": 0,
+        "HTTP_5xx_lines": 0
+      }
+    ]
+  },
+  "service_health": {
+    "checks": 8,
+    "HTTP200": 7,
+    "services": [
+      {
+        "name": "identity",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "media",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "inspection",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "analysis",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "reporting",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "gateway",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "frontend",
+        "http_status": 200,
+        "healthy": true,
+        "TLS_project_certificate_verified": null
+      },
+      {
+        "name": "gateway_tls",
+        "healthy": false,
+        "error_type": "ConnectError"
+      }
+    ],
+    "optional_TLS_gateway_registered": false,
+    "optional_TLS_limit": "Persistent HTTPS8443 endpoint unavailable/unregistered after suite; no current TLS health handshake claim or manual service restart."
+  },
+  "environment": {
+    "TEMP_TMP_TMPDIR_and_bytecode_cache": "project .cache only",
+    "pytest_temp_guard": "Existing scripts.pytest_workspace unique project-scoped PID/UUID default",
+    "actual_CUDA_optin_enabled": false,
+    "CUDA_VISIBLE_DEVICES": "",
+    "concurrent_workloads_reported_at_start": [
+      "Root-owned single-GPU Rescue V8 retry1 training (session17104), untouched by verification."
+    ]
+  },
+  "evidence_sha256": {
+    "cycle2-final-pytest-v3.log": "63cfbf6b105b4ab1d001ae347f980c72b930bedb9f72f112057d02e82162ff58",
+    "cycle2-final-pytest-v3-junit.xml": "197629221e19fb37d3bba050e24ee6d35985c5765d68f30559373d9c4465d163",
+    "cycle2-final-v3-log-offsets.json": "a98d8c1f43c666dad147297b2a29a032b09dafa2b03949672c06ef29c71dd557",
+    "cycle2-final-v3-log-delta.json": "8534cc50d6f4bafc975e6ba354b80d5681aa315f052a3a8037a1d12f08fba9a1",
+    "cycle2-final-v3-service-health.json": "e60a6844e0ae8c2a2b35a28af9f122a2190f093e46de3396e9c842af760426ef",
+    "cycle2-final-v3-exit.json": "cb8baf51acada5c329b39ae8020788bfd684c71538a51e43d3cc3472d251589a",
+    "cycle2-final-v3-control-audit.json": "05205098ff25a0c89e6d8db1e2444f805b4952f09ede3340fddcc07b373e2b80",
+    "cycle2-final-v3-code-hashes.json": "07a6efa9874b419e4834026a60e555c2c28db93096033b5e32515ae42f2033ad"
+  },
+  "source_files_changed": false,
+  "original_or_model_weights_changed": false,
+  "existing_retention_inventories_changed": false,
+  "Git_actions": false,
+  "frontend_UI_repeated": false,
+  "frontend_build_repeated": false,
+  "production_or_field_acceptance_claim": false,
+  "limits": [
+    "Actual CUDA support and trained-model accuracy are outside this software regression.",
+    "Windows symlink privilege unavailable; the skipped test is not represented as executed.",
+    "Shared-host elapsed time during separate root-owned training is not camera/pipeline FPS.",
+    "Persistent optional TLS gateway is unregistered; seven HTTP health checks do not claim current HTTPS8443 readiness.",
+    "V1/V2 reports and evidence remain unchanged; unchanged flags apply only to this verification task.",
+    "Synthetic HTTP tests create isolated API fixture records; original data/model/configuration and existing retention inventories are not modified by the verifier.",
+    "End HEAD6abce9d adds only the root-generated successful preflight aggregate;317 tracked Python files match tested704b69b raw bytes exactly."
+  ],
+  "source_revision_full": "704b69bf73059575074b14d9b169f291b239b65e",
+  "source_revision_at_end": "6abce9d5a560def5711ec01c959fa17626114501",
+  "orchestration_helper_sha256": "5c74b114f43b75cfd03e7ff0db199ab590114588bc5ea0588433f5aa001c63c8",
+  "existing_retention_control_audit": {
+    "historical_inventories_verified": 4,
+    "historical_plans_verified": 4,
+    "historical_registered_files": 45619,
+    "historical_assets_scanned": false
+  },
+  "source_equivalence_audit": {
+    "tested_source_revision": "704b69bf73059575074b14d9b169f291b239b65e",
+    "end_revision": "6abce9d5a560def5711ec01c959fa17626114501",
+    "tracked_Python_files": 317,
+    "expected_aggregate_sha256": "461f53f87e9125e427b954eeecf127d132ea0c7a08d06eaaef7ab087ff3b1e98",
+    "actual_aggregate_sha256": "461f53f87e9125e427b954eeecf127d132ea0c7a08d06eaaef7ab087ff3b1e98",
+    "all_raw_bytes_equal": true,
+    "intervening_noncode_report_paths": [
+      "docs/reports/PRIVACY-RESCUE-V8-PREFLIGHT-RETRY1-SUPERVISION.json"
+    ],
+    "application_helper_or_test_code_changed": false,
+    "comparison": "SHA256 of each working Python file against raw Git704b69b blob bytes, not an EOL-normalized comparison."
+  },
+  "frontend_validation_reference": {
+    "prior_root_reported_UI_cases": 26,
+    "repeated_in_this_task": false,
+    "reason": "UI source unchanged; reuse root prior UI/build evidence."
+  },
+  "verification_processes": {
+    "orchestration_and_pytest_exit_code": 0,
+    "manual_service_restarts": 0,
+    "root_owned_training_processes_controlled": false,
+    "optional_test_TLS_helper_not_left_registered": true
+  }
+}
