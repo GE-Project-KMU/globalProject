@@ -1,0 +1,18 @@
+{
+  "format": "fixed12-retry1-metadata-membership-audit-v1",
+  "passed": true,
+  "export_source_sha256": "76513ae98a97dc9e6ae49d8054635f01c9683b3503435c6e54653e475acd612f",
+  "training_source_sha256": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+  "source_plan_sha256": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d",
+  "development_sha256": "37cdd77565438c1254768347a7d7abe37c686ba20239c3ade2fda23cd98a8d0c",
+  "parent_provenance_sha256": "94848d7aea255c4ec72fa64ac61a2d9a300f30078c5b015dfe2088e4b9e83f30",
+  "development_rows": 5501,
+  "selected_training_and_validation_rows": 3508,
+  "parent_assets": 3508,
+  "unused_plate_TRAIN_rows_excluded": 1993,
+  "complete_identity_set_sha256": "eab176f8ccd9a792ae49f1bf57fbdaa87b3f8471595cd07ad5f172bc555a470a",
+  "predicate": "(split=train and evaluation_class=face) or split=validation",
+  "images_or_recovery_or_models_read": false,
+  "GPU_used": false,
+  "TEST_images": 0
+}
