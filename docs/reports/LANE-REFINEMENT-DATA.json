@@ -1,0 +1,23 @@
+{
+  "kind": "lane",
+  "development": {
+    "development_rows": 899,
+    "historical_test_rows": 200,
+    "old_test_used_for_fitting": false,
+    "source_expiry_extended": false
+  },
+  "fresh_samples": 80,
+  "initial_fresh_samples": 80,
+  "fresh_recordings": 2,
+  "connected_duplicate_excluded": 0,
+  "fresh_manifest_sha256": "99558c0d15176fcd28c611d8b1a3fe5f73ed1946e98e5579f032e72d9fa1de6c",
+  "development_sha256": "7504cab1ce9bc1477df95b27cba5a337e66f88b994a9d19169819de835a90e86",
+  "release_sha256": "234c83581edc8797831d00b9e7e3b32edf47e192322adeb20c0618900c5e4e03",
+  "expiry": "2026-11-10T17:07:26.069653+00:00",
+  "license": "CC-BY-ND-4.0",
+  "research_only": true,
+  "physical_route_independence_verified": false,
+  "date_independent": false,
+  "frozen_before_training": true,
+  "user_recordings_used": false
+}

@@ -36,7 +36,7 @@ def validate_architecture(info):
     """Validate reconstructible structure, including non-parameter operators."""
     task=info.get("task");architecture=info.get("architecture")
     if task=="lane":
-        if "architecture" in info and architecture!="deeplabv3_mobilenet_v3_large":raise ValueError("unsupported_lane_architecture")
+        if "architecture" in info and architecture not in ("deeplabv3_mobilenet_v3_large","deeplabv3_mobilenet_v3_large_stride4_residual_refinement"):raise ValueError("unsupported_lane_architecture")
         rates=info.get("aspp_dilations",[12,24,36])
         if not isinstance(rates,(list,tuple)) or len(rates)!=3 or any(type(x) is not int or not 1<=x<=64 for x in rates):raise ValueError("invalid_lane_aspp_dilations")
     elif task in ("pothole","redaction"):
@@ -54,6 +54,9 @@ def validate_architecture(info):
 def build_torch_reference(info,yolox_source):
     validate_architecture(info)
     if info["task"]=="lane":
+        if info.get("architecture")=="deeplabv3_mobilenet_v3_large_stride4_residual_refinement":
+            from agent.lane_refinement_network import make_lane_refinement_network
+            return make_lane_refinement_network(pretrained=False,aspp_dilations=info.get("aspp_dilations",[6,12,18]))
         from agent.lane_network import make_lane_network
         return make_lane_network(pretrained=False,aspp_dilations=info.get("aspp_dilations",[12,24,36]))
     source=scoped(yolox_source,exists=False)
