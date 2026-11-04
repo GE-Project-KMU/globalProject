@@ -78,8 +78,10 @@ def video_samples(source, metadata_path, *, sample_fps=10, stereo=False):
         yield sample | by_frame[sample["frame_id"]] | {"fixes": fixes["fixes"], "gnss_errors": fixes["errors"]}
 
 
-def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, model_factory=OnnxModel, cpu_profile="default",inference_backend="cpu",gpu_profile=None):
+def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, model_factory=OnnxModel, cpu_profile="default",inference_backend="cpu",gpu_profile=None,io_profile='default'):
     """The injectable factory is for contract tests; CLI always uses real ONNX."""
+    from .evidence_writer import EvidenceWriter,writer_profile
+    writer_profile(io_profile)
     started=time.perf_counter()
     profile = load_profile(profile_path)
     run_id, device_id = str(uuid.UUID(run["run_id"])), str(uuid.UUID(device_id))
@@ -102,7 +104,8 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
         frame_items, candidates, held = [], {}, {}
         generated_images=[]
         last_at = None
-        with InferenceRunner(models,cpu_profile) as runner:
+        image_writes=[]
+        with InferenceRunner(models,cpu_profile) as runner,EvidenceWriter(io_profile) as writer:
             for sample in samples:
                 at = sample["captured_at"]
                 moment = datetime.fromisoformat(at.replace("Z", "+00:00"))
@@ -114,19 +117,22 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
                     if str(error)=='local_material_expired':raise ValueError('raw_frame_expired') from None
                     raise
                 image, roi, matrix, size = geometry(sample["frame"], profile)
-                quality = frame_quality(image)
+                quality_future=writer.quality(image,frame_quality)
+                extra_quality_reasons=[]
                 if run.get("conditions") != {"daylight":True,"dry_asphalt":True}:
-                    quality = {"usable":False,"reasons":quality["reasons"]+["daylight_dry_asphalt_not_verified"]}
+                    extra_quality_reasons.append('daylight_dry_asphalt_not_verified')
                 defect = run.get("postcheck",{}).get("defect_from")
                 if defect and moment>=datetime.fromisoformat(defect):
-                    quality = {"usable":False,"reasons":quality["reasons"]+["postcheck_mount_or_lens_defect"]}
+                    extra_quality_reasons.append('postcheck_mount_or_lens_defect')
                 location = associate_location(at, sample["fixes"])
                 near_fixes = [(abs((datetime.fromisoformat(f["utc"]) - moment).total_seconds()), f) for f in sample["fixes"] if f.get("fix_valid")]
                 nearest = min(near_fixes, default=(99, {}), key=lambda item: item[0])
                 speed = nearest[1].get("speed_kmh") if nearest[0] <= .5 else None
                 if speed is not None and speed > 20:
-                    quality = {"usable": False, "reasons": quality["reasons"] + ["speed_out_of_scope"]}
+                    extra_quality_reasons.append('speed_out_of_scope')
                 predictions = runner.predict(image)
+                quality=quality_future.result()
+                if extra_quality_reasons:quality={'usable':False,'reasons':quality['reasons']+extra_quality_reasons}
                 detections = predictions["pothole"]
                 # Candidate center must be in calibrated visible road ROI.
                 detections = [d for d in detections if roi[min(image.shape[0]-1, max(0, int(d["bbox_xywh_px"][1] + d["bbox_xywh_px"][3]/2))),
@@ -136,7 +142,7 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
                 privacy = predictions["redaction"]
                 safe = redact(image, privacy)
                 image_path = output / f"{sample['frame_id']:09d}.redacted.png"
-                if not cv2.imwrite(str(image_path), safe): raise RuntimeError("image_write_failed")
+                image_digest=writer.submit(image_path,safe,material_expires)
                 generated_images.append(image_path)
                 valid = roi.copy()
                 luminance = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
@@ -154,7 +160,8 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
                 evidence = {"frame_id": sample["frame_id"], "captured_at": at, "location": location,
                             "material_expires_at":material_expires,
                             "quality": quality, "image_path": image_path.relative_to(workspace_path(".")).as_posix(),
-                            "image_sha256": sha256(image_path)}
+                            "image_sha256":image_digest.result() if io_profile=='default' else None}
+                image_writes.append((evidence,image_digest))
                 evidence["lineage"]={key:sample[key] for key in ("sample_id","source_id") if sample.get(key)}
                 evidence["overlays"] = {}
                 for track in profile["measurement"]["lane_tracks"]:
@@ -175,6 +182,7 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
                         candidates[track["event_id"]] = (rank, track.copy(), evidence)
                 frame_items.append({"frame_id": sample["frame_id"], "captured_at": at, "location": location,
                                     "motion_distance_m": distance, "motion_reason": reason, "quality": quality,"lane_evidence":lane_status})
+        for evidence,digest in image_writes:evidence['image_sha256']=digest.result()
         if not frame_items: raise ValueError("no_analysis_frames")
         observations = []
         def observation(kind, event, detail, evidence):
@@ -214,7 +222,7 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
         result = {"status": "awaiting_human_review", "run": run, "device_id": device_id,
                   "profile_id": profile["profile_id"], "model_version": bundle["version"], "config_hash": config_hash,
                   "frames": frame_items, "items": observations, "lane_segments": lane_results,
-                  "runtime":{**runtime_metadata(models),"cpu_profile":cpu_profile,"model_workers":profile_options(cpu_profile)["model_workers"],"elapsed_seconds":time.perf_counter()-started,
+                  "runtime":{**runtime_metadata(models),"cpu_profile":cpu_profile,"io_profile":io_profile,"model_workers":profile_options(cpu_profile)["model_workers"],"elapsed_seconds":time.perf_counter()-started,
                              "measured_processing_fps":len(frame_items)/max(time.perf_counter()-started,1e-9)},
                   "model_acceptance":{task:model.manifest.get("production_approved",False) for task,model in models.items()},
                   "retained_photos":len(retained),"removed_unreferenced_photos":removed_images,
@@ -226,10 +234,10 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
     finally:close_models(models)
 
 
-def execute_config(config_path,*,cpu_profile=None,inference_backend=None,gpu_profile=None):
+def execute_config(config_path,*,cpu_profile=None,inference_backend=None,gpu_profile=None,io_profile=None):
     config = read_json(config_path)
     keys = {"run_id", "device_id", "profile_id", "model_bundle_id", "run_manifest", "profile_path", "bundle_path", "output"}
-    if not keys<=set(config) or set(config)-keys-{"ca_bundle","cpu_profile","inference_backend","gpu_profile"}: raise ValueError("workflow_config_keys_mismatch")
+    if not keys<=set(config) or set(config)-keys-{"ca_bundle","cpu_profile","inference_backend","gpu_profile","io_profile"}: raise ValueError("workflow_config_keys_mismatch")
     chosen_profile=cpu_profile if cpu_profile is not None else config.get("cpu_profile","default")
     profile_options(chosen_profile)
     chosen_backend=inference_backend if inference_backend is not None else config.get("inference_backend","cpu")
@@ -252,7 +260,7 @@ def execute_config(config_path,*,cpu_profile=None,inference_backend=None,gpu_pro
     samples = run_samples(config["run_manifest"])
     try:
         result = analyze_samples(samples, config["output"], run=run, profile_path=config["profile_path"],
-                                 device_id=config["device_id"], bundle=bundle,cpu_profile=chosen_profile,inference_backend=chosen_backend,gpu_profile=chosen_gpu)
+                                 device_id=config["device_id"], bundle=bundle,cpu_profile=chosen_profile,inference_backend=chosen_backend,gpu_profile=chosen_gpu,io_profile=io_profile if io_profile is not None else config.get('io_profile','default'))
         if config.get("ca_bundle"):
             result["ca_bundle"]=workspace_path(config["ca_bundle"]).relative_to(workspace_path(".")).as_posix()
             atomic_json(workspace_path(config["output"])/"review.json",result)

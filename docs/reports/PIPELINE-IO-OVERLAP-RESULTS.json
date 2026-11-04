@@ -1,0 +1,261 @@
+{
+  "format": "exact-fp32-io-overlap-public-v1",
+  "status": "completed",
+  "research_candidate_model_set": true,
+  "operational_model_promotion": false,
+  "plan_sha256": "38640cec25bb77d1deb74add4e64246d39520943aa4f64ad1213a44c022be759",
+  "benchmark_sha256": "a39142ddf44381a3f71d129736b661463bdf626b545309b5c5323a8b3785760b",
+  "registered_profile_sha256": "37f41affb6e80f818bc2754008536175bfb9351e504c91781176bbd178ad3d44",
+  "source_sha256": {
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "agent/inference_runner.py": "cc637c3130baefea0b627c94273450fa7a15ef2db2b9c1869c075e0a1f15398d",
+    "agent/pipeline.py": "2676daa2607cbaf926d4709edbec1ce6bf3271c5cf5d2b9e4c76cae918834dc6",
+    "agent/evidence_writer.py": "42304b8365dd1d4104926c7a1e1c5266eae095881b696dd1314ee03ef9f5a742",
+    "agent/gpu_worker_client.py": "d444966f4db0b56a1b6590baeb958873bb5fb4fe993fc394035e4b9073b19d74",
+    "scripts/gpu_inference_worker.py": "bd03f8fa4be19a3bbdb4a67280c5594ebbaac7f2ea5720fe2bf9f646a5a7a8ca",
+    "scripts/benchmark_verified_pipeline.py": "a5002c455eeba7106d6b99d27b0de1d6e5232a54a58061ed9c49f5a5cae731b9"
+  },
+  "underlying_native_fp32_proof_sha256": "432cb74fcdcfb36b49fe8ba651fb54a9f8f2927e9da7cf591fe06ac828b67490",
+  "inference_source_admission_revalidated_without_bypass": true,
+  "inference_math_weights_precision_thresholds_changed": false,
+  "old_fp32_evidence_reused_for_new_precision": false,
+  "new_precision": false,
+  "order": "serial/overlap/overlap/serial",
+  "runs": [
+    {
+      "backend": "cuda",
+      "profile": "fast",
+      "io_profile": "default",
+      "frames": 16,
+      "model_load_seconds": 13.415768999955617,
+      "warmup_calls": 5,
+      "warmup_seconds": 0.9870959999971092,
+      "pipeline_wall_including_teardown_seconds": 3.404594499967061,
+      "worker_teardown_seconds": 1.2684085000073537,
+      "warmed_processing_seconds_including_png_json": 2.1361859999597073,
+      "warmed_processing_fps": 7.489984486510909,
+      "model_stage_median_ms": {
+        "pothole": {
+          "preprocess_and_input_checks": 4.280799999833107,
+          "forward_transport_and_checks": 7.413199986331165,
+          "postprocess": 0.36735000321641564,
+          "total": 12.057649990310892
+        },
+        "lane": {
+          "preprocess_and_input_checks": 26.765250018797815,
+          "forward_transport_and_checks": 34.20419999747537,
+          "postprocess": 4.973899980541319,
+          "total": 65.72360001155175
+        },
+        "redaction": {
+          "preprocess_and_input_checks": 30.669150000903755,
+          "forward_transport_and_checks": 46.71149997739121,
+          "postprocess": 4.098550038179383,
+          "total": 83.95915001165122
+        }
+      },
+      "other_stage_total_ms": {
+        "quality": 168.8609000411816,
+        "tracking": 0.21810003090649843,
+        "redaction": 8.64070001989603,
+        "png_storage": 407.98289998201653,
+        "json_storage": 4.053299955558032,
+        "worker_teardown": 1268.4085000073537
+      },
+      "benchmark_batch_fps_including_load_warmup_teardown": 0.8984998674331997
+    },
+    {
+      "backend": "cuda",
+      "profile": "fast",
+      "io_profile": "overlap",
+      "frames": 16,
+      "model_load_seconds": 12.811038899992127,
+      "warmup_calls": 5,
+      "warmup_seconds": 0.9171675000106916,
+      "pipeline_wall_including_teardown_seconds": 2.608585599984508,
+      "worker_teardown_seconds": 1.2217315000016242,
+      "warmed_processing_seconds_including_png_json": 1.3868540999828838,
+      "warmed_processing_fps": 11.536902115512705,
+      "model_stage_median_ms": {
+        "pothole": {
+          "preprocess_and_input_checks": 3.736399987246841,
+          "forward_transport_and_checks": 7.097599998814985,
+          "postprocess": 0.3423000162001699,
+          "total": 11.463400005595759
+        },
+        "lane": {
+          "preprocess_and_input_checks": 26.614399976097047,
+          "forward_transport_and_checks": 33.63444996648468,
+          "postprocess": 4.597600025590509,
+          "total": 64.78710001101717
+        },
+        "redaction": {
+          "preprocess_and_input_checks": 30.109549988992512,
+          "forward_transport_and_checks": 45.923750003566965,
+          "postprocess": 3.9634999993722886,
+          "total": 80.56810000562109
+        }
+      },
+      "other_stage_total_ms": {
+        "quality": 181.88270006794482,
+        "tracking": 0.22339995484799147,
+        "redaction": 8.576699765399098,
+        "png_storage": 430.4056000546552,
+        "json_storage": 3.2152000349014997,
+        "worker_teardown": 1221.7315000016242
+      },
+      "benchmark_batch_fps_including_load_warmup_teardown": 0.9793844470819247
+    },
+    {
+      "backend": "cuda",
+      "profile": "fast",
+      "io_profile": "overlap",
+      "frames": 16,
+      "model_load_seconds": 12.829819999984466,
+      "warmup_calls": 5,
+      "warmup_seconds": 0.9952017000177875,
+      "pipeline_wall_including_teardown_seconds": 2.7012412000331096,
+      "worker_teardown_seconds": 1.2906455000047572,
+      "warmed_processing_seconds_including_png_json": 1.4105957000283524,
+      "warmed_processing_fps": 11.342725629801938,
+      "model_stage_median_ms": {
+        "pothole": {
+          "preprocess_and_input_checks": 3.5456499899737537,
+          "forward_transport_and_checks": 7.03920001978986,
+          "postprocess": 0.3564499784260988,
+          "total": 11.040699988370761
+        },
+        "lane": {
+          "preprocess_and_input_checks": 28.028000029735267,
+          "forward_transport_and_checks": 33.53975000209175,
+          "postprocess": 4.568200005451217,
+          "total": 66.80120000964962
+        },
+        "redaction": {
+          "preprocess_and_input_checks": 32.8254499763716,
+          "forward_transport_and_checks": 45.49220000626519,
+          "postprocess": 3.8431000139098614,
+          "total": 82.67684999736957
+        }
+      },
+      "other_stage_total_ms": {
+        "quality": 176.25620000762865,
+        "tracking": 0.23610005155205727,
+        "redaction": 8.437499986030161,
+        "png_storage": 430.37070002174005,
+        "json_storage": 4.853100050240755,
+        "worker_teardown": 1290.6455000047572
+      },
+      "benchmark_batch_fps_including_load_warmup_teardown": 0.9681559646473834
+    },
+    {
+      "backend": "cuda",
+      "profile": "fast",
+      "io_profile": "default",
+      "frames": 16,
+      "model_load_seconds": 13.250291599950287,
+      "warmup_calls": 5,
+      "warmup_seconds": 1.0277881000074558,
+      "pipeline_wall_including_teardown_seconds": 3.460053999966476,
+      "worker_teardown_seconds": 1.3065533000044525,
+      "warmed_processing_seconds_including_png_json": 2.1535006999620236,
+      "warmed_processing_fps": 7.429763083096353,
+      "model_stage_median_ms": {
+        "pothole": {
+          "preprocess_and_input_checks": 3.811249975115061,
+          "forward_transport_and_checks": 7.97249999595806,
+          "postprocess": 0.36630002432502806,
+          "total": 12.025950010865927
+        },
+        "lane": {
+          "preprocess_and_input_checks": 29.04635001323186,
+          "forward_transport_and_checks": 34.393949987133965,
+          "postprocess": 5.021799996029586,
+          "total": 69.03104999219067
+        },
+        "redaction": {
+          "preprocess_and_input_checks": 32.54134999588132,
+          "forward_transport_and_checks": 47.38644996541552,
+          "postprocess": 3.8131500186864287,
+          "total": 84.24704996286891
+        }
+      },
+      "other_stage_total_ms": {
+        "quality": 159.29860004689544,
+        "tracking": 0.23930001771077514,
+        "redaction": 8.578899898566306,
+        "png_storage": 408.6614999687299,
+        "json_storage": 2.571500022895634,
+        "worker_teardown": 1306.5533000044525
+      },
+      "benchmark_batch_fps_including_load_warmup_teardown": 0.9020114669712043
+    }
+  ],
+  "median_warmed_fps": {
+    "default": 7.459873784803631,
+    "overlap": 11.439813872657322
+  },
+  "same_run_warmed_ratio": 1.5335130596929336,
+  "opaque_masked_png_bytes_same": true,
+  "observation_order_quality_tracking_and_lane_same": true,
+  "exact_pipeline_output_passed": true,
+  "bounded_in_flight_png_snapshots": 1,
+  "bounded_in_flight_quality_jobs": 1,
+  "analysis_json_published_only_after_flush": true,
+  "source_deadline_extended": false,
+  "test_or_user_images_read": 0,
+  "warm_processing_includes": [
+    "application preprocessing",
+    "GPU shared-memory transport when selected",
+    "model inference",
+    "postprocess",
+    "image quality",
+    "pothole tracking",
+    "opaque redaction",
+    "PNG writes",
+    "JSON write"
+  ],
+  "warm_processing_excludes": [
+    "session/process/model load",
+    "five warmup calls",
+    "worker teardown"
+  ],
+  "ten_fps_short_synthetic_scope_observed": true,
+  "ten_minute_sustained_test_completed": false,
+  "ten_fps_field_acceptance_passed": false,
+  "whole_system_deployment_throughput_claim": false,
+  "host_context": {
+    "exclusive_GPU_slot": true,
+    "concurrent_cpu_tiny_preflight_possible": true,
+    "cpu_preflight_context": "Root reported a two-thread Tiny CPU forward/backward preflight may have overlapped; exact overlap not independently established. Metadata hash I/O/download contention also possible.",
+    "benchmark_rerun_after_observation": false
+  },
+  "limitations": [
+    "Sixteen synthetic1280x720 frames per run; no real capture/decode/GNSS/calibration/API.",
+    "CPU preflight contention may affect paired latency; preserve this run rather than cherry-pick a repeat.",
+    "Final newly trained model combination needs its own exact numerical proof and sustained performance test.",
+    "FP32 research candidates are not promoted by this speed study."
+  ],
+  "cpu_regression": {
+    "passed": 161,
+    "subtests_passed": 189,
+    "actual_gpu_opt_in_skipped": 1,
+    "seconds": 18.36,
+    "junit_sha256": "f18b0128640aca2c14adb7682dbed2fd2782d79f16c4f1124b517226c73c6836",
+    "earlier_material_policy_fixture_refusals_counted_as_success": false
+  },
+  "post_measurement_filesystem_publish_hardening": {
+    "measured_writer_sha256": "42304b8365dd1d4104926c7a1e1c5266eae095881b696dd1314ee03ef9f5a742",
+    "current_writer_sha256": "6746223ef3bb14e425f56b5e864c3d1535ecdc569c04e62f6b4117eb2eba6386",
+    "same_source_as_measured": false,
+    "filesystem_semantics_changed": true,
+    "metadata_only_change": false,
+    "publish_operation": "Atomic same-parent hard link that refuses existing destination; temporary unlink after publish.",
+    "primary_exception_preserved_with_cleanup_failure_notes": true,
+    "cpu_regression_passed": 102,
+    "cpu_regression_seconds": 6.95,
+    "new_gpu_execution_performed": false,
+    "current_source_speed_verified": false,
+    "requires_final_model_gpu_revalidation": true
+  }
+}

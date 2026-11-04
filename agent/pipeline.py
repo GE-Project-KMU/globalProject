@@ -11,6 +11,7 @@ from .lane import measure_patch
 from .inference_runner import create_models,InferenceRunner,close_models
 from .paths import workspace_path, atomic_json, sha256
 from .material_policy import source_deadline,capture_time,current,expiry,guarded_samples
+from .evidence_writer import EvidenceWriter,writer_profile
 
 
 def infer_potholes(source, manifest_path, output):
@@ -123,7 +124,8 @@ def straight_solid_outline(paint, nominal_width_px):
 
 def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_manifest,
                   stereo=False, profile_path=None, sample_fps=10, cpu_profile="default", inference_backend="cpu",gpu_profile=None,
-                  source_expires_at=None,source_captured_at=None):
+                  source_expires_at=None,source_captured_at=None,io_profile='default'):
+    writer_profile(io_profile)
     moment=current()
     captured=capture_time(source_captured_at,now=moment) if source_captured_at is not None else None
     cap=source_deadline(source_expires_at,required=captured is None,now=moment)
@@ -141,21 +143,22 @@ def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_
                 raise ValueError("invalid_homography")
         tracker, observations, started = Tracker(), [], datetime.now(timezone.utc)
         run_id = str(uuid.uuid4())
-        with InferenceRunner(models,cpu_profile) as runner:
+        image_writes=[]
+        with InferenceRunner(models,cpu_profile) as runner,EvidenceWriter(io_profile) as writer:
             for sample in guarded_samples(replay(source, sample_fps=sample_fps),unreviewed):
                 frame = sample["frame"]
                 if stereo:
                     if frame.shape[1] % 2:
                         raise ValueError("side_by_side_even_width_required")
                     frame = frame[:, :frame.shape[1] // 2]
-                quality = frame_quality(frame)
+                quality_future=writer.quality(frame,frame_quality)
                 predictions = runner.predict(frame)
+                quality=quality_future.result()
                 potholes = tracker.update(predictions["pothole"], sample["pts_seconds"])
                 paint = predictions["lane"]
                 redacted = redact(frame, predictions["redaction"])
                 image_path = output / f"{sample['frame_id']:09d}.redacted.png"
-                if not cv2.imwrite(str(image_path), redacted):
-                    raise RuntimeError("image_write_failed")
+                image_digest=writer.submit(image_path,redacted,unreviewed)
                 lane = {"grade": "unassessable", "retention_pct": None, "valid_area_ratio": None,
                         "segment_support_ratio": None, "outline_supported": False,
                         "unassessable_reason": "missing_calibrated_geometry"}
@@ -177,14 +180,16 @@ def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_
                     lane["unassessable_reason"] = "intentional_gap_geometry_required"
                 item = {"run_id": run_id, "frame_id": sample["frame_id"], "pts_seconds": sample["pts_seconds"],
                         "quality": quality, "potholes": potholes, "lane": lane,
-                        "image": {"path": image_path.relative_to(workspace_path(".")).as_posix(), "sha256": sha256(image_path),
+                        "image": {"path": image_path.relative_to(workspace_path(".")).as_posix(), "sha256": image_digest.result() if io_profile=='default' else None,
                                   "redacted": True, "reviewed_for_sharing": False},
                         "expires_at": unreviewed,
                         "status": "awaiting_human_review"}
                 observations.append(item)
+                image_writes.append((item['image'],image_digest))
+        for image,digest in image_writes:image['sha256']=digest.result()
         result = {"run_id": run_id, "started_at": started.isoformat(), "source": str(workspace_path(source)),
                   "analyzed_frames": len(observations), "observations": observations,
-                  "runtime":runtime_metadata(models)["engine"],"runtime_details":runtime_metadata(models), "cpu_profile":cpu_profile, "limitations": ["No validated target accuracy is claimed.",
+                  "runtime":runtime_metadata(models)["engine"],"runtime_details":runtime_metadata(models), "cpu_profile":cpu_profile,"io_profile":io_profile, "limitations": ["No validated target accuracy is claimed.",
                   "Single-frame lane patch values are not 10m segment judgments.",
                   "Outputs need human image review and complete acquisition metadata before API ingestion."]}
         result["local_material"]={"state":"unreviewed","expires_at":unreviewed,"source_expires_at":cap.isoformat() if cap else None,

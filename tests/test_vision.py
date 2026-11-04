@@ -563,7 +563,8 @@ def test_motion_requires_gnss_visual_agreement_and_resets_gap():
 
 
 @pytest.mark.parametrize('cpu_profile',['default','fast'])
-def test_capture_run_analysis_review_outbox_contract(folder,cpu_profile):
+@pytest.mark.parametrize('io_profile',['default','overlap'])
+def test_capture_run_analysis_review_outbox_contract(folder,cpu_profile,io_profile):
     from agent.workflow import analyze_samples,run_samples,approve_review,sync_run,overlay_mask
     video=folder/"stereo.mp4"; synthetic_video(video,frames=6)
     key=folder/"key"; captured=record(video,folder/"runs",seconds=.6,chunk_seconds=1,minimum_free_bytes=0,key_path=key)
@@ -579,7 +580,7 @@ def test_capture_run_analysis_review_outbox_contract(folder,cpu_profile):
     bundle={"version":"fixture-contract","config_hash":"b"*64,"weights_hashes":{k:"a"*64 for k in ("pothole","lane","redaction")},
             "pothole":"pothole","lane":"lane","redaction":"redaction"}
     result=analyze_samples(run_samples(manifest,key_path=key),folder/"analysis",run=captured,profile_path=profile_path,
-                           device_id=uid(),bundle=bundle,model_factory=ContractModel,cpu_profile=cpu_profile)
+                           device_id=uid(),bundle=bundle,model_factory=ContractModel,cpu_profile=cpu_profile,io_profile=io_profile)
     assert len(result["frames"])==6 and len(result["items"])==2
     assert result["items"][1]["observation"]["lane"]["estimated_length_m"] is None
     item=result["items"][0]; obs=item["observation"]

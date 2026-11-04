@@ -26,6 +26,7 @@ def main(argv=None):
     workflow.add_argument("config")
     workflow.add_argument("--inference-backend",choices=["cpu","cuda"],help="CUDA requires a verified local GPU child profile; default stays CPU")
     workflow.add_argument("--gpu-profile",help="Registered project-local GPU bundle profile")
+    workflow.add_argument('--io-profile',choices=['default','overlap'],help='Optional bounded lossless PNG writer overlap; default remains synchronous')
     workflow.add_argument("--cpu-profile", choices=["default","fast"], help="CPU execution only: default2/spinning/serial; fast8/no-spin/3independent workers")
     profile = commands.add_parser("validate-profile"); profile.add_argument("profile")
     calibrate = commands.add_parser("calibrate"); calibrate.add_argument("request"); calibrate.add_argument("output")
@@ -76,6 +77,7 @@ def main(argv=None):
     analyze.add_argument("--source-captured-at",help="Verified source capture UTC; allows capture+7d when no explicit deadline exists")
     analyze.add_argument("--inference-backend",choices=["cpu","cuda"],default="cpu")
     analyze.add_argument("--gpu-profile",help="Registered project-local GPU bundle profile")
+    analyze.add_argument('--io-profile',choices=['default','overlap'],default='default',help='Optional bounded lossless PNG writer overlap')
     analyze.add_argument("--cpu-profile", choices=["default","fast"], default="default", help="Explicit CPU inference settings; weights, thresholds and runtime guards unchanged")
     validate = commands.add_parser("validate-data")
     validate.add_argument("manifest")
@@ -105,7 +107,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == "workflow":
-            result = execute_config(args.config,cpu_profile=args.cpu_profile,inference_backend=args.inference_backend,gpu_profile=args.gpu_profile)
+            result = execute_config(args.config,cpu_profile=args.cpu_profile,inference_backend=args.inference_backend,gpu_profile=args.gpu_profile,**({'io_profile':args.io_profile} if args.io_profile else {}))
         elif args.command == "sdk-probe":
             camera=ZedSDK()
             try:
@@ -182,7 +184,7 @@ def main(argv=None):
             result = analyze_video(args.source, args.output, pothole_manifest=args.pothole_manifest,
                                    lane_manifest=args.lane_manifest, redaction_manifest=args.redaction_manifest,
                                    stereo=args.stereo, profile_path=args.profile, sample_fps=args.sample_fps,cpu_profile=args.cpu_profile,inference_backend=args.inference_backend,gpu_profile=args.gpu_profile,
-                                   source_expires_at=args.source_expires_at,source_captured_at=args.source_captured_at)
+                                   source_expires_at=args.source_expires_at,source_captured_at=args.source_captured_at,io_profile=args.io_profile)
         elif args.command == "validate-data":
             value = json.loads(workspace_path(args.manifest, exists=True).read_text(encoding="utf-8"))
             if args.annotation:
