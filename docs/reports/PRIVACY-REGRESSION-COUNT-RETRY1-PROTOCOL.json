@@ -1,0 +1,50 @@
+{
+  "format": "privacy-regression-count-only-retry1-v1",
+  "source_sha256": {
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "agent/evaluate.py": "e339691310e61dbd7baeacfbbe777085eb495525c02172e9c8755079272d0d2c",
+    "agent/pipeline.py": "2676daa2607cbaf926d4709edbec1ce6bf3271c5cf5d2b9e4c76cae918834dc6",
+    "scripts/compare_detector_models.py": "8e427b034063c367e2630cb9f5db52a131a0696fa072d309a0cfbd63d6c86356",
+    "scripts/compare_privacy_parallel.py": "70ec95090b62f7ccab772590a8c1893571cd19b673ccfb323a493bb64cc3a9da",
+    "scripts/evaluate_privacy_family_v10.py": "747d6533934e71a209f822b30a54e6bc0f4c45c479b750144df2003cd36f8c86",
+    "scripts/evaluate_public_refinement.py": "b611953f5974d3530dead44030f5dafedbf5d3814245f528f49cfd96dff2d689",
+    "scripts/compare_privacy_family_v10_parallel.py": "ed5a6004a107886c6b257592fa01e92de188af42e747fefb5fc4d61c5466e4a3",
+    "scripts/compare_privacy_regression_count_retry1.py": "a2c3a5e460a50a4ec30c902edcd4626802ae9f3d5061a334e5d6bf4376297bd0"
+  },
+  "worker_source_sha256": "a2c3a5e460a50a4ec30c902edcd4626802ae9f3d5061a334e5d6bf4376297bd0",
+  "original_plan_sha256": "38938b525f8525adf30897a9832e4492278f28a0f415de1de9207a0045d6986d",
+  "original_failed_attempt_sha256": "2b4d57ab2e6ab23954a5b11349938e52ea4bd24c8e484c2361d5ed0e0426d3d5",
+  "failure_boundary_sha256": "9dbfa6f9fade4d3ff9ff9b394296ddc7a33da275b48eed266f79827e641ad027",
+  "corrected_plan_sha256": "df803eef81daa7034d16b042ba7b268075dd5f919cd52b73f4b5a69c6f0feb88",
+  "original_parallel_protocol_sha256": "0686d2fea6485edf021a01a5cbf04b797928828fc7324c4325700ae8d818d9d9",
+  "family_freeze_sha256": "d9a490909c0c995ffa37a4197374fedebf91c3bd132fc59c41f75687f4996c8b",
+  "fresh_attempt_sha256": "4807a393c7866293382998a9d4c77a394d67e8a6d7cc938ed35569afb51a7a14",
+  "fresh_comparison_sha256": "e2670964ed6e09c69a5d148dc23ab8804bb86c5425c6f68e49beafd233ca6027",
+  "benchmark_sha256": "03dbb7a8e60b0316e4c06508bcb76175097f594a29d0a25d40a2129998ae4c8a",
+  "old_expected_samples": 1400,
+  "expected_samples": 600,
+  "face_samples": 300,
+  "plate_samples": 300,
+  "changed_plan_fields": [
+    "expected_samples"
+  ],
+  "original600_rows_unchanged": true,
+  "fresh_reexecuted": false,
+  "model_or_threshold_selection_allowed": false,
+  "runtime": {
+    "engine": "onnxruntime-cpu",
+    "version": "1.31.1",
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "intra_threads": 2,
+    "inter_threads": 1,
+    "OpenCV_threads": 1,
+    "allow_spinning": true
+  },
+  "direct_interpreter": "Python3.11 direct child, not venv launcher",
+  "worker_timeout_seconds": 7200,
+  "source_expires_at": "2026-11-10T16:55:19.285523+00:00",
+  "automatic_retry_allowed": false,
+  "TEST_images_during_preparation": 0
+}
