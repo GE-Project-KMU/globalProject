@@ -1,0 +1,31 @@
+{
+  "format": "cycle2-real-development-CPU-preflight-v1",
+  "task": "privacy",
+  "actual_development_images": 4,
+  "max_original_GT_count": 386,
+  "retained_view_GT_counts": [
+    386,
+    154,
+    246,
+    53
+  ],
+  "tensor_shape": [
+    4,
+    3,
+    640,
+    640
+  ],
+  "loss": 15.303321838378906,
+  "passed": true,
+  "GPU_operations": 0,
+  "TEST_images_loaded": 0,
+  "user_recordings_used": false,
+  "source_expiries_extended": false,
+  "expiry": "2026-11-10T16:55:19.285523+00:00",
+  "code_sha256": "6dd894df85328b1ebd3abe065ca8d23b5091ab1e5aff71eb9fbba312f1a6a338",
+  "trainer_sha256": "92fe1649cddbca41439949443feb77359d6fadc51cb968ea00c0ba633d24626d",
+  "factory_sha256": "40c6a1f191950334b62f5d52fec161a2539c99d6b77c422c8fd7797f32685575",
+  "limits": [
+    "Geometry/loss/backward smoke, not accuracy or generalization"
+  ]
+}

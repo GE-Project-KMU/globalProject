@@ -1,0 +1,19 @@
+{
+  "created_before_final_predictions": true,
+  "models": {
+    "baseline": "data/training/lane-refinement-v4/lane.json",
+    "candidate": "data/training/lane-cycle2-v5/lane.json"
+  },
+  "baseline_manifest_sha256": "b0c4f5fd65a4cc0c0e4fb93d9dc4034f4fdcfd419961240b4e9300bf81b07691",
+  "candidate_release_sha256": "d66485327a4bd74c0765ec10f507a3dae6c92a4e9805adffeb169e9a35eeb6b0",
+  "benchmark_manifest": "data/public/a2d2-cycle2-v5/fresh-test.json",
+  "benchmark_sha256": "2e775ca28e32294575695622420058cb0be21a5b596a2ad0c0a012bd226c3962",
+  "role": "new_unseen_source_recording_only_not_physical_independence",
+  "test_used_for_fitting_or_selection": false,
+  "physical_independence_verified": false,
+  "raw_rtol": 0.001,
+  "raw_atol": 0.0001,
+  "project_acceptance_eligible": false,
+  "production_approved": false,
+  "numeric_plan_sha256": "a9409f69bbcdf5cbd27fbd4726f711b44a9925d40673afe47e92b6ac90beafc9"
+}

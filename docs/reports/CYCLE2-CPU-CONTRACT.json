@@ -1,0 +1,35 @@
+{
+  "format": "public-cycle2-CPU-contract-v1",
+  "synthetic_only_not_accuracy": true,
+  "GPU_operations": 0,
+  "cases": [
+    "five_face_one_plate_geometry_and_class_columns",
+    "training_global_single_bilinear_pixels_exact_and_GT_coordinates",
+    "training_tile_single_bilinear_pixels_exact_and_intersecting_GT_kept",
+    "over512_GT_rejected_before_canvas_no_silent_truncation",
+    "plate_all_parameters_and_buffers_strict_byte_digest",
+    "new_P2_stem_and_neck_are_explicitly_new_not_silent_partial_load",
+    "actual_P2_tiny_and_large_GT_loss_backward_finite",
+    "actual_shared1920_P2_640_output_shape_finite_bounded_memory",
+    "P2_actual_ONNX_export_Torch_ORT_default_raw_tolerance",
+    "lane_all_ignore_zero_loss_and_zero_gradient",
+    "lane_hardCE_Dice_boundary_finite_and_ignored_gradient_zero"
+  ],
+  "passed": true,
+  "torch": "2.7.1+cu126",
+  "ORT": "1.20.1",
+  "P2_output_shape": [
+    1,
+    176400,
+    7
+  ],
+  "P2_output_bytes": 4939200,
+  "P2_transferred_tensor_count": 396,
+  "P2_initialized_tensor_count": 186,
+  "raw_rtol": 0.001,
+  "raw_atol": 0.0001,
+  "factory_sha256": "40c6a1f191950334b62f5d52fec161a2539c99d6b77c422c8fd7797f32685575",
+  "contract_source_sha256": "3e9180d20ba368b69810497a04dfededfdf8f96f486912d3ea7c770d9c16f6a6",
+  "lane_trainer_sha256": "401fab5253cfa29492ca4747d9a3eee1ee57a17304cbd414731b32200f513a84",
+  "privacy_trainer_sha256": "92fe1649cddbca41439949443feb77359d6fadc51cb968ea00c0ba633d24626d"
+}

@@ -1,0 +1,34 @@
+{
+  "kind": "privacy",
+  "development": {
+    "development_rows": 5501,
+    "historical_test_rows": 1400,
+    "old_test_used_for_fitting": false,
+    "source_expiry_extended": false
+  },
+  "fresh_counts": {
+    "face": 100,
+    "license_plate": 100
+  },
+  "fresh_GT": {
+    "face": 950,
+    "license_plate": 100
+  },
+  "fresh_manifest_sha256": "8230874168c8b2d4d8de09c5c11cb3197f641c0ef6a28999ef77e3ea2465c9a7",
+  "development_sha256": "37cdd77565438c1254768347a7d7abe37c686ba20239c3ade2fda23cd98a8d0c",
+  "release_sha256": "5ae56bd60700ce17a6af8e92edf630a2722ebc6148e177b798afa172cbff50dc",
+  "expiry": "2026-11-10T16:55:19.285523+00:00",
+  "licenses": [
+    "CC-BY-NC-ND-4.0",
+    "MIT"
+  ],
+  "research_only": true,
+  "rejected_candidates": {
+    "invalid_publisher_or_gt_count": 18,
+    "history_exact_or_near": 1
+  },
+  "independent_person_or_route_verified": false,
+  "known_class_conditional_only": true,
+  "frozen_before_training": true,
+  "user_recordings_used": false
+}

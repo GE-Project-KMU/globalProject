@@ -1,0 +1,54 @@
+{
+  "format": "public-nextcycle-VAL-error-audit-v1",
+  "source_role": "reused development VAL only",
+  "TEST_predictions_loaded": 0,
+  "user_recordings_used": false,
+  "privacy_baseline": "v4_tiled",
+  "privacy_face_original_pixel_sqrt_area": {
+    ">=64": {
+      "GT": 477,
+      "TP": 462,
+      "FN": 15,
+      "recall": 0.9685534591194969
+    },
+    "16..31": {
+      "GT": 944,
+      "TP": 878,
+      "FN": 66,
+      "recall": 0.9300847457627118
+    },
+    "32..63": {
+      "GT": 595,
+      "TP": 564,
+      "FN": 31,
+      "recall": 0.9478991596638655
+    },
+    "<16": {
+      "GT": 770,
+      "TP": 673,
+      "FN": 97,
+      "recall": 0.874025974025974
+    }
+  },
+  "privacy_VAL_images": 400,
+  "lane_VAL_images": 100,
+  "lane_recording_groups": [
+    {
+      "group_index": 0,
+      "images": 100,
+      "tp": 3099457,
+      "fp": 571024,
+      "fn": 569759,
+      "valid": 231936000,
+      "paint": 3669216,
+      "IoU": 0.7309626341905175,
+      "paint_fraction": 0.015819950331125827
+    }
+  ],
+  "lane_threshold": 0.2,
+  "source_expiries_extended": false,
+  "limits": [
+    "Original-pixel face bins differ with source resolution; not standardized WIDER difficulty subsets",
+    "Development diagnosis only; no independent test accuracy"
+  ]
+}

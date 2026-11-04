@@ -1,0 +1,30 @@
+{
+  "format": "cycle2-real-development-CPU-preflight-v1",
+  "task": "lane",
+  "actual_development_images": 1,
+  "tensor_shape": [
+    1,
+    3,
+    1024,
+    1024
+  ],
+  "unique_GT_values": [
+    0,
+    1,
+    255
+  ],
+  "valid_GT_pixels": 659456,
+  "positive_GT_pixels": 31347,
+  "loss": 0.5966354012489319,
+  "passed": true,
+  "GPU_operations": 0,
+  "TEST_images_loaded": 0,
+  "user_recordings_used": false,
+  "source_expiries_extended": false,
+  "expiry": "2026-11-10T17:07:26.069653+00:00",
+  "code_sha256": "5c48bd8d34acf44a0baa6e3fcd4d09366622b328d7fcef63e0e24477dfbc5b64",
+  "trainer_sha256": "401fab5253cfa29492ca4747d9a3eee1ee57a17304cbd414731b32200f513a84",
+  "limits": [
+    "Geometry/loss/backward smoke, not accuracy or generalization"
+  ]
+}

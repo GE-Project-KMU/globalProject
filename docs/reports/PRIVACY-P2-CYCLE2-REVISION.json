@@ -1,0 +1,34 @@
+{
+  "format": "privacy-P2-pretraining-resource-revision-v2",
+  "parent_plan_sha256": "c53c55569b822a74766e4e5713a5048e6dfab8307d22bffdf0e7e30d0de98f84",
+  "parent_training_source_sha256": "2335f562c36a64e5a36bff12708c3ab554b1717a93fe4fb8c74c4a8b8b352724",
+  "new_plan_sha256": "31503ca3a9e1b4da72d8bd248b655d8b101a2462cd7c1f35881a4d9578353c36",
+  "new_training_source_sha256": "92fe1649cddbca41439949443feb77359d6fadc51cb968ea00c0ba633d24626d",
+  "changed_plan_fields": [
+    "EMA",
+    "batch_size",
+    "format",
+    "optimizer",
+    "parent_plan_sha256",
+    "parent_source_sha256",
+    "revision_reason",
+    "training_code_sha256"
+  ],
+  "preserved": {
+    "data_development_sha256": "37cdd77565438c1254768347a7d7abe37c686ba20239c3ade2fda23cd98a8d0c",
+    "release_sha256": "5ae56bd60700ce17a6af8e92edf630a2722ebc6148e177b798afa172cbff50dc",
+    "fresh_manifest_sha256": "8230874168c8b2d4d8de09c5c11cb3197f641c0ef6a28999ef77e3ea2465c9a7",
+    "architecture": "YOLOX-Nano P2 face640 global plus four tiles and frozen plate640",
+    "epochs": 12,
+    "VAL_selection_policy_unchanged": true,
+    "confidence_grid_unchanged": true
+  },
+  "training_equivalence_claimed": false,
+  "training_updates_before_revision": 0,
+  "TEST_predictions_before_revision": 0,
+  "prior_source_plan_and_CPU_proofs_preserved": true,
+  "original_preflight_source_hash_recovered_byte_exact": "5c48bd8d34acf44a0baa6e3fcd4d09366622b328d7fcef63e0e24477dfbc5b64",
+  "GPU_probe_requires_frozen_source_commit_and_root_slot": true,
+  "optimizer_updates_during_probe": 0,
+  "source_expiries_extended": false
+}

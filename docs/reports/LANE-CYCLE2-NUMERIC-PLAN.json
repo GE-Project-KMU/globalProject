@@ -1,0 +1,13 @@
+{
+  "format": "cycle2-numeric-gate-plan-v1",
+  "task": "lane",
+  "positive_cases_sha256": "03d76b2f3779969fc8c64d866830975c763a20e4188564b7bebab9605165bc84",
+  "positive_VAL_cases": 3,
+  "all_lane_VAL_count": 179,
+  "raw_rtol": 0.001,
+  "raw_atol": 0.0001,
+  "exact_postprocess_required": true,
+  "CPU_ORT": "1.31.1",
+  "old_GPU_proof_reused": false,
+  "TEST_used": false
+}

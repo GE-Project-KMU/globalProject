@@ -1,0 +1,32 @@
+{
+  "format": "public-cycle2-data-qc-v1",
+  "task": "lane",
+  "development_counts": {
+    "train": 1397,
+    "validation": 179
+  },
+  "new_recording_counts": {
+    "test": 2,
+    "validation": 1,
+    "train": 6
+  },
+  "fresh_images": 119,
+  "initial_new_samples": 800,
+  "connected_history_duplicates_excluded": 4,
+  "connected_new_cross_split_excluded": 0,
+  "development_sha256": "175e9f110934542dd5316a65177dc8c80a2730541d472060749030a0b7f89a11",
+  "fresh_sha256": "2e775ca28e32294575695622420058cb0be21a5b596a2ad0c0a012bd226c3962",
+  "release_sha256": "d66485327a4bd74c0765ec10f507a3dae6c92a4e9805adffeb169e9a35eeb6b0",
+  "expiry": "2026-11-10T17:07:26.069653+00:00",
+  "license": "CC-BY-ND-4.0",
+  "physical_route_or_date_independence_verified": false,
+  "TEST_fitting": false,
+  "user_recordings_used": false,
+  "source_expiries_extended": false,
+  "development_audit": {
+    "development_rows": 1576,
+    "historical_test_rows": 280,
+    "old_test_used_for_fitting": false,
+    "source_expiry_extended": false
+  }
+}
