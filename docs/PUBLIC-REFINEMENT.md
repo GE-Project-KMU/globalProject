@@ -96,3 +96,48 @@ global+4tile AP50로 epoch0 포함 checkpoint를 선택한 후 전체 VAL508에�
 개별 양성 사례는 비공개 metadata SHA로 고정한다. 실제 학습·수치 검증·최종
 비교가 끝난 뒤 `LANE/PRIVACY-REFINEMENT-RESULTS.json`에 집계를 기록한다.
 이 문서의 계획과 합성 계약 통과 자체는 목표 정확도나 속도 달성 증거가 아니다.
+
+### 도막 완료 결과
+
+사전 patience 조건으로12epoch에서 종료했고 실제 optimizer update는2,388회다.
+선택은epoch6/threshold.2이며 기존 VAL IoU73.096%는 개발 수치다. 고정 양성
+VAL3와 전체 VAL100의 앱/격리 ORT1.31.1/원 FP32 Torch raw 기본 허용오차 및
+최종 마스크 정확 일치 검증을 통과한 뒤 최종 비교를 한 번씩 수행했다.
+
+|자료|기존 IoU|후보 IoU|차이|후보 precision / recall|
+|---|---:|---:|---:|---:|
+|새 recording80장|49.28%|56.98%|+7.70pp|72.55% / 72.65%|
+|이전에 본 TEST100장 회귀|48.75%|56.38%|+7.63pp|71.01% / 73.24%|
+
+두 집합 모두 목표75%에 미달한다. 새 평가를 본 뒤 추가 checkpoint/threshold
+선택이나 학습은 하지 않았다. 원본 출처 날짜·물리적 도로 독립성과 마모율 MAE는
+검증하지 않았다. 개선은 구조·손실·미세조정·VAL threshold를 함께 바꾼 후보의
+효과이며 개별 원인에 대한 ablation이 아니다.
+
+새80장의 실제 CPU predict 중앙값은416.6→423.3ms, P95는463.3→444.2ms였다.
+old TEST 회귀의 중앙값은453.3→466.2ms다. 입력 decode·전체 파이프라인을
+제외한 공유 호스트의 관측 비용이므로 CPU 속도 개선이나 실차 FPS 합격을
+주장하지 않는다. 새 artifact의 GPU 정합성은 이 CPU 증거로 대신하지 않는다.
+학습·수치·최종 metric의 연결은 `LANE-REFINEMENT-COMPLETION.json`에 기록한다.
+
+### 개인정보 평가 실행 병렬화
+
+개인정보 모델의 최종 예측이0건인 시점에 별도
+`PRIVACY-REFINEMENT-PARALLEL-PROTOCOL.json`을 고정했다. 이미 완료한 도막 결과와
+실행 소스는 바꾸지 않는다. `compare_privacy_parallel.py`는 동일한 fresh200장과
+회귀400장을 사용하되 baseline/candidate를 각각 CPU2thread 프로세스에서 실행한다.
+모델별 sample_id 정렬과 각 이미지의 예측 순서를 보존하고 기존 `OnnxModel.predict`,
+confidence floor.01/NMS, 기존 `score` 함수를 그대로 쓴다. 모형·threshold·GT·
+선택 조건을 바꾸는 실험이 아니다. 실행 계획·모델·benchmark 해시를 전후 검사하고
+실패/미완료 산출물을 자동 덮어쓰지 않는다.
+
+독립 합성 계약8개에서 기존 직렬 scoring과2개 subprocess JSON 왕복의
+AP/TP/FP/FN·동점 순서가 정확히 같았다. IoU.5 경계 float 왕복과3개 해상도의
+resize thread1/2 픽셀 일치도 확인했다. 이는 실제 모델 정확도나 속도 개선 증거가
+아니다. 실제 모델의 수치 검증은 별도로 먼저 통과해야 한다.
+
+병렬 실행의 각 모델 median/P95에는 다른 CPU 프로세스와 공유 호스트 부하가
+포함된다. 직렬 모델의 독립 속도와 직접 비교해 개선률을 주장하지 않는다.
+`parallel_execution_wall_seconds`는 worker 시작~추론/worker JSON 완료 구간이다.
+후속 공통 score/merge·최종 보고서 저장은 제외하므로 전체 CLI 시간은 외부
+`Measure-Command`로 별도 기록한다. 픽셀 파일을 만들거나 GPU를 추가 사용하지 않는다.

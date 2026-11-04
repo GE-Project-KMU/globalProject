@@ -1,0 +1,158 @@
+{
+  "format": "public-refinement-completion-v1",
+  "task": "lane",
+  "training_epochs_completed": 12,
+  "actual_optimizer_updates": 2388,
+  "selected_epoch": 6,
+  "executed_trainer_sha256": "7c83b5810a5a2820f1a87285410cc8f9e7d8db562241895f1eb79adb71397d1f",
+  "current_trainer_sha256": "7c83b5810a5a2820f1a87285410cc8f9e7d8db562241895f1eb79adb71397d1f",
+  "executed_source_still_unchanged": true,
+  "model_manifest_sha256": "b0c4f5fd65a4cc0c0e4fb93d9dc4034f4fdcfd419961240b4e9300bf81b07691",
+  "weights_sha256": "1266b3dfed2e79ab84b1d8e81a7a4e8b751b4de3e37d1eff9657b5c1462dcec6",
+  "checkpoint_sha256": "95404740c73cbe2455ecda905b05e5332d2d26ed36f647f467ca1e3f57a83eb2",
+  "development_sha256": "7504cab1ce9bc1477df95b27cba5a337e66f88b994a9d19169819de835a90e86",
+  "release_sha256": "234c83581edc8797831d00b9e7e3b32edf47e192322adeb20c0618900c5e4e03",
+  "numeric_positive_validation_cases": 3,
+  "default_raw_rtol": 0.001,
+  "default_raw_atol": 0.0001,
+  "strict_raw_and_postprocess_gate_passed": true,
+  "full_validation100_raw_and_exact_mask_passed": true,
+  "new_GPU_profile_verified": false,
+  "peak_reserved_GPU_GiB": 8.341796875,
+  "fresh": {
+    "role": "new_unseen_recording_or_source_only_no_physical_person_route_independence",
+    "samples": 80,
+    "models": {
+      "baseline": {
+        "manifest_sha256": "3c644ae26a594c0d17b7c995d16d34a1f9dde1281fa18385cd8f8cbe4d06d59f",
+        "weights_sha256": "0cbf89f5bfd751bc9ae2cb071f887609d9ff40a9f2f3914c129a44806dc1f548",
+        "paint_threshold": 0.4,
+        "input_size": [
+          1024,
+          1024
+        ],
+        "backend": "onnxruntime-cpu",
+        "backend_version": "1.31.1",
+        "confusion": {
+          "tp": 1368008,
+          "fp": 621728,
+          "fn": 786089,
+          "tn": 182772951,
+          "ignored": 24
+        },
+        "paint_iou": 0.4928293390253348,
+        "paint_precision": 0.6875324163607635,
+        "paint_recall": 0.6350726081508864,
+        "paint_dice": 0.6602621292894767,
+        "latency_seconds": {
+          "median": 0.41660685001988895,
+          "p95": 0.4632814400159987
+        }
+      },
+      "candidate": {
+        "manifest_sha256": "b0c4f5fd65a4cc0c0e4fb93d9dc4034f4fdcfd419961240b4e9300bf81b07691",
+        "weights_sha256": "1266b3dfed2e79ab84b1d8e81a7a4e8b751b4de3e37d1eff9657b5c1462dcec6",
+        "paint_threshold": 0.2,
+        "input_size": [
+          1024,
+          1024
+        ],
+        "backend": "onnxruntime-cpu",
+        "backend_version": "1.31.1",
+        "confusion": {
+          "tp": 1564848,
+          "fp": 592036,
+          "fn": 589249,
+          "tn": 182802643,
+          "ignored": 24
+        },
+        "paint_iou": 0.569836930694908,
+        "paint_precision": 0.7255132867599741,
+        "paint_recall": 0.7264519657192782,
+        "paint_dice": 0.7259823228170108,
+        "latency_seconds": {
+          "median": 0.42334499998833053,
+          "p95": 0.4441778800130123
+        }
+      }
+    },
+    "paint_iou_change": 0.07700759166957322
+  },
+  "regression": {
+    "role": "previously_examined_regression_only_no_independent_accuracy_claim",
+    "samples": 100,
+    "models": {
+      "baseline": {
+        "manifest_sha256": "3c644ae26a594c0d17b7c995d16d34a1f9dde1281fa18385cd8f8cbe4d06d59f",
+        "weights_sha256": "0cbf89f5bfd751bc9ae2cb071f887609d9ff40a9f2f3914c129a44806dc1f548",
+        "paint_threshold": 0.4,
+        "input_size": [
+          1024,
+          1024
+        ],
+        "backend": "onnxruntime-cpu",
+        "backend_version": "1.31.1",
+        "confusion": {
+          "tp": 1651813,
+          "fp": 835353,
+          "fn": 901485,
+          "tn": 228547349,
+          "ignored": 0
+        },
+        "paint_iou": 0.48745444721217973,
+        "paint_precision": 0.6641346013896942,
+        "paint_recall": 0.6469331037740209,
+        "paint_dice": 0.6554210088595018,
+        "latency_seconds": {
+          "median": 0.4532818000006955,
+          "p95": 0.5135097950231283
+        }
+      },
+      "candidate": {
+        "manifest_sha256": "b0c4f5fd65a4cc0c0e4fb93d9dc4034f4fdcfd419961240b4e9300bf81b07691",
+        "weights_sha256": "1266b3dfed2e79ab84b1d8e81a7a4e8b751b4de3e37d1eff9657b5c1462dcec6",
+        "paint_threshold": 0.2,
+        "input_size": [
+          1024,
+          1024
+        ],
+        "backend": "onnxruntime-cpu",
+        "backend_version": "1.31.1",
+        "confusion": {
+          "tp": 1870036,
+          "fp": 763564,
+          "fn": 683262,
+          "tn": 228619138,
+          "ignored": 0
+        },
+        "paint_iou": 0.5637967452369137,
+        "paint_precision": 0.710068347509113,
+        "paint_recall": 0.7324002133710988,
+        "paint_dice": 0.721061412813593,
+        "latency_seconds": {
+          "median": 0.46622970001772046,
+          "p95": 0.5215444450092036
+        }
+      }
+    },
+    "paint_iou_change": 0.07634229802473397
+  },
+  "research_only": true,
+  "production_approved": false,
+  "project_acceptance_eligible": false,
+  "user_recordings_used": false,
+  "source_expiries_extended": false,
+  "old_VAL_is_development_only": true,
+  "old_TEST_is_regression_only": true,
+  "fresh_cohort_used_for_reselection": false,
+  "limits": [
+    "New source/recording evaluation, not physical route/person independence",
+    "Software/public annotation evidence, not a real road or complete privacy acceptance",
+    "CPU prediction cost excludes capture/network/review/full-pipeline latency"
+  ],
+  "target_paint_IoU": 0.75,
+  "target_met": false,
+  "validation_paint_IoU": 0.7309626341905175,
+  "selected_threshold": 0.2,
+  "retention_mae_pp": null
+}
