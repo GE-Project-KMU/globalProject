@@ -1,0 +1,76 @@
+{
+  "format": "pothole-US-domain-v11-predeclared-draft-v1",
+  "status": "feasibility_blocked_no_split_or_training_authorization",
+  "execution_blocked": true,
+  "feasibility": {
+    "official_metadata_audit": {
+      "path": "data/research/rdd2022-domain-v11/annotation-audit-results.json",
+      "sha256": "bea5142b0effb2a5e041b6fe211711cc687384a1f486cddfef3fd98acc5c33d5"
+    },
+    "publisher_TRAIN_D40_positive_images": 116,
+    "prior_US100_positive_images_excluded": 50,
+    "new_positive_upper_bound_before_other_QC": 66,
+    "required_new_positive_minimum": 200,
+    "decision": "Insufficient before pixel/near/group QC; criteria unchanged; no stage/materialization/training.",
+    "future_execution_requires_new_explicit_plan_not_this_blocked_draft": true
+  },
+  "source_sha256": "b4c02d59fc3d245b7b84403b80be07194c72bfab1b87d89dcfb9ffacdf32b403",
+  "dependency_sha256": {
+    "agent/dataset.py": "f12146e88934d5320767d9eafb8771dc20bc5f7217af5c73dfa78214af7f7af3",
+    "agent/paths.py": "ba7f4cad21a0e3acdfac15944a20314b47d0bca219da2adcca5621a2e25ca279",
+    "scripts/probe_rdd2022_domain_v11.py": "6120ed9d4cb91546fd1717be02d1147ac15704efd3c88507b79526d93841e0d3",
+    "scripts/acquire_rdd2022_domain_v11.py": "6d58e1526f2c041a359b676d3fd5b0e3ff4b5903a7039dac9ee17ad4488dbfe6",
+    "scripts/audit_rdd2022_domain_v11.py": "ea09da37736fd67dba53fa1e4895a0db5f3a9d47a31f573e698d745dae7c566e"
+  },
+  "official_source": "https://doi.org/10.6084/m9.figshare.21431547.v1",
+  "license_id": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "publisher_MD5": "b62bd51d2ffcfaa76c60f234f0cc2bb3",
+  "archive_bytes": 13264172619,
+  "requires_complete_archive_MD5_SHA_CRC_and_bounds": true,
+  "history_snapshot": {
+    "path": "data/research/rdd2022-blind-v7/history-exclusions.json",
+    "sha256": "25e6c19ed8622de9c05e8b68ed7fed02b36e880f5bf3d30643954c3aaf89eb90"
+  },
+  "history_release_count": 6,
+  "US100_release": {
+    "path": "data/training/research-pothole-rdd2022-us100-v7/release.json",
+    "sha256": "592c83e5967073354031ade9b50eb0a24b7b2f65f33abf477fc3990611221703"
+  },
+  "US100_required_sha256": "592c83e5967073354031ade9b50eb0a24b7b2f65f33abf477fc3990611221703",
+  "license_evidence": {
+    "path": "data/research/rdd2022-blind-v7/license-evidence.json",
+    "sha256": "d9257406198dd0f22178d8626ee87374f72259049631e4cee5c2e7c314b567c9"
+  },
+  "source_expires_at": "2026-11-10T17:07:24.286159+00:00",
+  "expiry_extended": false,
+  "publisher_pool": "United_States/train paired JPG and VOC XML only; unannotated publisher TEST is never negative",
+  "GT": "literal D40 only; all known-class boxes must be finite and within declared dimensions; no clip/truncation; unknown class image rejected",
+  "coordinate_convention": "publisher coordinates treated as continuous edges without guessed origin adjustment; stored xmin,ymin,xmax-xmin,ymax-ymin",
+  "history_exclusion": "ALL splits of the exact frozen six releases plus US100; exact bytes, normalized publisher member and basename; old US frame-block100; old US TEST frame id +/-20; history-connected visual components removed as a whole",
+  "visual_identity": "64-bit DCT pHash: gray32x32 INTER_AREA, cv2.dct upper8x8, median excluding DC, DC bit zero; original and horizontal flip, Hamming<=6",
+  "sequence_group": "country + floor(numeric frame id / 100); near/exact duplicate DSU unions sequence groups",
+  "split_seed": 20261111,
+  "group_assignment": "sorted DSU component identifiers shuffled with Python random.Random(seed); floor70% train, floor15% validation, remainder test",
+  "boundary_rule": "drop BOTH sides of all different-split frame-id pairs separated by <=20; no reassignment",
+  "selection": "per split/class sort SHA256(sample_id UTF8); TRAIN cap1500 each; validation/test exact50 each; no metric-dependent selection",
+  "requirements": {
+    "train_min_positive": 100,
+    "train_min_negative": 100,
+    "train_cap_each": 1500,
+    "validation_each": 50,
+    "test_each": 50,
+    "min_independent_components_each_split": 5
+  },
+  "insufficient_support": "record metadata failure, no release; never relax/reassign/retry automatically",
+  "materialization": "exclusive membership plan before UUID JPG writes; file-backed validation AFTER actual writes; atomic release bundle publish only on success",
+  "physical_route_independence_verified": false,
+  "research_only": true,
+  "human_privacy_reviewed": false,
+  "not_for_deployment": true,
+  "actual_image_reads": 0,
+  "actual_splits": 0,
+  "actual_model_predictions": 0,
+  "training_updates": 0,
+  "execution_requires_separate_root_authorization": true
+}
