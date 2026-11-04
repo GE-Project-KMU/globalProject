@@ -2,6 +2,10 @@
 
 2026-11-03. 원본 API 명세 스냅샷의 32개 작업에 아래 운영·웹 조회 계약을 추가한다. 인증·기관 경계·오류 envelope는 원본 계약과 같다. `/openapi.json`은 관리자 세션으로 조회하며 서비스별 요청·응답 모델과 바이너리 다운로드 형식을 합친다.
 
+2026-11-04 추가: GET `/api/v1/observations`, `/api/v1/summary`, `/api/v1/reports`는 선택 query `data_scope=all|presentation|test|synthetic|field`를 지원한다. API 기본은 기존과 같은 `all`이고 UI 기본 `presentation`은 명백한 HTTP 시험만 제외한다. 잘못된 값은422이며 권한·기관 경계는 그대로다. 목록 cursor는 범위와 출처 정책 snapshot hash에 묶고 보고서 캐시도 범위를 구분한다. 정책 변경이나 다른 범위의 cursor를 재사용할 수 없다.
+
+관측 응답의 추가 `data_origin`은 `http_test`(교차 확인된 이전 HTTP 시험 또는 명시적 합성 HTTP fixture), `synthetic_demo`(선언된 합성 시연), `field`(그 외 출처 미확인 일반 관측)이다. `field`를 실제 카메라 촬영 보증으로 해석하지 않는다. 원 관측의 payload·demo·리뷰를 분류 목적으로 바꾸지 않으며 CSV/PDF에도 같은 출처를 표시한다. [시연 자료 분리](DEMO-DATA-ISOLATION.md)에 정책 생성과 화면 사용법을 기록했다.
+
 | 경로 | 권한 | 응답/조건 |
 |---|---|---|
 | GET `/api/v1/users` | admin | data.items: 공개 사용자 id/login/role/active |

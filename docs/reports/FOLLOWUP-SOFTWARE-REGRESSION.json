@@ -1,0 +1,33 @@
+{
+  "format": "device-independent-followup-software-v1",
+  "tested_source_commit": "e980ed87cfc3f8fc45922a91344ddc9f1d466e44",
+  "local_backend": {
+    "tests_passed": 440,
+    "subtests_passed": 189,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_seconds": 47.88,
+    "junit_testcase_count_including_subtests": 629,
+    "live_http_methods": {"GET":148,"POST":448,"PATCH":29,"PUT":2,"DELETE":1},
+    "expected_4xx_paths_checked": true,
+    "new_5xx_responses": 0,
+    "new_server_error_lines": 0,
+    "initial_shared_fixture_setup_errors": 15,
+    "fixture_setup_issue_fixed_and_all_tests_rerun": true
+  },
+  "frontend": {
+    "typescript_and_build_passed": true,
+    "local_suite_tests_passed": 24,
+    "suite_elapsed_seconds": 38.4,
+    "subsequent_menu_scroll_and_hit_test_stability_passed": true,
+    "stable_desktop_and_mobile_viewports_visually_inspected": true,
+    "unexpected_console_page_request_errors": 0,
+    "ci_real_photo_test_requires_ignored_local_pack": true,
+    "ci_security_and_expiry_checks_use_explicit_synthetic_fixture": true,
+    "research_photos_uploaded_as_ci_artifacts": false
+  },
+  "numerical_model_checks_are_separate_from_software_test_count": true,
+  "raw_data_or_weights_pushed": false,
+  "field_or_production_acceptance": false
+}

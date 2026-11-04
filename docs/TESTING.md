@@ -1,5 +1,9 @@
 # 개발 MVP 검증 기록
 
+## 2026-11-04 장비 연결 전 후속 검증
+
+최신 후속 소스는 Windows440tests/189subtests(47.88초, 실패·skip0), 로컬 UI24개/build 및 메뉴·스크롤 안정화 검증을 통과했다. 실제5종 HTTP Method와 예상4xx를 검사했고 새5xx·서버 오류는0이었다. 초기 전용기관 fixture 연결 누락15개 setup 오류는 수정 후 전체 재실행으로 확인했다. 원자료 없는 CI의 실제 참고사진 테스트1건은 skip이고 형식·보안·만료는 합성 fixture로 검사한다. 모델 수치VAL100, 운영PG/PostGIS 및 원격 Docker 실행은 각각 별도 증거다. [후속 통합 기록](FOLLOWUP-IMPLEMENTATION.md)과 [소프트웨어 집계](reports/FOLLOWUP-SOFTWARE-REGRESSION.json)를 참고한다. 아래 기록은 이전 시점으로 보존한다.
+
 ## 2026-11-04 학습·추론 변경 후 재검증
 
 Windows 전체 Python/실제 HTTP/영상 도구 시험 **180/180 통과**(43.79초, 실패·skip0), TypeScript/Vite build 및 Chromium **20/20 통과**(실제 Gateway2건 포함). 이번 HTTP 실행의 GET130/POST446/PATCH29/PUT2/DELETE1 요청에서 예상 상태 코드와 응답을 검사했다. 인증·입력 오류 시험의 4xx는 예상 결과이며 500은0건이다. 이번 실행 이후 증가한 서버 로그의 ERROR/Traceback/unhandled는0건, 실제 연동 브라우저의 console.error/pageerror/예상하지 않은 요청 실패도0건이다. 데스크톱·모바일 화면도 확인했다.
