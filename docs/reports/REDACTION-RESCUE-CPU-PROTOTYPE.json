@@ -1,0 +1,124 @@
+{
+  "scope": "CPU synthetic-only untrained rescue architecture prototype",
+  "source_sha256": "e2a5d98bceb11b5b27f0051ec2e6382f2982f0de8c1715883fb7cbff6d6fa2a1",
+  "factory_sha256": "61876d6621c733516661059692eb2a734f8da35048aca86238b4d7a0d1583dc0",
+  "legacy_checkpoint_sha256": "6c985f7e3afb0fa061cbb82d7ec7b304eb5f9fbfcd0cf9f775dbab28873c82ad",
+  "legacy_prefix_byte_exact": true,
+  "legacy_prefix_proposals": 102900,
+  "total_proposals": 333300,
+  "rescue_initial_max_confidence": 4.999999525523435e-09,
+  "backbone_calls": {
+    "face_backbone": 5,
+    "plate_backbone": 1
+  },
+  "transplant": {
+    "legacy_tensor_count": 1284,
+    "all_legacy_parameters_frozen": true,
+    "legacy_BN_eval": true,
+    "approximate_transplant": false
+  },
+  "legacy_gradient_count": 0,
+  "legacy_parameters_and_BN_unchanged_after_synthetic_step": true,
+  "new_state_tensors_changed_after_synthetic_step": 54,
+  "native_synthetic_loss_finite": true,
+  "labels512_preserved_unchanged": true,
+  "native_observed_GT": 512,
+  "initial_state_restored": true,
+  "parameters": {
+    "legacy": 1793508,
+    "new": 10182
+  },
+  "cpu_seconds": {
+    "baseline": {
+      "median": 1.1789877000264823,
+      "samples": 3
+    },
+    "rescue": {
+      "median": 1.430200300004799,
+      "samples": 3
+    }
+  },
+  "torch_version": "2.7.1+cu126",
+  "CPU_threads": 2,
+  "GPU_used": false,
+  "dataset_images_read": 0,
+  "TEST_images": 0,
+  "actual_training_run": false,
+  "weights_or_original_source_modified": false,
+  "production_approved": false,
+  "prototype_onnx_sha256": "d100898043a88e1652aa5ac781b05ab7c484846bccf3ebc06bb0e37eef9be648",
+  "onnxruntime_version": "1.31.1",
+  "onnx_raw_parity": {
+    "passed": true,
+    "max_abs_error": 0.0023193359375,
+    "mean_abs_error": 5.6753979151835665e-06,
+    "p99_abs_error": 0.0001220703125,
+    "rmse": 3.771542901920965e-05,
+    "cosine_similarity": 0.9999999999999977,
+    "relative_l2_error": 6.340361494643436e-08,
+    "rtol": 0.001,
+    "atol": 0.0001
+  },
+  "initial_legacy_NMS_exact": true,
+  "app_postprocess_parity": {
+    "passed": true,
+    "application_count": 0,
+    "reference_count": 0,
+    "application_class_counts": {},
+    "reference_class_counts": {},
+    "matched_count": 0,
+    "unmatched_application": 0,
+    "unmatched_reference": 0,
+    "min_matched_iou": null,
+    "max_abs_bbox_error_px": null,
+    "max_abs_confidence_error": null,
+    "bbox_atol_px": 0.05,
+    "confidence_atol": 0.0001,
+    "no_positive_predictions": true
+  },
+  "all_contracts_passed": true,
+  "timing_limits": "Single synthetic input, shared CPU host during other GPU training; not camera or pipeline FPS.",
+  "accuracy_claim": false,
+  "trained_rescue_precision_equivalent_claim": false,
+  "new_parameter_update_contract": {
+    "passed": true,
+    "source_sha256": "92cd0ea04293e80d651e437d2cb8d231459c0dd6c75eb99781f44df14330ea27",
+    "factory_sha256": "61876d6621c733516661059692eb2a734f8da35048aca86238b4d7a0d1583dc0",
+    "legacy_checkpoint_sha256": "6c985f7e3afb0fa061cbb82d7ec7b304eb5f9fbfcd0cf9f775dbab28873c82ad",
+    "legacy_gradient_tensors": 0,
+    "legacy_parameters_and_BN_buffers_preserved": true,
+    "legacy_eval_modes_preserved": true,
+    "new_trainable_parameter_tensors": 36,
+    "new_nonzero_gradient_parameter_tensors": 24,
+    "new_parameter_tensors_changed": 24,
+    "labels_unchanged": true,
+    "synthetic_optimizer_steps": 1,
+    "legacy_prefix_after_new_parameter_update_byte_exact": true,
+    "actual_dataset_training_run": false,
+    "dataset_images_read": 0,
+    "TEST_images": 0,
+    "GPU_used": false
+  },
+  "synthetic_positive_NMS_regression": {
+    "passed": true,
+    "test_source_sha256": "cb1f7d40adc0708be0781631343eaf2dd8f36e84f3a64a9125d83db55c985eb5",
+    "class_counts": {
+      "face": 2,
+      "license_plate": 1
+    },
+    "overlapping_proposal_suppressed": true,
+    "boundary_box_clipped": true,
+    "raw_fixture_controlled_not_trained_predictions": true
+  },
+  "framework_tests": {
+    "passed": 102,
+    "elapsed_seconds": 8.05,
+    "scope": "redaction rescue/tiled, vision, model verification"
+  },
+  "supporting_source_sha256_observed_after_probe": {
+    "agent/redaction_tiled_network.py": "f8a1fe9121ad36cbab1e14a1f2477dd821ec6f04ee7bd6fd862996967dbd376f",
+    "agent/redaction_network.py": "9d26b063b22b54b1606cb33be1291b6e71f57945849aab21119764e1c847ca5d",
+    ".cache/vendor/YOLOX/yolox/models/yolo_pafpn.py": "8571af557f6caacda61e54813be4be2d73c4a0889e1f876ec5586057eb2eebde",
+    ".cache/vendor/YOLOX/yolox/models/yolo_head.py": "0275bcdeb1b1d5dbd3172fc4897c75cb161f707843983bf582fb087676f969c2"
+  }
+}
