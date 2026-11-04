@@ -110,6 +110,23 @@ export default function Reports({
               ))}
             </div>
             <label>
+              보고서 자료 출처
+              <select
+                value={filters.data_scope || "all"}
+                onChange={(e) =>
+                  setFilters({ ...filters, data_scope: e.target.value })
+                }
+              >
+                <option value="presentation">
+                  시연 목록 · HTTP 테스트 제외
+                </option>
+                <option value="all">전체 기록</option>
+                <option value="test">합성 HTTP 테스트만</option>
+                <option value="synthetic">합성 시연 자료만</option>
+                <option value="field">일반 관측 · 출처 미확인</option>
+              </select>
+            </label>
+            <label>
               보고서 관측 종류
               <select
                 value={filters.type || ""}

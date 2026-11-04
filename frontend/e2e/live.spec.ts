@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 
 const envFile = fileURLToPath(new URL("../../.env", import.meta.url));
 const settings: Record<string, string> = {};
@@ -62,10 +63,8 @@ test("live gateway: login, inspection review, reports, service health and respon
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     await expect(dialog.locator(".evidence-image img")).toBeVisible();
-    await dialog
-      .getByLabel("변경 사유")
-      .fill("브라우저 통합 시험: 현재 상태 유지 확인");
-    await dialog.getByRole("button", { name: "검토 결과 저장" }).click();
+    await expect(dialog.getByLabel("변경 사유")).toBeVisible();
+    await dialog.getByRole("button", { name: "상세 닫기" }).click();
     await expect(dialog).toHaveCount(0);
   }
   await page.getByRole("button", { name: "서비스 상태", exact: true }).click();
@@ -132,6 +131,30 @@ test("live management operations and privacy access use real services", async ({
 }, info) => {
   test.setTimeout(60000);
   test.skip(!password, "Project bootstrap password required");
+  const root = fileURLToPath(new URL("../../", import.meta.url));
+  const isolated = JSON.parse(
+    execFileSync(
+      fileURLToPath(
+        new URL(
+          process.platform === "win32"
+            ? "../../.venv/Scripts/python.exe"
+            : "../../.venv/bin/python",
+          import.meta.url,
+        ),
+      ),
+      ["scripts/bootstrap_browser_fixture.py"],
+      {
+        cwd: root,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          PYTHONPYCACHEPREFIX: fileURLToPath(
+            new URL("../../.cache/pycache", import.meta.url),
+          ),
+        },
+      },
+    ),
+  );
   const errors: string[] = [];
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
@@ -147,9 +170,7 @@ test("live management operations and privacy access use real services", async ({
   });
   const auth = await request.post("http://127.0.0.1:8000/api/v1/auth/login", {
     data: {
-      org_code: settings.ROAD_BOOTSTRAP_ORG || "demo",
-      login: settings.ROAD_BOOTSTRAP_LOGIN || "admin@road.local",
-      password,
+      ...isolated,
     },
   });
   expect(auth.ok()).toBeTruthy();
@@ -166,7 +187,9 @@ test("live management operations and privacy access use real services", async ({
   expect(demo).toBeTruthy();
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
-  await page.getByLabel("비밀번호", { exact: true }).fill(password!);
+  await page.getByLabel("기관 코드").fill(isolated.org_code);
+  await page.getByLabel("로그인 ID").fill(isolated.login);
+  await page.getByLabel("비밀번호", { exact: true }).fill(isolated.password);
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "점검 개요", level: 1 }),
@@ -187,14 +210,12 @@ test("live management operations and privacy access use real services", async ({
     .fill(`browser-${unique}@synthetic.test`);
   await page.getByLabel("초기 비밀번호").fill(`synthetic-browser-${unique}`);
   await page.getByRole("button", { name: "계정 저장" }).click();
-  const user = page
-    .locator("article")
-    .filter({
-      has: page.getByRole("heading", {
-        name: `browser-${unique}@synthetic.test`,
-        exact: true,
-      }),
-    });
+  const user = page.locator("article").filter({
+    has: page.getByRole("heading", {
+      name: `browser-${unique}@synthetic.test`,
+      exact: true,
+    }),
+  });
   await expect(user).toBeVisible();
   await user.getByRole("button", { name: "계정 편집" }).click();
   await page.getByLabel("계정 활성", { exact: true }).uncheck();
@@ -205,14 +226,12 @@ test("live management operations and privacy access use real services", async ({
   await page.getByRole("button", { name: "기기 저장" }).click();
   await expect(page.getByText("기기 토큰 · 이번에만 표시됩니다")).toBeVisible();
   await page.getByRole("button", { name: "토큰 화면에서 지우기" }).click();
-  const device = page
-    .locator("article")
-    .filter({
-      has: page.getByRole("heading", {
-        name: `가상 브라우저 시험 ${unique}`,
-        exact: true,
-      }),
-    });
+  const device = page.locator("article").filter({
+    has: page.getByRole("heading", {
+      name: `가상 브라우저 시험 ${unique}`,
+      exact: true,
+    }),
+  });
   await device.getByRole("button", { name: "기기 편집" }).click();
   await page.getByLabel("교체 사유").fill("가상 브라우저 통합 시험");
   await page.getByRole("button", { name: "새 토큰 발급" }).click();

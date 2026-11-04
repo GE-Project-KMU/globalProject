@@ -214,6 +214,33 @@ async function login(page: Page) {
     page.getByRole("heading", { name: "점검 개요", exact: true }),
   ).toBeVisible();
 }
+test("late response from an older provenance filter cannot overwrite the selected scope", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.route("**/api/v1/observations?**", async (route) => {
+    const scope = new URL(route.request().url()).searchParams.get("data_scope");
+    if (scope === "presentation")
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    const items =
+      scope === "test"
+        ? [{ ...state.items[0], demo: false, data_origin: "http_test" }]
+        : state.items;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: { items, next_cursor: null }, meta: {} }),
+    });
+  });
+  await login(page);
+  await page.getByLabel("자료 출처 범위").selectOption("test");
+  await expect(page.locator(".row-target")).toHaveCount(1);
+  await expect(page.locator(".row-target")).toContainText("합성 HTTP 테스트");
+  await page.waitForTimeout(750);
+  await expect(page.getByLabel("자료 출처 범위")).toHaveValue("test");
+  await expect(page.locator(".row-target")).toHaveCount(1);
+  await expect(page.locator(".row-target")).toContainText("합성 HTTP 테스트");
+});
 test("desktop dashboard, filters, detail and real request shape", async ({
   page,
 }, info) => {

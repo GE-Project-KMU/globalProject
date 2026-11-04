@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard,
   ClipboardCheck,
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { ApiError, request } from "./api";
 import type { ListResult, Observation, Summary, User } from "./types";
-import { statusLabels, id, typeName } from "./labels";
+import { statusLabels, id, typeName, synthetic } from "./labels";
 import { ErrorBox } from "./components/UI";
 import Detail from "./components/Detail";
 import Login from "./pages/Login";
@@ -27,6 +27,7 @@ import Reports from "./pages/Reports";
 import Duplicates from "./pages/Duplicates";
 import ServiceStatus from "./pages/ServiceStatus";
 import MediaReview from "./pages/MediaReview";
+import ReferencePreview from "./pages/ReferencePreview";
 import Accounts from "./pages/Accounts";
 import Devices from "./pages/Devices";
 import Registry from "./pages/Registry";
@@ -39,6 +40,7 @@ const navItems = [
   { id: "map", label: "관측 지도", icon: MapPin },
   { id: "duplicates", label: "중복 후보", icon: Link2 },
   { id: "media", label: "사진 공유 검수", icon: ImagePlus },
+  { id: "reference", label: "로컬 참고사진", icon: ImagePlus },
   { id: "reports", label: "보고서", icon: FileText },
   { id: "settings", label: "서비스 상태", icon: Settings },
   { id: "runs", label: "주행 기록", icon: Route },
@@ -52,6 +54,7 @@ const navItems = [
 ];
 
 export default function App() {
+  const loadVersion = useRef(0);
   const [token, setToken] = useState(""),
     [user, setUser] = useState<User | null>(null),
     [page, setPage] = useState("overview"),
@@ -68,10 +71,12 @@ export default function App() {
     [type, setType] = useState(""),
     [status, setStatus] = useState(""),
     [quality, setQuality] = useState(""),
+    [dataScope, setDataScope] = useState("presentation"),
     [period, setPeriod] = useState({ from: "", to: "", bbox: "" }),
     [nextCursor, setNextCursor] = useState<string | null>(null),
     [moreLoading, setMoreLoading] = useState(false);
   const logout = useCallback(() => {
+    loadVersion.current++;
     if (token)
       request(token, "/auth/logout", { method: "POST" }).catch(() => {});
     setToken("");
@@ -79,13 +84,15 @@ export default function App() {
     setSelected(null);
     setItems([]);
     setSummary(null);
+    setDataScope("presentation");
     setPage("overview");
   }, [token]);
   const load = useCallback(() => {
     if (!token) return;
+    const version = ++loadVersion.current;
     setLoading(true);
     setError("");
-    const q = new URLSearchParams({ limit: "50" });
+    const q = new URLSearchParams({ limit: "50", data_scope: dataScope });
     if (type) q.set("type", type);
     if (status) q.set("review_status", status);
     if (quality) q.set("quality", quality);
@@ -96,23 +103,27 @@ export default function App() {
       request<ListResult>(token, `/observations?${q}`),
       request<Summary>(
         token,
-        `/summary?${new URLSearchParams(Object.fromEntries([...(period.from ? [["from", new Date(period.from).toISOString()]] : []), ...(period.to ? [["to", new Date(period.to).toISOString()]] : [])]))}`,
+        `/summary?${new URLSearchParams(Object.fromEntries([["data_scope", dataScope], ...(period.from ? [["from", new Date(period.from).toISOString()]] : []), ...(period.to ? [["to", new Date(period.to).toISOString()]] : [])]))}`,
       ),
     ])
       .then(([d, s]) => {
+        if (version !== loadVersion.current) return;
         setItems(d.items || []);
         setNextCursor(d.next_cursor || null);
         setSummary(s);
       })
       .catch((e) => {
+        if (version !== loadVersion.current) return;
         if (e instanceof ApiError && e.status === 401) {
           logout();
           return;
         }
         setError(e.message);
       })
-      .finally(() => setLoading(false));
-  }, [token, type, status, quality, period, logout]);
+      .finally(() => {
+        if (version === loadVersion.current) setLoading(false);
+      });
+  }, [token, type, status, quality, period, dataScope, logout]);
   useEffect(load, [load]);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 700px)");
@@ -124,9 +135,14 @@ export default function App() {
     onClose = useCallback(() => setSelected(null), []);
   async function more() {
     if (!nextCursor) return;
+    const version = loadVersion.current;
     setMoreLoading(true);
     try {
-      const q = new URLSearchParams({ limit: "50", cursor: nextCursor });
+      const q = new URLSearchParams({
+        limit: "50",
+        cursor: nextCursor,
+        data_scope: dataScope,
+      });
       if (type) q.set("type", type);
       if (status) q.set("review_status", status);
       if (quality) q.set("quality", quality);
@@ -134,6 +150,7 @@ export default function App() {
       if (period.to) q.set("to", new Date(period.to).toISOString());
       if (period.bbox) q.set("bbox", period.bbox);
       const d = await request<ListResult>(token, `/observations?${q}`);
+      if (version !== loadVersion.current) return;
       setItems((x) => [
         ...x,
         ...d.items.filter((o) => !x.some((p) => id(p) === id(o))),
@@ -161,11 +178,12 @@ export default function App() {
   );
   const current = navItems.find((n) => n.id === page)!;
   const showFilters = ["overview", "inspections", "map"].includes(page);
-  const demo = items.some((o) => o.demo || o.synthetic);
+  const demo = items.some(synthetic);
   const clear = () => {
     setType("");
     setStatus("");
     setQuality("");
+    setDataScope("presentation");
     setSearch("");
     setPeriod({ from: "", to: "", bbox: "" });
   };
@@ -309,6 +327,8 @@ export default function App() {
                         "반복 주행에서 수집한 후보의 동일성을 검토하세요.",
                       media:
                         "개인정보를 확인하고 승인된 사진만 서버에 공유하세요.",
+                      reference:
+                        "연구 참고사진을 서버에 전송하지 않고 이 브라우저에서 검토하세요.",
                       reports: "점검과 조치 이력을 필요한 형식으로 내보내세요.",
                       settings: "각 서비스의 연결과 운영 상태를 확인하세요.",
                       runs: "주행별 사전 점검과 경로·위치 품질을 확인하세요.",
@@ -369,6 +389,8 @@ export default function App() {
               status={status}
               setStatus={setStatus}
               quality={quality}
+              dataScope={dataScope}
+              setDataScope={setDataScope}
               period={period}
               setPeriod={setPeriod}
               setQuality={setQuality}
@@ -389,11 +411,13 @@ export default function App() {
                 type,
                 review_status: status,
                 quality,
+                data_scope: dataScope,
               }}
             />
           )}{" "}
           {page === "settings" && <ServiceStatus token={token} />}{" "}
           {page === "media" && <MediaReview token={token} user={user} />}
+          {page === "reference" && <ReferencePreview />}
           {page === "accounts" && <Accounts token={token} user={user} />}
           {page === "devices" && <Devices token={token} user={user} />}
           {page === "profiles" && (
@@ -418,8 +442,14 @@ export default function App() {
           {page === "analysis" && <AnalysisStatus token={token} user={user} />}
           <footer className="page-footer">
             <span>
-              <ShieldCheck size={14} />
-              승인된 비식별 자료를 기관 권한 안에서 관리합니다.
+              {page === "reference" ? (
+                <TriangleAlert size={14} />
+              ) : (
+                <ShieldCheck size={14} />
+              )}
+              {page === "reference"
+                ? "로컬 참고사진 · 개인정보 검수 및 공유 승인 없음 · AI 분석 미실행"
+                : "승인된 비식별 자료를 기관 권한 안에서 관리합니다."}
             </span>
             <span>Road Insight · MVP</span>
           </footer>

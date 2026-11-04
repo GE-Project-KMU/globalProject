@@ -1,6 +1,6 @@
 import { Route, ChevronRight } from "lucide-react";
 import type { Observation } from "../types";
-import { date, id, typeName } from "../labels";
+import { date, id, typeName, originLabel } from "../labels";
 import { Badge } from "./UI";
 
 export default function ObservationTable({
@@ -43,7 +43,7 @@ export default function ObservationTable({
                     <b>{typeName(o)}</b>
                     <small>
                       {id(o).slice(0, 8)}
-                      {(o.demo || o.synthetic) && <em>가상 자료</em>}
+                      <em>{originLabel(o)}</em>
                     </small>
                   </span>
                 </button>

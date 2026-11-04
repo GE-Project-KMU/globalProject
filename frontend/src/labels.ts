@@ -50,5 +50,13 @@ export const date = (value?: string) =>
       }).format(new Date(value))
     : "—";
 export const id = (o: Observation) => o.observation_id || o.id || "";
+export const synthetic = (o: Observation) =>
+  o.demo || o.synthetic || o.data_origin === "http_test";
+export const originLabel = (o: Observation) =>
+  o.data_origin === "http_test"
+    ? "합성 HTTP 테스트"
+    : synthetic(o)
+      ? "합성 시연 자료"
+      : "일반 관측 · 출처 미확인";
 export const typeName = (o: Observation) =>
   o.type === "pothole" ? "포트홀" : "차선 마모";

@@ -16,6 +16,8 @@ interface Props {
   status: string;
   setStatus: (v: string) => void;
   quality: string;
+  dataScope: string;
+  setDataScope: (v: string) => void;
   setQuality: (v: string) => void;
   period: { from: string; to: string; bbox: string };
   setPeriod: (v: { from: string; to: string; bbox: string }) => void;
@@ -37,6 +39,8 @@ export default function Inspections({
   status,
   setStatus,
   quality,
+  dataScope,
+  setDataScope,
   setQuality,
   period,
   setPeriod,
@@ -61,6 +65,20 @@ export default function Inspections({
         </div>
       </div>
       <div className="filter-bar">
+        <label className="filter-select">
+          <span className="sr-only">자료 출처 범위</span>
+          <select
+            aria-label="자료 출처 범위"
+            value={dataScope}
+            onChange={(e) => setDataScope(e.target.value)}
+          >
+            <option value="presentation">시연 목록 · HTTP 테스트 제외</option>
+            <option value="all">전체 기록 · HTTP 테스트 포함</option>
+            <option value="test">합성 HTTP 테스트만</option>
+            <option value="synthetic">합성 시연 자료만</option>
+            <option value="field">일반 관측 · 출처 미확인</option>
+          </select>
+        </label>
         <div className="search-field">
           <Search size={16} />
           <input

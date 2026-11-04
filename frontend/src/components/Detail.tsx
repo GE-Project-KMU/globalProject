@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { Check, LoaderCircle, X } from "lucide-react";
 import { ApiError, request } from "../api";
 import type { Observation, User } from "../types";
-import { statusLabels, gradeLabels, date, id, typeName } from "../labels";
+import {
+  statusLabels,
+  gradeLabels,
+  date,
+  id,
+  typeName,
+  synthetic,
+  originLabel,
+} from "../labels";
 import { Badge, ErrorBox } from "./UI";
 import ProtectedImage from "./ProtectedImage";
 import { JsonDetails } from "./Management";
@@ -160,9 +168,16 @@ export default function Detail({
               검토하세요.
             </p>
           )}
-          {(item.demo || item.synthetic) && (
+          {synthetic(item) && (
             <div className="notice small">
-              가상 시연 자료입니다. 실제 탐지 성능을 나타내지 않습니다.
+              {originLabel(item)}입니다. 지표·검토 상태는 시험 입력이며 실제
+              탐지 성능이나 실증 결과가 아닙니다.
+            </div>
+          )}
+          {!synthetic(item) && (
+            <div className="notice small">
+              일반 관측 · 출처 미확인. 이 분류만으로 실제 장비 촬영이나 탐지
+              성능이 입증되지는 않습니다.
             </div>
           )}
           <ProtectedImage

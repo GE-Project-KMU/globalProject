@@ -2348,3 +2348,8 @@ textarea {
   color: var(--muted);
   line-height: 1.8;
 }
+.reference-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:24px; }
+.reference-grid figure { margin:0;border:1px solid var(--border,#dce4e5);border-radius:12px;padding:14px;background:#fff; }
+.reference-grid img { width:100%;height:auto;display:block;min-height:80px;object-fit:contain;border-radius:6px; }
+.reference-grid figcaption { padding-top:12px; }
+.reference-grid small { display:block;color:#697d80;line-height:1.6;margin-top:5px; }

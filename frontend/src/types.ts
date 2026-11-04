@@ -38,6 +38,7 @@ export interface Observation {
   profile_id?: string;
   demo?: boolean;
   synthetic?: boolean;
+  data_origin?: "field" | "synthetic_demo" | "http_test";
   corrections?: unknown[];
 }
 export interface ListResult {

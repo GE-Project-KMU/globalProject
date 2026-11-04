@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Link2, RefreshCw, LoaderCircle, ArrowRight } from "lucide-react";
 import { request } from "../api";
 import type { User, Observation } from "../types";
-import { date } from "../labels";
+import { date, originLabel } from "../labels";
 import ProtectedImage from "../components/ProtectedImage";
 import { ErrorBox, Empty } from "../components/UI";
 
@@ -201,9 +201,7 @@ export default function Duplicates({
                           {date(o.captured_at)} ·{" "}
                           {o.location?.quality || "위치 품질 미기록"}
                         </p>
-                        {(o.demo || o.synthetic) && (
-                          <small>가상 시연 자료</small>
-                        )}
+                        <small>{originLabel(o)}</small>
                       </section>
                     ))}
                   </div>
