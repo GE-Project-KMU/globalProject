@@ -146,6 +146,10 @@ def eligible(path,kind):
 def evidence_expiries(value):
     found=[]
     if isinstance(value,dict):
+        # Exact, existing synthetic-prototype context only. These two names
+        # are not general expiry aliases and never create a fresh deadline.
+        if value.get('format')=='redaction-rescue-synthetic-artifact-context-v1':
+            found.extend(clock(value[key]) for key in ('synthetic_tensor_temporary_expiry','legacy_source_earliest_expiry'))
         for key,item in value.items():
             if key in EXPIRIES and item is not None:found.append(clock(item))
             elif isinstance(item,(dict,list)):found.extend(evidence_expiries(item))

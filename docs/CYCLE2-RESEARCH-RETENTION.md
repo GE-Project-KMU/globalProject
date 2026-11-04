@@ -12,6 +12,9 @@
 | research-pothole-rdd2022-us100-v7 | 별도 US100(50+50) 계획, 원source.json·완료 후 split-evidence.json. 원11/10 17:07:24.286159 UTC 유지 |
 | pothole-validation-diagnostic-v7 | VAL-only GT/예측·개별 그림, 원v6 release/provenance 최소11/10 17:14:46.862846 UTC. aggregate 보존 |
 | pothole-tiny-v7 | 고정 release와 완료 후 provenance, 최소 원행기한·최대11/10 17:14:46.862846 UTC |
+| pothole-train-hardness-v8 / pothole-localization-v8 / pothole-small-v9 | 원v6 release/provenance·각 실험 plan 최소값, 최대11/10 17:14:46.862846 UTC. Small은 계획 단계에서 미생성이면 optional |
+| redaction-rescue-cpu-prototype-v8 | 원root 바로 아래 지정 NPY3개만11/04 17:37:03.942455 UTC cap. 이미 만료됐으며 추가 재사용 금지. ONNX·context·집계·최소 provenance 보존 |
+| redaction-rescue-v8 | 계획 root(optional), 원 cycle2 privacy release 최소11/10 16:55:19.285523 UTC. 만료된 prototype NPY를 학습/추론에 재사용하지 않음 |
 | a2d2-cycle2-v5 / lane-cycle2-v5 | 고정 source.json·완료 후 provenance, 11/10 17:07:26.069653 UTC |
 | research-redaction-cycle2-v7 / redaction-p2-cycle2-v7 | 고정 release 행별 expires_at·완료 후 provenance, 최소11/10 16:55:19.285523 UTC |
 | public-nextcycle / cycle2-evaluation / cycle2-logs | task별 근거의 최소값, 보수적으로 privacy 최소기한 상속 |
@@ -19,6 +22,8 @@
 | gpu-model-sets/cycle2-final-v7 및 하위 soak | 새 모델·case plan·원증거 최소값, 로컬 analysis cap도 상속 |
 
 원경로는 코드의 정확한 allowlist로 고정한다. `.cache`나 `data/research` 전체를 부모 범위로 허용하지 않는다. 개인정보 `source-qc.json`의 `expiry`는 기존 retention key가 아니므로 파일을 수정하거나 범용 key를 늘리지 않고, 고정 `release.json`의 행별 `expires_at`을 주근거로 사용한다.
+
+prototype의 정확한 `redaction-rescue-synthetic-artifact-context-v1` format에만 두 비표준 날짜 key의 adapter를 둔다. `synthetic_tensor_temporary_expiry`와 `legacy_source_earliest_expiry`의 최소를 읽으며, 일반 JSON의 같은 key나 mtime/현재시각으로 새 기한을 만들지 않는다. source context의 기존 SHA를 고정한다. 대상은 `synthetic-input.npy`, `baseline-torch.npy`, `candidate-torch.npy`의 정확한 세 파일뿐이다. 중첩 폴더·다른 NPY/NPZ는 임의 등록하지 않는다. 관리용 hash 확인과 달리, 만료 파일을 `np.load`하여 재추론/학습하는 경로는 없다. 이 만료 cap은 새 trainer에 사용한 적 없는 NPY를 새로 유효하게 만드는 근거가 아니다.
 
 ## ZIP range-cache 전용 종류
 

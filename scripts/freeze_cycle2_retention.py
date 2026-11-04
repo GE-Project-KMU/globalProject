@@ -19,10 +19,15 @@ LANE='data/public/a2d2-cycle2-v5/source.json'
 PRIVACY='data/training/research-redaction-cycle2-v7/release.json'
 BLIND='data/research/rdd2022-blind-v7/source.json'
 TINY='data/training/pothole-tiny-v7/release.json'
+PROTOTYPE='data/training/redaction-rescue-cpu-prototype-v8'
+PROTOTYPE_CONTEXT=PROTOTYPE+'/synthetic-artifact-context.json'
+PROTOTYPE_CAP='2026-11-04T17:37:03.942455Z'
+PROTOTYPE_NPY={'synthetic-input.npy','baseline-torch.npy','candidate-torch.npy'}
 PROOF_PINS={LANE:'af18e33a8cc42cebc2618776594a50fcc5d8886b3c0a4edab7f9b6b9ff668006',
  PRIVACY:'5ae56bd60700ce17a6af8e92edf630a2722ebc6148e177b798afa172cbff50dc',
  BLIND:'38a5002db939310c8d5a6a6b0977a917be6801ad148403b7647e30c054c78d6b',
- TINY:'43bcbd0c5160276dc8de9507e40db0a8776ff35e74faf971dcdf69fdddd6d52f'}
+ TINY:'43bcbd0c5160276dc8de9507e40db0a8776ff35e74faf971dcdf69fdddd6d52f',
+ PROTOTYPE_CONTEXT:'dd7cad3ddb375fee17be393b2c6d0452d5ff603203413c4753cdec8ac9dbc1f4'}
 LANE_CAP='2026-11-10T17:07:26.069653Z';PRIVACY_CAP='2026-11-10T16:55:19.285523Z';BLIND_CAP='2026-11-10T17:07:24.286159Z'
 POLICIES={
  'data/research/rdd2022-blind-v7':('blind_source',[BLIND],BLIND_CAP),
@@ -30,6 +35,11 @@ POLICIES={
  'data/training/research-pothole-rdd2022-us100-v7':('blind_release',[BLIND,'data/training/research-pothole-rdd2022-us100-v7/split-evidence.json'],BLIND_CAP),
  'data/training/pothole-validation-diagnostic-v7':('pothole_diagnostic',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json'],'2026-11-10T17:14:46.862846Z'),
  'data/training/pothole-tiny-v7':('pothole_model',[TINY,'data/training/pothole-tiny-v7/provenance.json'],'2026-11-10T17:14:46.862846Z'),
+ 'data/training/pothole-train-hardness-v8':('pothole_diagnostic',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json','data/training/pothole-train-hardness-v8/plan.json'],'2026-11-10T17:14:46.862846Z'),
+ 'data/training/pothole-localization-v8':('pothole_model',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json','data/training/pothole-localization-v8/plan.json'],'2026-11-10T17:14:46.862846Z'),
+ 'data/training/pothole-small-v9':('pothole_model',['data/training/pothole-mwpd-v6/release.json','data/training/pothole-mwpd-v6/provenance.json','data/training/pothole-small-v9/plan.json'],'2026-11-10T17:14:46.862846Z'),
+ PROTOTYPE:('synthetic_prototype',[PROTOTYPE_CONTEXT],PROTOTYPE_CAP),
+ 'data/training/redaction-rescue-v8':('privacy_model',[PRIVACY],PRIVACY_CAP),
  'data/public/a2d2-cycle2-v5':('lane_source',[LANE],LANE_CAP),
  'data/training/research-redaction-cycle2-v7':('privacy_source',[PRIVACY],PRIVACY_CAP),
  'data/training/lane-cycle2-v5':('lane_model',[LANE,'data/training/lane-cycle2-v5/provenance.json'],LANE_CAP),
@@ -39,7 +49,8 @@ POLICIES={
  'data/training/cycle2-logs':('mixed',[LANE,PRIVACY,BLIND],PRIVACY_CAP),
  'data/gpu-model-sets/io-overlap-v1':('performance',[old.PERF_NEW+'/plan.json'],PRIVACY_CAP),
  'data/gpu-model-sets/cycle2-final-v7':('performance',[LANE,PRIVACY,BLIND,'data/gpu-model-sets/cycle2-final-v7/plan.json'],PRIVACY_CAP)}
-OPTIONAL_ROOTS={'data/training/cycle2-logs','data/training/research-pothole-rdd2022-blind-v7'}
+OPTIONAL_ROOTS={'data/training/cycle2-logs','data/training/research-pothole-rdd2022-blind-v7',
+                'data/training/pothole-small-v9','data/training/redaction-rescue-v8'}
 CYCLE='public-cycle2-v7'
 
 
@@ -73,6 +84,8 @@ def stopped_receipt(path,pin):
 
 
 def category(path,tag):
+    if tag=='synthetic_prototype' and path.suffix.lower() in ('.npy','.npz'):
+        return 'per_image_prediction' if path.parent==r.ROOT/PROTOTYPE and path.name in PROTOTYPE_NPY else None
     if path.suffix.lower()=='.bin':return 'source_range' if path.parent==r.ROOT/r.RANGE_ROOT else None
     value=old.kind(path,tag)
     if value=='derived_image' and tag in ('blind_source','blind_release','lane_source','privacy_source'):return 'source_image'
@@ -131,6 +144,7 @@ def freeze(receipt_path,receipt_sha256):
             if deadline>r.clock(ceiling):raise ValueError('source_expiry_ceiling_exceeded')
             files=old.list_files(root);filesets[root]=files
             for path in files:
+                if tag=='synthetic_prototype' and path==r.ROOT/PROTOTYPE_CONTEXT:preserved['prototype_context_provenance']+=1;continue
                 if tag=='performance' and old.performance_provenance(path):preserved['performance_source_and_aggregate']+=1;continue
                 kind=category(path,tag)
                 if kind is None:

@@ -121,3 +121,34 @@ def test_failed_original_release_is_explicit_optional_not_a_missing_required_roo
     value=r.read(root/receipt);value['roots']=sorted(policies);pin=put(root/receipt,value)
     result=f.freeze(receipt,pin)
     assert result['declared_roots']==3 and result['explicit_roots']==2 and result['absent_optional_roots']==1
+
+
+def test_exact_expired_prototype_npys_keep_original_cap_and_preserve_models_context_aggregate(case,monkeypatch):
+    root,receipt,_,_=case;folder=root/f.PROTOTYPE;folder.mkdir(parents=True)
+    context=root/f.PROTOTYPE_CONTEXT
+    digest=put(context,{'format':'redaction-rescue-synthetic-artifact-context-v1',
+        'synthetic_tensor_temporary_expiry':'2026-01-02T00:00:00Z','legacy_source_earliest_expiry':'2026-01-08T00:00:00Z'})
+    for name in f.PROTOTYPE_NPY:(folder/name).write_bytes(b'SYNTHETIC-NEVER-LOADED')
+    (folder/'prototype.onnx').write_bytes(b'PRESERVED-MODEL')
+    put(folder/'aggregate.json',{'raw_difference':0,'synthetic':True})
+    put(folder/'provenance.json',{'format':'training-provenance-v1','assets':[]})
+    policies={**f.POLICIES,f.PROTOTYPE:('synthetic_prototype',[f.PROTOTYPE_CONTEXT],'2026-01-02T00:00:00Z')}
+    monkeypatch.setattr(f,'POLICIES',policies);monkeypatch.setattr(f,'PROOF_PINS',{**f.PROOF_PINS,f.PROTOTYPE_CONTEXT:digest})
+    value=r.read(root/receipt);value['roots']=sorted(policies);pin=put(root/receipt,value)
+    import numpy as np
+    monkeypatch.setattr(np,'load',lambda *a,**k:pytest.fail('expired prototype tensor reused'))
+    result=f.freeze(receipt,pin);inventory=r.read(r.STATE/'cycle2-inventory.json')
+    actual=[item for item in inventory['entries'].values() if item['path'].startswith(f.PROTOTYPE+'/')]
+    assert len(actual)==3 and {item['expires_at'] for item in actual}=={'2026-01-02T00:00:00Z'}
+    assert {Path(item['path']).name for item in actual}==f.PROTOTYPE_NPY
+    assert context.exists() and (folder/'prototype.onnx').exists() and (folder/'aggregate.json').exists()
+    assert result['source_files_deleted']==0 and all((folder/name).exists() for name in f.PROTOTYPE_NPY)
+    assert f.category(folder/'unrelated-model.npy','synthetic_prototype') is None
+    assert f.category(folder/'nested/synthetic-input.npy','synthetic_prototype') is None
+
+
+def test_prototype_expiry_aliases_are_not_generic_and_no_now_fallback():
+    value={'synthetic_tensor_temporary_expiry':'2026-01-02T00:00:00Z','legacy_source_earliest_expiry':'2026-01-08T00:00:00Z'}
+    assert r.evidence_expiries(value)==[]
+    assert min(r.evidence_expiries(value|{'format':'redaction-rescue-synthetic-artifact-context-v1'}))==r.clock('2026-01-02T00:00:00Z')
+    with pytest.raises(KeyError):r.evidence_expiries({'format':'redaction-rescue-synthetic-artifact-context-v1'})
