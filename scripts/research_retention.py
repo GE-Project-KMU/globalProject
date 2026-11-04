@@ -7,7 +7,7 @@ from contextlib import contextmanager
 
 ROOT=Path(__file__).resolve().parents[1]
 STATE=ROOT/"data/research-retention"
-KNOWN_ROOTS={"data/research/redaction","data/research/rdd2020","data/research/rdd2022","data/public/rtk","data/public/a2d2","data/public/a2d2-improvement-v2"}
+KNOWN_ROOTS={"data/research/redaction","data/research/rdd2020","data/research/rdd2022","data/research/rdd2022-official-v5","data/demo-reference","data/public/rtk","data/public/a2d2","data/public/a2d2-improvement-v2"}
 WEIGHTS={".pt",".pth",".onnx",".safetensors",".ckpt",".pkl",".pickle"}
 KINDS={"source_archive":{ ".zip",".tar",".gz",".xz",".7z",".download",".part",".assembled"},"source_image":{ ".jpg",".jpeg",".png",".bmp",".webp",".tif",".tiff"},"derived_image":{ ".jpg",".jpeg",".png",".bmp",".webp",".tif",".tiff"},"source_annotation":{ ".txt",".xml",".mat",".json",".jsonl",".csv"},"per_image_prediction":{ ".json",".jsonl",".csv",".npy",".npz",".jpg",".jpeg",".png"},"identifiable_manifest":{ ".json",".jsonl",".csv",".log"}}
 EXPIRIES={"expires_at","source_expires_at","collection_expires_at","mask_expires_at","license_expires_at","retention_expires_at"}

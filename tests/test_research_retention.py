@@ -207,3 +207,23 @@ def test_number_plate_artifacts_are_not_mistaken_for_license_documents(case,name
     assert record["expires_at"]=="2026-01-08T00:00:00Z"
     result=retention.purge(case.relative(case.inventory),now=datetime(2026,1,9,tzinfo=timezone.utc))
     assert result["counts"]["would_delete"]==1 and path.exists()
+
+
+@pytest.mark.parametrize('name',['data/demo-reference','data/research/rdd2022-official-v5'])
+def test_only_explicit_followup_roots_are_allowed(case,name):
+    assert retention.roots([name])==[retention.ROOT/name]
+    for broad in ('data','data/research','data/demo'):
+        with pytest.raises(ValueError,match='unknown_research_root'):retention.roots([broad])
+
+
+def test_local_reference_pack_keeps_original_ninety_day_source_deadline(case):
+    folder=retention.ROOT/'data/demo-reference';folder.mkdir(parents=True)
+    pack=folder/'reference-pack.json';pack.write_text(json.dumps({'images':[{'image_base64':'SYNTHETIC_ONLY'}]}),encoding='utf-8')
+    case.evidence.write_text(json.dumps({'downloaded_at':'2026-01-01T00:00:00Z','expires_at':'2026-04-01T00:00:00Z'}),encoding='utf-8')
+    plan=case.save(pack,'identifiable_manifest');plan['roots']=['data/demo-reference'];case.plan.write_text(json.dumps(plan),encoding='utf-8')
+    retention.register(case.relative(case.plan),case.relative(case.inventory))
+    record=next(iter(json.loads(case.inventory.read_text())['entries'].values()))
+    assert record['expires_at']=='2026-04-01T00:00:00Z'
+    assert retention.purge(case.relative(case.inventory),now=datetime(2026,3,31,tzinfo=timezone.utc))['counts']['not_due']==1
+    assert retention.purge(case.relative(case.inventory),now=datetime(2026,4,2,tzinfo=timezone.utc))['counts']['would_delete']==1
+    assert pack.exists()
