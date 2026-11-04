@@ -29,6 +29,7 @@ PRIVACY='data/training/research-redaction-v6/release.json'
 OLD_PRIVACY='data/training/research-redaction-v4/release.json'
 SCREEN='data/demo-reference/browser-evidence/e8981281-329f-4455-a627-27e6073c7b95'
 SCREEN_FOLLOWUP='data/demo-reference/browser-evidence/8dd5ab5e-3d4e-47f2-bd89-eb5d1b3f8e71'
+SCREEN_FINAL='data/demo-reference/browser-evidence/c7be7e71-c74b-491e-9e51-bed7979c590a'
 SOAK='data/training/hardware-free-soak-v6'
 SOAK_PROOFS=['data/training/pothole-nano-rdd2020-v4/provenance.json',
              'data/training/lane-a2d2-supported-ort131-v3/provenance.json',
@@ -42,7 +43,7 @@ PERF_NEW_PROOFS=[PERF_NEW+'/plan.json','data/public/a2d2-refinement-v3/release.j
                  'data/training/pothole-mwpd-v6/release.json','data/training/research-redaction-v6/release.json']
 OPTIONAL_ROOTS={'data/training/research-pothole-clean-v6'}
 # Collection roots are exact. The existing retention API only admits the broad
-# demo namespace, so entries stay inside the two exact screenshot collections.
+# demo namespace, so entries stay inside the three exact screenshot collections.
 POLICIES={
  'data/research/mwpd-v6':('mwpd_source',[MWPD],'2026-11-11'),
  'data/training/research-pothole-mwpd-v6':('pothole_release',[MWPD,'data/training/research-pothole-mwpd-v6/release.json'],'2026-11-11'),
@@ -56,6 +57,7 @@ POLICIES={
  'data/training/refinement-evaluation':('mixed_evaluation',[LANE,*OLD_LANE,PRIVACY,OLD_PRIVACY,MWPD,RDD],'2026-11-10'),
  SCREEN:('rtk_screenshot',['data/public/rtk/acquisition.json',SCREEN+'/private-evidence.json'],'2027-02-01'),
  SCREEN_FOLLOWUP:('rtk_screenshot',['data/public/rtk/acquisition.json',SCREEN_FOLLOWUP+'/private-evidence.json'],'2027-02-01'),
+ SCREEN_FINAL:('rtk_screenshot',['data/public/rtk/acquisition.json',SCREEN_FINAL+'/private-evidence.json'],'2027-02-01'),
  SOAK:('synthetic_soak',SOAK_PROOFS,'2026-11-10')}
 POLICIES.update({'data/cpu-inference-benchmark':('performance_diagnostic',PERF_OLD_PROOFS,'2026-11-10'),
                  'data/gpu-inference-probe':('performance_diagnostic',PERF_OLD_PROOFS,'2026-11-10'),

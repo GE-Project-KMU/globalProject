@@ -163,11 +163,11 @@ def test_soak_registers_only_frame_outputs_and_inherits_all_old_proofs(scope,mon
     assert all((directory/key).read_bytes()==content for key,content in before.items())
     assert frame.exists() and result['source_files_deleted']==0
 
-def test_both_explicit_RTK_folders_use_original_acquisition_and_own_evidence(scope,monkeypatch):
+def test_three_explicit_RTK_folders_use_original_acquisition_and_own_evidence(scope,monkeypatch):
     root,receipt,_,_=scope
     source='data/public/rtk/acquisition.json';put(root/source,{'expires_at':'2027-02-01T12:00:00Z'})
     policies=dict(f.POLICIES)
-    for name,hour in ((f.SCREEN,13),(f.SCREEN_FOLLOWUP,11)):
+    for name,hour in ((f.SCREEN,13),(f.SCREEN_FOLLOWUP,11),(f.SCREEN_FINAL,10)):
         directory=root/name;directory.mkdir(parents=True)
         (directory/'view.png').write_bytes(b'SYNTHETIC SCREENSHOT')
         put(directory/'private-evidence.json',{'expires_at':f'2027-02-01T{hour:02d}:00:00Z'})
@@ -179,6 +179,7 @@ def test_both_explicit_RTK_folders_use_original_acquisition_and_own_evidence(sco
     screens={item['path']:item for item in inventory['entries'].values() if item['root']=='data/demo-reference'}
     assert screens[f.SCREEN+'/view.png']['expires_at']=='2027-02-01T12:00:00Z'
     assert screens[f.SCREEN_FOLLOWUP+'/view.png']['expires_at']=='2027-02-01T11:00:00Z'
+    assert screens[f.SCREEN_FINAL+'/view.png']['expires_at']=='2027-02-01T10:00:00Z'
 
 @pytest.mark.parametrize('name',['data/cpu-inference-benchmark','data/gpu-inference-probe','data/gpu-model-sets/final-v6'])
 def test_performance_case_material_inherits_caps_but_keeps_model_and_execution_proofs(scope,monkeypatch,name):
@@ -220,3 +221,13 @@ def test_model_descriptor_with_cases_is_not_misclassified_as_minimal_provenance(
 @pytest.mark.parametrize('name',['data/cpu-inference-benchmark-other','data/gpu-inference-probe-other','data/gpu-model-sets','data/gpu-model-sets/final-v7','data/gpu-model-sets/final-v6-other'])
 def test_performance_allowlist_never_expands_to_siblings_or_parent_namespace(scope,name):
     with pytest.raises(ValueError,match='unknown_research_root'):r.roots([name])
+
+def test_final_handoff_requires_all_seventeen_roots_including_latest_RTK(tmp_path,monkeypatch):
+    assert len(f.POLICIES)==17
+    monkeypatch.setattr(r,'ROOT',tmp_path);monkeypatch.setattr(r,'STATE',tmp_path/'data/research-retention')
+    path=tmp_path/'data/research-retention/writer-stop.json'
+    value={'cycle':'public-refinement-v6','writers_stopped':True,'confirmed_at':'2026-11-04T00:00:00Z','roots':sorted(set(f.POLICIES)-{f.SCREEN_FINAL})}
+    pin=put(path,value)
+    with pytest.raises(ValueError,match='writer_stop_handoff'):f.stopped_receipt('data/research-retention/writer-stop.json',pin)
+    value['roots']=sorted(f.POLICIES);pin=put(path,value)
+    assert f.stopped_receipt('data/research-retention/writer-stop.json',pin)==path
