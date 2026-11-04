@@ -1,0 +1,161 @@
+{
+  "format": "pothole-refinement-v5-public-aggregate-v1",
+  "scope": "Bounded previously-used validation refinement; no new independent holdout.",
+  "training": {
+    "epochs_completed": 10,
+    "optimizer_updates": 3334,
+    "batch_size": 16,
+    "input_size": [
+      640,
+      640
+    ],
+    "learning_rate": 0.00025,
+    "optimizer": "SGD momentum0.9/Nesterov/weight_decay0.0005; excluding BN and bias",
+    "augmentation": "none",
+    "native_l1_regression_enabled_every_update": true,
+    "ema": true,
+    "seed": 20261105,
+    "candidate_count": 1,
+    "selection": "Best same VAL402 AP50 including epoch0; exact ties prefer earlier epoch.",
+    "selected_epoch": 0,
+    "baseline_retained": true,
+    "best_validation_ap50": 0.6839481787177397,
+    "baseline_validation_ap50": 0.6839481787177397,
+    "last_epoch_validation_ap50": 0.5801956100416603,
+    "validation_history": [
+      {
+        "epoch": 0,
+        "ap50": 0.6839481787177397,
+        "optimizer_updates": 0
+      },
+      {
+        "epoch": 1,
+        "ap50": 0.6495989083716411,
+        "optimizer_updates": 329
+      },
+      {
+        "epoch": 2,
+        "ap50": 0.6364830749815227,
+        "optimizer_updates": 662
+      },
+      {
+        "epoch": 3,
+        "ap50": 0.6242105569596238,
+        "optimizer_updates": 996
+      },
+      {
+        "epoch": 4,
+        "ap50": 0.6101063170498692,
+        "optimizer_updates": 1330
+      },
+      {
+        "epoch": 5,
+        "ap50": 0.627258756446656,
+        "optimizer_updates": 1664
+      },
+      {
+        "epoch": 6,
+        "ap50": 0.6098113801932291,
+        "optimizer_updates": 1998
+      },
+      {
+        "epoch": 7,
+        "ap50": 0.5970795959258314,
+        "optimizer_updates": 2332
+      },
+      {
+        "epoch": 8,
+        "ap50": 0.6184146616276426,
+        "optimizer_updates": 2666
+      },
+      {
+        "epoch": 9,
+        "ap50": 0.5987233612150816,
+        "optimizer_updates": 3000
+      },
+      {
+        "epoch": 10,
+        "ap50": 0.5801956100416603,
+        "optimizer_updates": 3334
+      }
+    ]
+  },
+  "identity": {
+    "state_keys_exact": true,
+    "state_tensor_count": 642,
+    "shape_mismatches": 0,
+    "dtype_mismatches": 0,
+    "raw_byte_mismatches": 0,
+    "all_state_tensors_exact": true,
+    "checkpoint_serialization_identical": false,
+    "inference_contract_exact": true,
+    "onnx_bytes_exact": true,
+    "prediction_function_identical": true
+  },
+  "inference_contract": {
+    "format": "onnx",
+    "task": "pothole",
+    "classes": [
+      "pothole"
+    ],
+    "architecture": "YOLOX-Nano",
+    "input_size": [
+      640,
+      640
+    ],
+    "preprocessing": "Same unchanged application adapter: top-left letterbox114, BGR float32, no /255.",
+    "output_layout": "yolox_decoded_xywh",
+    "confidence": 0.1,
+    "nms_iou": 0.5,
+    "postprocess": "classwise NMS before source clip"
+  },
+  "fixed_validation_verification": {
+    "case": "Same pre-existing fixed positive v4 VAL case; not new TEST.",
+    "canonical_runs": 1,
+    "status": "artifact_verified",
+    "numerical_parity_passed": true,
+    "postprocess_parity_passed": true,
+    "artifact_contract_verified": true,
+    "rtol": 0.001,
+    "atol": 0.0001,
+    "app_engine": "onnxruntime-cpu",
+    "app_engine_version": "1.31.1",
+    "reference_ort_version": "1.20.1",
+    "reference_torch_version": "2.7.1+cu126",
+    "reference_device": "cpu",
+    "app_vs_ort_max_abs_error": 0.0,
+    "app_vs_torch_max_abs_error": 0.0048675537109375,
+    "source_unchanged_during_run": true,
+    "scope": "Fixed VAL numerical/postprocess conversion check, not an accuracy or field-acceptance test."
+  },
+  "evidence": {
+    "plan_sha256": "bd12191c45b1ba64ce79741a5e870757da85a728a6b300d73d1d375b7a1beabf",
+    "selection_freeze_sha256": "067e86a54ce6837adb17afcac8f4cddcfe1ef24090b37709b9e294a3f6685745",
+    "training_script_sha256": "93fc4632e5d3b7547e6cf70dd9f085430f93a65e6b7f963599d69f5b248e446b",
+    "identity_helper_sha256": "0a3af4b6b16989e392613167d585825f92bbbe41ee96df3f09a8287e22e68dce",
+    "verification_source_sha256": "a7a349179feb919f1515a9088618f0cf5e7e9904fc7547c4b9a8bb589c8f9794",
+    "application_adapter_source_sha256": "bb5e3590e6d299b494fd9ebfbdd3d3374fdfa7f9b1284180ceaa5f3d3dadba74",
+    "original_checkpoint_sha256": "2fb2c082964e81b918339a2a26f1a37fc2cd655aa78e9d98a2a38ed04fd89375",
+    "selected_checkpoint_sha256": "7632b9272819b3487bcd3d5c3ab7d9b5763271a63aa2ad10be42867472c58138",
+    "original_manifest_sha256": "28efe86e7c9eacdf90d11caf0eb942dbb19b0a4d6830229069b3277cc8a45a6a",
+    "selected_manifest_sha256": "c5634bf50ded19df3d65b88a0601fcf5af64860362da59a23e3447e460fdb4eb",
+    "original_onnx_sha256": "9b956d8ead74d1b11db0d1c43bac9ae5bdda2b0d6b843062319ae28de2f2f269",
+    "selected_onnx_sha256": "9b956d8ead74d1b11db0d1c43bac9ae5bdda2b0d6b843062319ae28de2f2f269"
+  },
+  "result": "No additional validation gain; epoch0 baseline selected. Prediction function identical.",
+  "official_additional_source_acquisition_http_status": 403,
+  "new_independent_holdout_acquired": false,
+  "test_inference_performed": false,
+  "old_test_regression_rerun": false,
+  "test_scores_copied_as_new_results": false,
+  "source_expiries_extended": false,
+  "research_only": true,
+  "production_approved": false,
+  "project_acceptance_passed": false,
+  "limits": [
+    "All previous Japan86/Czech231 TEST results are historical regression context only.",
+    "Identical weights/ONNX/contracts make a repeat old TEST inference unnecessary; no new accuracy measurement claimed.",
+    "Lower training loss did not improve this reused validation metric; no post-TEST retuning.",
+    "Source CC-BY-NC-3.0, uncertain physical route independence and lack of field validation remain."
+  ]
+}
