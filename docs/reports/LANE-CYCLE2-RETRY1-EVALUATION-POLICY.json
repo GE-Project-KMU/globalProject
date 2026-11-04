@@ -1,0 +1,69 @@
+{
+  "TEST_used_for_selection": false,
+  "actual_TEST_inference_requires_explicit_root_approval": true,
+  "automatic_retry_allowed": false,
+  "baseline_manifest": {
+    "path": "data/training/lane-refinement-v4/lane.json",
+    "sha256": "b0c4f5fd65a4cc0c0e4fb93d9dc4034f4fdcfd419961240b4e9300bf81b07691"
+  },
+  "candidate_CPU_positive_cases": 3,
+  "candidate_full_VAL_count": 179,
+  "candidate_hash_bound_in_separate_receipt_after_completion": true,
+  "candidate_manifest": "data/training/lane-cycle2-v5-retry1/lane.json",
+  "cohort_samples": {
+    "fresh": 119,
+    "regression": 180
+  },
+  "default_raw_tolerance": {
+    "atol": 0.0001,
+    "rtol": 0.001
+  },
+  "exact_mask_required": true,
+  "format": "lane-cycle2-retry1-predeclared-evaluation-policy-v1",
+  "original_cycle2_TEST_attempts": 0,
+  "parent_comparison_policies": {
+    "fresh": {
+      "path": "docs/reports/LANE-CYCLE2-FRESH-PLAN.json",
+      "sha256": "b5b74632cb316132522a471f92a7a03ccd9a7c71aad054bd1d04b7c588dcf3eb"
+    },
+    "regression": {
+      "path": "docs/reports/LANE-CYCLE2-REGRESSION-PLAN.json",
+      "sha256": "52d29453f0d2a27199d26343922aed35bf06206e76738e1f40ea2abfa54b021d"
+    }
+  },
+  "parent_numeric_policy": {
+    "path": "docs/reports/LANE-CYCLE2-NUMERIC-PLAN.json",
+    "sha256": "a9409f69bbcdf5cbd27fbd4726f711b44a9925d40673afe47e92b6ac90beafc9"
+  },
+  "parent_original_learning_policy": {
+    "path": "docs/reports/LANE-CYCLE2-PLAN.json",
+    "sha256": "210a0a7db06348a63a9c17b249a394c85e655bf960488a1584ad31c05cba04ab"
+  },
+  "parent_retry_learning_policy": {
+    "path": "docs/reports/LANE-CYCLE2-RETRY1-PLAN.json",
+    "sha256": "cfdade6dd97417a50837c9e0fec4cbbd349bff7a047c8b444fb8793909d0fc56"
+  },
+  "parent_supervision_policy": {
+    "path": "docs/reports/LANE-CYCLE2-RETRY1-SUPERVISION-PLAN-V2.json",
+    "sha256": "3a3c0bb3b501131d4ad553914fad1a25527782495c4c2ee25da7987c7634c7cd"
+  },
+  "physical_route_independence_verified": false,
+  "positive_VAL_case_plan": {
+    "path": "data/training/cycle2-evaluation/lane-positive-VAL-cases.json",
+    "sha256": "03d76b2f3779969fc8c64d866830975c763a20e4188564b7bebab9605165bc84"
+  },
+  "production_approved": false,
+  "project_acceptance_eligible": false,
+  "revision_reason": "Handoff said regression280; immutable original benchmark has180 unique rows. Keep original cohort/SHA and change only the candidate to retry1; no images were added or duplicated.",
+  "source_sha256": {
+    "agent/dataset.py": "f12146e88934d5320767d9eafb8771dc20bc5f7217af5c73dfa78214af7f7af3",
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "scripts/check_lane_cycle2_runtime.py": "5a96a618af5199c820500598c2dbf3a6254ca3ae600825ebf03f1b0a899a1072",
+    "scripts/compare_lane_models.py": "01eab04f519fe002683bcae15992c646df5db2fc94455f83753b764eaa61ee5e",
+    "scripts/evaluate_cycle2.py": "4af30037745430ecb7f4ea8789e53c0111dcd3a0508cd00ed150531d73b1b36e",
+    "scripts/evaluate_lane_model.py": "747c58cdbe1f2d25b596d5364b18f2ed4c6501cc01cc20acde0701c3e87ebfd9",
+    "scripts/evaluate_lane_retry1.py": "dceda5abce4e9f3021db46ca267b9bd75b6d6401feff13c09c9ab6794ab599ec",
+    "scripts/gpu_model_set.py": "7a9e92cd6103e7f506884b222a9db4c0b02fca9c9bfbd7c11c5d2763a04822c9",
+    "scripts/verify_trained_models.py": "378e8d5b68c5a48aeb27fc85fac35b507d2e5aa0c28a3fde5bbcf444adf2933f"
+  }
+}
