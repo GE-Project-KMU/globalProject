@@ -1,0 +1,56 @@
+{
+  "format": "privacy-family-v9-two-process-execution-v1",
+  "created_before_final_TEST_predictions": true,
+  "original_family_protocol_sha256": "af88de6497d426565635a2c16eb7779e0ec002112878429efbbd0ce28e7aa4be",
+  "original_family_source_sha256": "e0f567095af5efaa3f5edd2b9ea44af5a00ba435e5c3a14bc2a70294de1b2d0e",
+  "worker_source_sha256": "434ce430577a145f35242fa71ed27bf9f5cb88c9a0311a8f7f124f255524cef5",
+  "source_sha256": {
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "agent/evaluate.py": "e339691310e61dbd7baeacfbbe777085eb495525c02172e9c8755079272d0d2c",
+    "agent/pipeline.py": "2676daa2607cbaf926d4709edbec1ce6bf3271c5cf5d2b9e4c76cae918834dc6",
+    "scripts/compare_detector_models.py": "8e427b034063c367e2630cb9f5db52a131a0696fa072d309a0cfbd63d6c86356",
+    "scripts/compare_privacy_parallel.py": "70ec95090b62f7ccab772590a8c1893571cd19b673ccfb323a493bb64cc3a9da",
+    "scripts/evaluate_privacy_family_v9.py": "e0f567095af5efaa3f5edd2b9ea44af5a00ba435e5c3a14bc2a70294de1b2d0e",
+    "scripts/evaluate_public_refinement.py": "b611953f5974d3530dead44030f5dafedbf5d3814245f528f49cfd96dff2d689"
+  },
+  "parent_benchmarks": {
+    "fresh": {
+      "sha256": "8230874168c8b2d4d8de09c5c11cb3197f641c0ef6a28999ef77e3ea2465c9a7",
+      "samples": 200,
+      "role": "new blind source; physical identity independence unverified"
+    },
+    "regression": {
+      "sha256": "03dbb7a8e60b0316e4c06508bcb76175097f594a29d0a25d40a2129998ae4c8a",
+      "samples": 1400,
+      "role": "previously examined regression only"
+    }
+  },
+  "original_trainer_plan_sha256": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d",
+  "execution": "exactly two independent owned CPU processes, one baseline and one candidate, each processing the entire same sorted cohort",
+  "worker_runtime": {
+    "engine": "onnxruntime-cpu",
+    "version": "1.31.1",
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "intra_threads": 2,
+    "inter_threads": 1,
+    "OpenCV_threads": 1,
+    "allow_spinning": true
+  },
+  "order": "sorted sample_id; publisher object order for truth; original OnnxModel per-image prediction order; no global prediction reorder or TopK",
+  "math": "same OnnxModel.predict floor.01/NMS/preprocessing and imported canonical score for AP/operating/fixed.35",
+  "admission": "original family protocol + frozen winner + exact original comparison_plan + numeric_gates before TEST labels/pixels",
+  "shared_attempt": "same original {role}-attempt.json exclusive create, flush and fsync before TEST decode; serial and parallel mutually exclude",
+  "worker_ownership": "direct child of active parent only; exact started-attempt SHA and parent plan required; stale/failed direct worker replay rejected",
+  "closure": "parent plan/family freeze/worker/source/model/weights/provenance/release/benchmark SHA checked at start and finish",
+  "failure": "stop only owned children; failed attempt and partial private outputs preserved; no automatic retry",
+  "result_format": "same canonical comparison keys and per-model fields; parallel walltime recorded separately; additional limits disclose contention",
+  "timing": "shared-host two-process contention; scheduling change only, not isolated model speed, FPS or field acceptance",
+  "wall_clock_scope": "worker launch-to-join only; admission/hash checks/final metric assembly and serialization are excluded",
+  "worker_timeout_seconds": 7200,
+  "TEST_predictions_during_preparation": 0,
+  "GPU_operations": 0,
+  "training_or_selection_changed": false,
+  "source_expires_at": "2026-11-10T16:55:19.285523+00:00"
+}
