@@ -113,7 +113,9 @@ class TransientObservationFault(httpx.BaseTransport):
         return response
     def close(self):self.actual.close()
 
-def prepare(base='http://127.0.0.1:8000'):
+def prepare(base='http://127.0.0.1:8000',*,io_profile='default'):
+    from agent.evidence_writer import writer_profile
+    writer_profile(io_profile)
     if base!='http://127.0.0.1:8000':raise ValueError('owned_local_gateway_only')
     folder=ROOT/'data/synthetic-workflow-probe'/uid()
     video,bundle=fixtures(folder)
@@ -148,12 +150,12 @@ def prepare(base='http://127.0.0.1:8000'):
         from agent import pipeline
         with patch.object(pipeline,'OnnxModel',SyntheticOnnxModel):
             diagnostic=pipeline.analyze_video(video,folder/'diagnostic',pothole_manifest=bundle['pothole'],lane_manifest=bundle['lane'],redaction_manifest=bundle['redaction'],stereo=True,
-                source_expires_at=run['source_expires_at'],source_captured_at=run['started_at'])
-        package=analyze_samples(run_samples(run_path,key_path=key),folder/'analysis',run=run,profile_path=profile_path,device_id=device_id,bundle=bundle,model_factory=SyntheticOnnxModel)
+                source_expires_at=run['source_expires_at'],source_captured_at=run['started_at'],io_profile=io_profile)
+        package=analyze_samples(run_samples(run_path,key_path=key),folder/'analysis',run=run,profile_path=profile_path,device_id=device_id,bundle=bundle,model_factory=SyntheticOnnxModel,io_profile=io_profile)
         for item in package['items']:item['observation']['demo']=True
         package['synthetic_contract_fixture']=True
         package_path=folder/'analysis/review.json';atomic_json(package_path,package)
-        assert package['runtime']['engine']=='onnxruntime-cpu' and len(package['frames'])==6
+        assert package['runtime']['engine']=='onnxruntime-cpu' and len(package['frames'])==6 and package['runtime']['io_profile']==io_profile
         pothole=next(i for i in package['items'] if i['observation']['type']=='pothole')
         assert pothole['observation']['pothole']['track_observations']==6
         assert all(not i['observation']['image']['reviewed_for_sharing'] for i in package['items'])
@@ -204,7 +206,7 @@ def prepare(base='http://127.0.0.1:8000'):
         assert wait_job(client,auth,job_id)['status']=='succeeded'
         csv=client.get('/api/v1/reports/'+job_id+'/download',headers=auth);assert csv.status_code==200
         assert all(i['observation']['observation_id'] in csv.text for i in package['items'])
-        result={'fixture_kind':'deterministic_contract_graph_not_trained_AI','hardware_connected':False,'user_recordings_read':False,'public_source_images_or_weights_uploaded':False,
+        result={'fixture_kind':'deterministic_contract_graph_not_trained_AI','io_profile':io_profile,'hardware_connected':False,'user_recordings_read':False,'public_source_images_or_weights_uploaded':False,
                 'generated_nonpersonal_video_frames':6,'diagnostic_analyzed_frames':diagnostic['analyzed_frames'],'workflow_analyzed_frames':len(package['frames']),
                 'tracked_frame_observations':pothole['observation']['pothole']['track_observations'],'observations_uploaded':len(details),'retained_redacted_photos':package['retained_photos'],
                 'mask_changed_generated_checkerboard':True,'runtime':package['runtime']['engine'],'production_fixture_readiness_rejected':True,'unreviewed_ingestion_rejected':True,
@@ -272,9 +274,9 @@ def cleanup(receipt_path):
     return receipt['aggregate']
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('phase',choices=['prepare','cleanup']);parser.add_argument('--receipt');args=parser.parse_args()
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('phase',choices=['prepare','cleanup']);parser.add_argument('--receipt');parser.add_argument('--io-profile',choices=['default','overlap'],default='default');args=parser.parse_args()
     if args.phase=='prepare':
-        folder,result=prepare();print(json.dumps({'private_receipt':(folder/'private-receipt.json').relative_to(ROOT).as_posix(),'aggregate':result}))
+        folder,result=prepare(io_profile=args.io_profile);print(json.dumps({'private_receipt':(folder/'private-receipt.json').relative_to(ROOT).as_posix(),'aggregate':result}))
     else:
         if not args.receipt:parser.error('--receipt is required for cleanup')
         print(json.dumps(cleanup(args.receipt)))

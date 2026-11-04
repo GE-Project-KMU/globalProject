@@ -6,9 +6,11 @@ import { execFileSync } from 'node:child_process';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const python=root+(process.platform==='win32'?'.venv/Scripts/python.exe':'.venv/bin/python');
 
-test('generated video + real ORT + durable outbox reaches UI/report then privacy deletion',async({page},info)=>{
+for(const ioProfile of ['default','overlap']){
+test(`generated video + real ORT + durable outbox reaches UI/report then privacy deletion (${ioProfile})`,async({page},info)=>{
   test.setTimeout(90000);
-  const prepared=JSON.parse(execFileSync(python,['scripts/probe_synthetic_workflow.py','prepare'],{cwd:root,encoding:'utf8',timeout:60000,env:{...process.env,PYTHONPYCACHEPREFIX:root+'.cache/pycache'}}));
+  const prepared=JSON.parse(execFileSync(python,['scripts/probe_synthetic_workflow.py','prepare','--io-profile',ioProfile],{cwd:root,encoding:'utf8',timeout:60000,env:{...process.env,PYTHONPYCACHEPREFIX:root+'.cache/pycache'}}));
+  expect(prepared.aggregate.io_profile).toBe(ioProfile);
   const receipt=JSON.parse(readFileSync(root+prepared.private_receipt,'utf8'));
   const errors:string[]=[];
   page.on('pageerror',e=>errors.push(e.message));
@@ -61,3 +63,4 @@ test('generated video + real ORT + durable outbox reaches UI/report then privacy
     await info.attach('synthetic-workflow-deletion',{body:JSON.stringify(cleaned),contentType:'application/json'});
   }
 });
+}

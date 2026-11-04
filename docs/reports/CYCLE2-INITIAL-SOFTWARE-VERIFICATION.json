@@ -1,0 +1,72 @@
+{
+  "format": "cycle2-initial-software-regression-v1",
+  "verified_at": "2026-11-04T15:44:24.961692+00:00",
+  "python_tests_passed": 769,
+  "python_subtests_passed": 189,
+  "http_tests_included": 75,
+  "skipped": 2,
+  "skip_reasons": [
+    "Exclusive CUDA opt-in: training owns GPU; separate final model GPU validation required.",
+    "Windows account cannot create symlinks; junction detection separately tested."
+  ],
+  "elapsed_seconds": 92.22,
+  "typescript_vite_build": "passed",
+  "actual_gateway_browser_workflow_profiles": [
+    "default",
+    "overlap"
+  ],
+  "actual_gateway_browser_tests_passed": 2,
+  "browser_elapsed_seconds": 29.5,
+  "browser_page_console_request_errors": 0,
+  "service_log_deltas": {
+    "analysis": {
+      "new_bytes": 1420,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "frontend": {
+      "new_bytes": 73,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "gateway": {
+      "new_bytes": 11235,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "gateway_tls": {
+      "new_bytes": 0,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "identity": {
+      "new_bytes": 9019,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "inspection": {
+      "new_bytes": 6564,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "media": {
+      "new_bytes": 2832,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "reporting": {
+      "new_bytes": 3485,
+      "tracebacks": 0,
+      "error_lines": 0
+    }
+  },
+  "unexpected_service_errors": 0,
+  "generated_nonpersonal_fixture_only_for_browser": true,
+  "trained_model_accuracy_established_by_these_tests": false,
+  "user_recordings_used": false,
+  "log_sha256": {
+    "python": "d50854b0f7d61ee93529cded0ff2f841aa53b4ea32c0fa9a81d65161cc16ff25",
+    "build": "22aee3c0d3069085206d5612cfaddd61cfaae0ac01768f9659b22191e3399252",
+    "browser": "f3b66e2fc181779fa4bc90766eabccd8818abc80ea380e73e892e0b032c913c3"
+  }
+}
