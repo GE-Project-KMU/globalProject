@@ -1,0 +1,59 @@
+{
+  "format": "rdd2022-domain-v11-availability-results-v1",
+  "finished_at": "2026-11-04T18:25:19.934451+00:00",
+  "plan_sha256": "2ddc84941daa5bfed1e25b272ba1d7cb8788c966857fc27a91d9ef71cf93c93a",
+  "file_transport_attempts": 3,
+  "source_expires_at": "2026-11-10T17:07:24.286159+00:00",
+  "source_expiry_extended": false,
+  "official_complete_archives_verified": 0,
+  "new_usable_source_images": 0,
+  "image_decodes": 0,
+  "model_inferences": 0,
+  "training_updates": 0,
+  "split_creation": 0,
+  "old_cache_modified": false,
+  "existing_inventories_modified": false,
+  "signed_URL_logged": false,
+  "status": "availability_only_no_verified_archive",
+  "transport_source_sha256": "6120ed9d4cb91546fd1717be02d1147ac15704efd3c88507b79526d93841e0d3",
+  "official_metadata": {
+    "article_id": 21431547,
+    "file_id": 38030910,
+    "bytes": 13264172619,
+    "computed_md5": "b62bd51d2ffcfaa76c60f234f0cc2bb3",
+    "license": "CC-BY-4.0"
+  },
+  "probes": [
+    {
+      "attempt": 1,
+      "status": "bounded_ZIP_range_available",
+      "status_code": 206,
+      "bytes_received": 64,
+      "content_range": "bytes 0-63/13264172619",
+      "whole_archive_checksum_verified": false
+    },
+    {
+      "attempt": 2,
+      "status": "source_unavailable",
+      "status_code": 403,
+      "bytes_received": 0,
+      "content_range": null,
+      "whole_archive_checksum_verified": false
+    },
+    {
+      "attempt": 3,
+      "status": "source_unavailable",
+      "status_code": 403,
+      "bytes_received": 0,
+      "content_range": null,
+      "whole_archive_checksum_verified": false
+    }
+  ],
+  "limits": [
+    "64-byte prefix only; whole ZIP CRC and official MD5 not verified",
+    "Multipart ETag is not treated as a publisher MD5",
+    "No new usable TRAIN/VAL/TEST or model re-selection",
+    "Historical TEST permanently excluded from future TRAIN",
+    "Further acquisition requires a separate bounded transfer phase after this exhausted3-probe budget"
+  ]
+}
