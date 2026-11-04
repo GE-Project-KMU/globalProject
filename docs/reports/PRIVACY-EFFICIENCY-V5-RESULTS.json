@@ -1,0 +1,206 @@
+{
+  "format": "privacy-efficiency-v5-public-aggregate-v1",
+  "scope": "Previously examined validation only; development efficiency study, not independent final accuracy.",
+  "validation_counts": {
+    "face": 400,
+    "license_plate": 108
+  },
+  "operating_confidence": 0.01,
+  "nms_iou": 0.5,
+  "minimum_class_recall_goal": 0.95,
+  "no_new_gradient_steps": true,
+  "test_images_read": 0,
+  "gpu_operations": 0,
+  "source_expiries_extended": false,
+  "production_approved": false,
+  "project_acceptance_passed": false,
+  "automatic_option_selected": false,
+  "runtime_default_changed": false,
+  "evidence": {
+    "preregistered_plan_sha256": "4a18c61245ffbc1fb79b1aeac847183dac5036f23063c406ce4da013d65d0933",
+    "validation_manifest_sha256": "754958da4b13d1a80abcd40a64467342eb229f7df1b5e6e0e74132dc2963f7f8",
+    "checkpoint_sha256": "6c985f7e3afb0fa061cbb82d7ec7b304eb5f9fbfcd0cf9f775dbab28873c82ad",
+    "standard_manifest_sha256": "8734b121d345d32a5d872c5f4c1f7f3ce2b71263a7ebce82aa5693c0177e3119",
+    "selected_tiled_manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+    "selected_tiled_onnx_sha256": "bf54a5ad4211e945e71c84502a75a2d32e03de397883d70df8c64881c515aa3a",
+    "study_source_sha256": "e044adfc4c9cad07c4445fe0e023a20cb37c9b0acd7f9a35ba2b2f56b7cc1677",
+    "adapter_source_sha256": "bb5e3590e6d299b494fd9ebfbdd3d3374fdfa7f9b1284180ceaa5f3d3dadba74",
+    "local_aggregate_sha256": "e9c1ada6d99248165ab00324bb10c91ad8ca2062ff7ec501c794ebbe90e65309",
+    "input_hashes_unchanged_after_run": true
+  },
+  "fixed_synthetic_contract": {
+    "source_full_graph_vs_extracted_concat": {
+      "passed": true,
+      "rtol": 0.001,
+      "atol": 0.0001,
+      "max_absolute_error": 0.0
+    },
+    "unchanged_app_vs_study_postprocess_exact_output": true,
+    "source_geometry": "Same 1920 letterbox, Resize, offsets; classwise NMS before source clipping.",
+    "scope": "Synthetic graph/postprocess proof; not a new per-VAL Torch raw tensor verification.",
+    "study_tests_passed": 6,
+    "combined_postprocess_tests_passed": 12,
+    "combined_subtests_passed": 189
+  },
+  "options": {
+    "standard": {
+      "classes": {
+        "face": {
+          "gt_count": 2786,
+          "prediction_count": 6712,
+          "tp": 2417,
+          "fp": 4295,
+          "fn": 369,
+          "recall": 0.8675520459440057,
+          "precision": 0.36010131108462456
+        },
+        "license_plate": {
+          "gt_count": 108,
+          "prediction_count": 108,
+          "tp": 108,
+          "fp": 0,
+          "fn": 0,
+          "recall": 1.0,
+          "precision": 1.0
+        }
+      },
+      "min_class_recall": 0.8675520459440057,
+      "macro_precision": 0.6800506555423123,
+      "cpu_predict_seconds": {
+        "median": 0.10826855001505464,
+        "p95": 0.16823848000058206
+      }
+    },
+    "tiled": {
+      "classes": {
+        "face": {
+          "gt_count": 2786,
+          "prediction_count": 11497,
+          "tp": 2577,
+          "fp": 8920,
+          "fn": 209,
+          "recall": 0.9249820531227566,
+          "precision": 0.22414542924241107
+        },
+        "license_plate": {
+          "gt_count": 108,
+          "prediction_count": 108,
+          "tp": 108,
+          "fp": 0,
+          "fn": 0,
+          "recall": 1.0,
+          "precision": 1.0
+        }
+      },
+      "min_class_recall": 0.9249820531227566,
+      "macro_precision": 0.6120727146212055,
+      "cpu_predict_seconds": {
+        "median": 0.4389642000023741,
+        "p95": 0.6323902200005249
+      }
+    },
+    "small_evidence_top2": {
+      "classes": {
+        "face": {
+          "gt_count": 2786,
+          "prediction_count": 9971,
+          "tp": 2558,
+          "fp": 7413,
+          "fn": 228,
+          "recall": 0.91816223977028,
+          "precision": 0.2565439775348511
+        },
+        "license_plate": {
+          "gt_count": 108,
+          "prediction_count": 108,
+          "tp": 108,
+          "fp": 0,
+          "fn": 0,
+          "recall": 1.0,
+          "precision": 1.0
+        }
+      },
+      "min_class_recall": 0.91816223977028,
+      "macro_precision": 0.6282719887674255,
+      "cpu_predict_seconds": {
+        "median": 0.2573384499992244,
+        "p95": 0.44677305998193334
+      },
+      "tile_count_histogram": {
+        "0": 262,
+        "1": 89,
+        "2": 157
+      }
+    },
+    "density_top2": {
+      "classes": {
+        "face": {
+          "gt_count": 2786,
+          "prediction_count": 10392,
+          "tp": 2559,
+          "fp": 7833,
+          "fn": 227,
+          "recall": 0.9185211773151472,
+          "precision": 0.2462471131639723
+        },
+        "license_plate": {
+          "gt_count": 108,
+          "prediction_count": 108,
+          "tp": 108,
+          "fp": 0,
+          "fn": 0,
+          "recall": 1.0,
+          "precision": 1.0
+        }
+      },
+      "min_class_recall": 0.9185211773151472,
+      "macro_precision": 0.6231235565819861,
+      "cpu_predict_seconds": {
+        "median": 0.3200537500088103,
+        "p95": 0.49073886500264047
+      },
+      "tile_count_histogram": {
+        "0": 86,
+        "1": 164,
+        "2": 258
+      }
+    },
+    "tile_consensus": {
+      "classes": {
+        "face": {
+          "gt_count": 2786,
+          "prediction_count": 8799,
+          "tp": 2545,
+          "fp": 6254,
+          "fn": 241,
+          "recall": 0.9134960516870064,
+          "precision": 0.28923741334242525
+        },
+        "license_plate": {
+          "gt_count": 108,
+          "prediction_count": 108,
+          "tp": 108,
+          "fp": 0,
+          "fn": 0,
+          "recall": 1.0,
+          "precision": 1.0
+        }
+      },
+      "min_class_recall": 0.9134960516870064,
+      "macro_precision": 0.6446187066712126,
+      "cpu_predict_seconds": {
+        "median": 0.5728026000142563,
+        "p95": 0.8077535800141049
+      }
+    }
+  },
+  "limits": [
+    "Both classes must reach Recall95%; no option achieved it.",
+    "Known-class conditional annotation excludes unknown-class false positives.",
+    "Previously examined TEST datasets are regression only; not read in this study.",
+    "Measure actual CPU preprocess/selection/ORT/postprocess, excluding image decode/full vehicle pipeline.",
+    "Compare latency within this run only; earlier 349ms and current 439ms are separate runs.",
+    "Global evidence gating can miss small faces with no global evidence; proposal counts are not distinct face counts.",
+    "All Pareto tradeoffs retained; no deployment/default selection."
+  ]
+}
