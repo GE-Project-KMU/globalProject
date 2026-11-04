@@ -107,6 +107,7 @@ test("real road references stay local, require user acknowledgement, and show no
     "data/demo-reference/browser-evidence/" + randomUUID();
   const evidence = root + evidenceRelative;
   mkdirSync(evidence, { recursive: true });
+  await page.setViewportSize({ width: 1280, height: 720 });
   const errors = diagnostics(page);
   const writes: string[] = [];
   page.on("request", (r) => {
@@ -145,11 +146,118 @@ test("real road references stay local, require user acknowledgement, and show no
   await expect(page.locator("footer")).toContainText(
     "공유 승인 없음 · AI 분석 미실행",
   );
+  async function stableTop() {
+    await page.evaluate(() =>
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" }),
+    );
+    await expect
+      .poll(() =>
+        page.evaluate(() => ({ x: window.scrollX, y: window.scrollY })),
+      )
+      .toEqual({ x: 0, y: 0 });
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
+  }
+  async function sidebarGeometry() {
+    return page.locator(".sidebar").evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return {
+        x: r.x,
+        y: r.y,
+        right: r.right,
+        width: r.width,
+        height: r.height,
+        transform: getComputedStyle(el).transform,
+        runningAnimations: el
+          .getAnimations()
+          .filter((a) => a.playState === "running").length,
+      };
+    });
+  }
+  async function mainHitTest() {
+    const heading = page.getByRole("heading", {
+      name: "실노면 로컬 참고사진",
+      exact: true,
+    });
+    const hit = await heading.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const top = document.elementFromPoint(
+        r.left + r.width / 2,
+        r.top + r.height / 2,
+      );
+      return {
+        reachable: !!top && (top === el || el.contains(top)),
+        targetTag: top?.tagName,
+      };
+    });
+    expect(hit.reachable).toBeTruthy();
+    await heading.evaluate((el) =>
+      el.addEventListener(
+        "click",
+        () => el.setAttribute("data-qa-main-click", "received"),
+        { once: true },
+      ),
+    );
+    await heading.click();
+    await expect(heading).toHaveAttribute("data-qa-main-click", "received");
+    return hit;
+  }
+  const priorDesktopCaptureState = await page.evaluate(() => ({
+    scrollY: window.scrollY,
+    sidebarY: document.querySelector(".sidebar")!.getBoundingClientRect().y,
+    viewportHeight: innerHeight,
+  }));
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await stableTop();
+  const desktopSidebar = await sidebarGeometry();
+  expect(desktopSidebar.x).toBe(0);
+  expect(desktopSidebar.y).toBe(0);
+  const desktopHit = await mainHitTest();
+  await stableTop();
   await page.screenshot({
     path: evidence + "/PRIVATE-local-reference-desktop.png",
+    fullPage: false,
+    animations: "disabled",
+  });
+  await page.screenshot({
+    path: evidence + "/PRIVATE-local-reference-desktop-fullpage.png",
     fullPage: true,
+    animations: "disabled",
   });
   await page.setViewportSize({ width: 390, height: 844 });
+  const resizeTransitionState = await sidebarGeometry();
+  const menu = page.getByRole("button", { name: "메뉴 열기", exact: true });
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await expect
+    .poll(async () => (await sidebarGeometry()).right)
+    .toBeLessThanOrEqual(0.5);
+  await menu.click();
+  await expect(menu).toHaveAttribute("aria-expanded", "true");
+  await expect
+    .poll(async () => Math.abs((await sidebarGeometry()).x))
+    .toBeLessThan(0.5);
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "로컬 참고사진", exact: true })
+    .click();
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await expect(page.locator(".sidebar")).toHaveAttribute("aria-hidden", "true");
+  await expect(page.locator(".sidebar")).toHaveAttribute("inert", "");
+  await expect(page.locator(".mobile-shade")).toHaveCount(0);
+  await expect
+    .poll(async () => (await sidebarGeometry()).right)
+    .toBeLessThanOrEqual(0.5);
+  await expect
+    .poll(async () => (await sidebarGeometry()).runningAnimations)
+    .toBe(0);
+  await stableTop();
+  const mobileSidebar = await sidebarGeometry();
+  const mobileHit = await mainHitTest();
+  await stableTop();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -157,7 +265,13 @@ test("real road references stay local, require user acknowledgement, and show no
   ).toBeTruthy();
   await page.screenshot({
     path: evidence + "/PRIVATE-local-reference-mobile.png",
+    fullPage: false,
+    animations: "disabled",
+  });
+  await page.screenshot({
+    path: evidence + "/PRIVATE-local-reference-mobile-fullpage.png",
     fullPage: true,
+    animations: "disabled",
   });
   expect(writes).toEqual([]);
   expect(errors).toEqual([]);
@@ -172,9 +286,35 @@ test("real road references stay local, require user acknowledgement, and show no
         local_only: true,
         human_privacy_reviewed: false,
         inference_performed: false,
+        screenshot_qa: {
+          priorDesktopCaptureState,
+          resizeTransitionState,
+          desktop: {
+            sidebar: desktopSidebar,
+            mainHit: desktopHit,
+            scrollTop: 0,
+          },
+          mobile: {
+            sidebar: mobileSidebar,
+            mainHit: mobileHit,
+            menuClosed: true,
+            shadeCount: 0,
+            scrollTop: 0,
+          },
+          animations_disabled: true,
+        },
         images: [
           { path: evidenceRelative + "/PRIVATE-local-reference-desktop.png" },
+          {
+            path:
+              evidenceRelative +
+              "/PRIVATE-local-reference-desktop-fullpage.png",
+          },
           { path: evidenceRelative + "/PRIVATE-local-reference-mobile.png" },
+          {
+            path:
+              evidenceRelative + "/PRIVATE-local-reference-mobile-fullpage.png",
+          },
         ],
       },
       null,
