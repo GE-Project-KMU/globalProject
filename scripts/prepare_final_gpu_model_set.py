@@ -14,18 +14,26 @@ from scripts.evaluate_cycle2 import full_gate
 from agent.governance import effective_expiry
 
 OUTPUT_ROOT=ROOT/'data/gpu-model-sets/cycle2-final-v7'
-SOURCES=(*g.RUNTIME_SOURCES,'scripts/prepare_final_gpu_model_set.py','scripts/evaluate_cycle2.py','scripts/check_lane_cycle2_runtime.py')
+SOURCES=(*g.RUNTIME_SOURCES,'scripts/prepare_final_gpu_model_set.py','scripts/evaluate_cycle2.py','scripts/check_lane_cycle2_runtime.py',
+    'agent/redaction_rescue_network.py','scripts/train_redaction_rescue_v8.py','scripts/evaluate_privacy_family.py')
 COUNTS={'pothole':652,'lane':179,'redaction':508}
 CANONICAL_COUNTS={'pothole':3,'lane':3,'redaction':2}
 FORMAT='final-cycle2-gpu-input-preparation-v1'
-PROTOCOL=ROOT/'docs/reports/FINAL-GPU-MODELSET-PREPARATION-PROTOCOL.json'
+PARENT_PROTOCOL=ROOT/'docs/reports/FINAL-GPU-MODELSET-PREPARATION-PROTOCOL.json'
+PARENT_PROTOCOL_SHA='214267a3f3dd991604a5e54cf50ed24c08c2e6d6d1f62a8f3f81ba28f02573be'
+PROTOCOL=ROOT/'docs/reports/FINAL-GPU-MODELSET-PREPARATION-PROTOCOL-V2.json'
+RESCUE_ARCHITECTURE='frozen legacy YOLOX-Nano specialists plus four tile P2 rescue'
 
 
 def source_hashes():return {name:g.sha256(ROOT/name) for name in SOURCES}
 
 
 def protocol():
-    return {'format':'final-cycle2-gpu-preparation-protocol-v1','source_sha256':source_hashes(),
+    if g.sha256(PARENT_PROTOCOL)!=PARENT_PROTOCOL_SHA:raise ValueError('original_preparation_protocol_changed')
+    return {'format':'final-cycle2-gpu-preparation-protocol-v2','source_sha256':source_hashes(),
+        'parent_protocol':g.pointer(PARENT_PROTOCOL),
+        'revision_reason':'Frozen Rescue export omits trained_checkpoint_sha256; permit only exact architecture with origin/freeze/checkpoint/ONNX and child-difference evidence',
+        'missing_checkpoint_exception_architecture':RESCUE_ARCHITECTURE,
         'full_VAL_counts':COUNTS,'GPU_subset_counts':g.COUNTS,'required_canonical_counts':CANONICAL_COUNTS,
         'selection':'Required canonical first; remaining rows sorted by (source_id,sample_id) within each fixed group',
         'groups':{'pothole':{'original':10,'mwpd':10},'lane':'two recordings, 50 each from original100+new79',
@@ -88,6 +96,19 @@ def lane_full(entry,manifest,dev,rows):
     return {'report':entry['full_validation'],'plan':entry['full_validation_plan'],'source_plan':entry['full_validation_source_plan']}
 
 
+def rescue_checkpoint(entry,model):
+    """Narrow compatibility evidence for the frozen Rescue trainer, not a bypass."""
+    if model.get('task')!='redaction' or model.get('architecture')!=RESCUE_ARCHITECTURE:raise ValueError('model_checkpoint_binding_required')
+    origin=pinned(entry['origin_manifest']);freeze=pinned(entry['training_selection_freeze'])
+    if origin.get('task')!='redaction' or origin.get('architecture')!=RESCUE_ARCHITECTURE or origin.get('training_complete') is not True:raise ValueError('complete_exact_Rescue_origin_required')
+    if ({key:value for key,value in model.items() if key not in ('confidence','training_provenance')}!=
+        {key:value for key,value in origin.items() if key not in ('confidence','training_provenance')}):raise ValueError('Rescue_child_may_only_change_confidence_and_provenance')
+    if (freeze.get('training_complete') is not True or type(freeze.get('TEST_images')) is not int or freeze['TEST_images']!=0 or
+        freeze.get('manifest_sha256')!=entry['origin_manifest']['sha256'] or freeze.get('checkpoint_sha256')!=entry['checkpoint']['sha256'] or
+        freeze.get('onnx_sha256')!=model['sha256'] or freeze.get('confidence')!=origin.get('confidence')):raise ValueError('Rescue_training_freeze_artifact_binding_required')
+    return {'origin_manifest':entry['origin_manifest'],'training_selection_freeze':entry['training_selection_freeze']}
+
+
 def validate_entry(task,entry):
     model=pinned(entry['manifest']);binary(entry['checkpoint']);release=pinned(entry['full_release']);dev=pinned(entry['development_manifest'])
     if model.get('task')!=task or model.get('research_only') is not True or model.get('production_approved') is not False or g.sha256(model['weights'])!=model.get('sha256'):raise ValueError('exact_research_model_weights_required')
@@ -95,7 +116,9 @@ def validate_entry(task,entry):
     if model.get('training_provenance')!=entry['training_provenance']['path'] or provenance.get('release_sha256')!=entry['full_release']['sha256'] or provenance.get('task')!=task or any(value.get(key) is True for value in (model,provenance) for key in ('data_revoked','needs_revalidation')):raise ValueError('valid_exact_training_provenance_required')
     # Lane legacy-compatible export omits this field; its three canonical
     # coupons AND complete full-VAL report/plan must bind the checkpoint below.
-    if (task!='lane' or 'trained_checkpoint_sha256' in model) and model.get('trained_checkpoint_sha256')!=entry['checkpoint']['sha256']:raise ValueError('model_checkpoint_binding_required')
+    rescue=None
+    if task!='lane' and 'trained_checkpoint_sha256' not in model:rescue=rescue_checkpoint(entry,model)
+    elif model.get('trained_checkpoint_sha256',entry['checkpoint']['sha256'])!=entry['checkpoint']['sha256']:raise ValueError('model_checkpoint_binding_required')
     if model.get('source_release_path')!=entry['full_release']['path'] or model.get('dataset_release')!='manifest-sha256:'+entry['full_release']['sha256']:raise ValueError('full_parent_release_binding_required')
     if 'training_development_release_path' in model and (model['training_development_release_path']!=entry['development_manifest']['path'] or model.get('training_development_release_sha256')!=entry['development_manifest']['sha256']):raise ValueError('development_release_binding_required')
     if not isinstance(release,list) or not isinstance(dev,list):raise ValueError('release_rows_required')
@@ -126,6 +149,7 @@ def validate_entry(task,entry):
         'full_VAL_membership_sha256':g.canonical(rows),'subset_membership_sha256':g.canonical(selected),
         'source_expiry_min':source_expiry.isoformat()}
     if full:evidence['full_lane_validation']=full
+    if rescue:evidence['Rescue_checkpoint_binding']=rescue
     return selected,evidence
 
 

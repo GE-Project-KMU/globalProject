@@ -1,0 +1,57 @@
+{
+  "format": "final-cycle2-gpu-preparation-protocol-v2",
+  "source_sha256": {
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "agent/gpu_worker_client.py": "d444966f4db0b56a1b6590baeb958873bb5fb4fe993fc394035e4b9073b19d74",
+    "scripts/gpu_inference_worker.py": "bd03f8fa4be19a3bbdb4a67280c5594ebbaac7f2ea5720fe2bf9f646a5a7a8ca",
+    "scripts/gpu_model_set.py": "7a9e92cd6103e7f506884b222a9db4c0b02fca9c9bfbd7c11c5d2763a04822c9",
+    "scripts/verify_trained_models.py": "378e8d5b68c5a48aeb27fc85fac35b507d2e5aa0c28a3fde5bbcf444adf2933f",
+    "scripts/benchmark_inference_cpu.py": "2490fa73aebb6513e8e9eca9fc35d210397c3bffddc6ab4417220496801acc50",
+    "scripts/prepare_final_gpu_model_set.py": "d8ca9d8ac49494768dac14eb4ecd9412c149492dc2306e7e595f3a6cd8dfb7c1",
+    "scripts/evaluate_cycle2.py": "4af30037745430ecb7f4ea8789e53c0111dcd3a0508cd00ed150531d73b1b36e",
+    "scripts/check_lane_cycle2_runtime.py": "5a96a618af5199c820500598c2dbf3a6254ca3ae600825ebf03f1b0a899a1072",
+    "agent/redaction_rescue_network.py": "61876d6621c733516661059692eb2a734f8da35048aca86238b4d7a0d1583dc0",
+    "scripts/train_redaction_rescue_v8.py": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+    "scripts/evaluate_privacy_family.py": "95b5dc346e30f0ee8341afdcdc874754507ce4c937f55261bdcb71b15779ca10"
+  },
+  "parent_protocol": {
+    "path": "docs/reports/FINAL-GPU-MODELSET-PREPARATION-PROTOCOL.json",
+    "sha256": "214267a3f3dd991604a5e54cf50ed24c08c2e6d6d1f62a8f3f81ba28f02573be"
+  },
+  "revision_reason": "Frozen Rescue export omits trained_checkpoint_sha256; permit only exact architecture with origin/freeze/checkpoint/ONNX and child-difference evidence",
+  "missing_checkpoint_exception_architecture": "frozen legacy YOLOX-Nano specialists plus four tile P2 rescue",
+  "full_VAL_counts": {
+    "pothole": 652,
+    "lane": 179,
+    "redaction": 508
+  },
+  "GPU_subset_counts": {
+    "pothole": 20,
+    "lane": 100,
+    "redaction": 40
+  },
+  "required_canonical_counts": {
+    "pothole": 3,
+    "lane": 3,
+    "redaction": 2
+  },
+  "selection": "Required canonical first; remaining rows sorted by (source_id,sample_id) within each fixed group",
+  "groups": {
+    "pothole": {
+      "original": 10,
+      "mwpd": 10
+    },
+    "lane": "two recordings, 50 each from original100+new79",
+    "redaction": {
+      "face": 20,
+      "license_plate": 20
+    }
+  },
+  "row_values_changed": false,
+  "image_bytes_read_during_preparation": 0,
+  "GPU_sessions_during_preparation": 0,
+  "TEST_images": 0,
+  "source_expiries_extended": false,
+  "old_GPU_proofs_reused": false,
+  "model_or_threshold_changes": false
+}

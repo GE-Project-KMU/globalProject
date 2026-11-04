@@ -166,3 +166,87 @@ def test_legacy_lane_manifest_without_checkpoint_field_uses_all_bound_proofs(cas
     plan=g.pinned(entry['full_validation_plan']);plan['manifest_sha256']=ref['sha256'];entry['full_validation_plan']=save('new-full-plan.json',plan)
     full=g.pinned(entry['full_validation']);full['manifest_sha256']=ref['sha256'];full['plan_sha256']=entry['full_validation_plan']['sha256'];entry['full_validation']=save('new-full.json',full)
     selected,_=p.validate_entry('lane',entry);assert len(selected)==100
+
+
+def rescue_entry(case):
+    _,_,_,request,_,save=case;entry=request['models']['redaction']
+    origin=g.pinned(entry['manifest']);origin.pop('trained_checkpoint_sha256')
+    origin.update(architecture=p.RESCUE_ARCHITECTURE,training_complete=True,confidence=.01,
+        input_size=[1920,1920],classes=['face','license_plate'],shared_input_size=1920,
+        face_input_size=960,plate_input_size=640,face_tile_grid=2,legacy_prefix_proposals=102900,
+        rescue_proposals=230400,rescue_score_scale=.5,rescue_stride=4,rescue_hidden_channels=32,
+        output_layout='yolox_decoded_xywh',nms_iou=.5,optimizer_updates=123,best_epoch=2,
+        rescue_head_selected_after_training=True,selected_initial_legacy_fallback=False)
+    entry['origin_manifest']=save('Rescue-origin-model.json',origin)
+    entry['training_selection_freeze']=save('Rescue-candidate-freeze.json',{
+        'manifest_sha256':entry['origin_manifest']['sha256'],'checkpoint_sha256':entry['checkpoint']['sha256'],
+        'onnx_sha256':origin['sha256'],'confidence':origin['confidence'],'TEST_images':0,'training_complete':True})
+    provenance=g.pinned(entry['training_provenance']);provenance.update(derivation_only=True,new_training_updates=0,
+        parent_provenance_sha256=entry['training_provenance']['sha256'])
+    entry['training_provenance']=save('Rescue-child-provenance.json',provenance)
+    child=origin|{'confidence':.02,'training_provenance':entry['training_provenance']['path']}
+    entry['manifest']=save('Rescue-child-model.json',child)
+    for index,ref in enumerate(entry['cpu_verifications']):
+        proof=g.pinned(ref);proof['manifest_sha256']=entry['manifest']['sha256']
+        entry['cpu_verifications'][index]=save(f'Rescue-child-canonical-{index}.json',proof)
+    return entry,save
+
+
+def test_frozen_Rescue_export_missing_checkpoint_field_requires_origin_freeze_and_same_canonical(case):
+    entry,_=rescue_entry(case);selected,evidence=p.validate_entry('redaction',entry)
+    assert len(selected)==40 and evidence['Rescue_checkpoint_binding']=={
+        'origin_manifest':entry['origin_manifest'],'training_selection_freeze':entry['training_selection_freeze']}
+
+
+@pytest.mark.parametrize('problem',['checkpoint','onnx','origin_manifest','training_complete','TEST','TEST_bool','origin_arch','extra_child_field','child_arch','canonical_checkpoint','provenance','missing_origin','missing_freeze'])
+def test_Rescue_exception_rejects_all_artifact_or_origin_tampering(case,problem):
+    entry,save=rescue_entry(case)
+    if problem in ('checkpoint','onnx','origin_manifest','training_complete','TEST','TEST_bool'):
+        freeze=g.pinned(entry['training_selection_freeze'])
+        field={'checkpoint':'checkpoint_sha256','onnx':'onnx_sha256','origin_manifest':'manifest_sha256',
+            'training_complete':'training_complete','TEST':'TEST_images','TEST_bool':'TEST_images'}[problem]
+        freeze[field]=False if problem in ('training_complete','TEST_bool') else 1 if problem=='TEST' else '0'*64
+        entry['training_selection_freeze']=save('tampered-freeze.json',freeze)
+    elif problem=='origin_arch':
+        origin=g.pinned(entry['origin_manifest']);origin['architecture']='two YOLOX-Nano specialists'
+        entry['origin_manifest']=save('tampered-origin.json',origin)
+    elif problem in ('extra_child_field','child_arch'):
+        child=g.pinned(entry['manifest']);child['rescue_score_scale' if problem=='extra_child_field' else 'architecture']=.75
+        entry['manifest']=save('tampered-child.json',child)
+    elif problem=='canonical_checkpoint':
+        proof=g.pinned(entry['cpu_verifications'][0]);proof['checkpoint_sha256']='0'*64
+        entry['cpu_verifications'][0]=save('tampered-Rescue-proof.json',proof)
+    elif problem=='provenance':
+        provenance=g.pinned(entry['training_provenance']);provenance['data_revoked']=True
+        entry['training_provenance']=save(Path(entry['training_provenance']['path']).name,provenance)
+    else:entry.pop('origin_manifest' if problem=='missing_origin' else 'training_selection_freeze')
+    with pytest.raises((ValueError,KeyError)):p.validate_entry('redaction',entry)
+
+
+def test_missing_checkpoint_field_is_not_a_generic_detector_exception(case):
+    _,_,_,request,_,save=case;entry=request['models']['pothole']
+    model=g.pinned(entry['manifest']);model.pop('trained_checkpoint_sha256')
+    entry['manifest']=save('detector-without-checkpoint-field.json',model)
+    with pytest.raises(ValueError,match='model_checkpoint_binding'):p.validate_entry('pothole',entry)
+
+
+def test_protocol_v2_preserves_original_v1_pin_and_declares_exact_exception():
+    value=p.protocol()
+    assert value['format']=='final-cycle2-gpu-preparation-protocol-v2'
+    assert value['parent_protocol']['sha256']==p.PARENT_PROTOCOL_SHA
+    assert value['missing_checkpoint_exception_architecture']==p.RESCUE_ARCHITECTURE
+
+
+def test_Rescue_full_preparation_preserves_extra_evidence_without_gpu_plan(case):
+    _,out,path,request,_,_=case;entry,_=rescue_entry(case)
+    path.write_text(json.dumps(request));result=p.prepare(path,out/'Rescue-metadata-only')
+    assert result['plan_frozen'] is False and result['GPU_sessions']==0
+    spec=g.read(out/'Rescue-metadata-only/input-specification.json')
+    assert spec['source_evidence']['redaction']['Rescue_checkpoint_binding']['origin_manifest']==entry['origin_manifest']
+    assert len(g.pinned(spec['models']['redaction']['validation_manifest']))==40
+
+
+def test_explicit_bad_checkpoint_field_cannot_use_Rescue_missing_field_exception(case):
+    entry,save=rescue_entry(case);child=g.pinned(entry['manifest']);child['trained_checkpoint_sha256']='0'*64
+    entry['manifest']=save('Rescue-wrong-checkpoint-field.json',child)
+    with pytest.raises(ValueError,match='model_checkpoint_binding'):p.validate_entry('redaction',entry)

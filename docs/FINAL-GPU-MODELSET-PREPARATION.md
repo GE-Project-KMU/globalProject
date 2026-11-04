@@ -14,7 +14,7 @@
 
 ## 입력 계약
 
-로컬 request JSON의 format은 `final-cycle2-gpu-input-preparation-v1`, `TEST_images=0`, `GPU_used=false`이며 `models`에 `pothole/lane/redaction` 세 항목을 둔다. `source_sha256`는 helper의 `source_hashes()`가 반환하는 실행 소스 hash map을 그대로 고정한다. `preparation_protocol`에는 사전 작성한 공개 `FINAL-GPU-MODELSET-PREPARATION-PROTOCOL.json`의 정확한 pointer를 제공한다. 공개 protocol은 source SHA와 위 선택 규칙을 결합하며 변경되면 준비를 거부한다. 각 pointer는 `{ "path": "프로젝트 상대 경로", "sha256": "고정 SHA256" }`이다.
+로컬 request JSON의 format은 `final-cycle2-gpu-input-preparation-v1`, `TEST_images=0`, `GPU_used=false`이며 `models`에 `pothole/lane/redaction` 세 항목을 둔다. `source_sha256`는 helper의 `source_hashes()`가 반환하는 실행 소스 hash map을 그대로 고정한다. `preparation_protocol`에는 공개 `FINAL-GPU-MODELSET-PREPARATION-PROTOCOL-V2.json`의 정확한 pointer를 제공한다. 공개 protocol은 source SHA와 위 선택 규칙을 결합하며 변경되면 준비를 거부한다. 원 V1 protocol SHA `214267a3f3dd991604a5e54cf50ed24c08c2e6d6d1f62a8f3f81ba28f02573be`와 파일은 보존하고 V2가 부모 pointer와 변경 사유를 기록한다. 각 pointer는 `{ "path": "프로젝트 상대 경로", "sha256": "고정 SHA256" }`이다.
 
 각 모델 항목에 다음 pointer를 제공한다.
 
@@ -25,6 +25,17 @@
 full source와 DEV는 서로 다른 파일이어도 VAL 행 전체가 정확히 같아야 한다. 원 full release가 DEV 역할을 겸하는 경우만 그 안의 TEST 메타데이터 존재를 허용하며, TEST 영상/픽셀은 읽지 않는다. 모델의 parent release hash·DEV hash·provenance release hash·weights hash·checkpoint hash를 확인한다. 폐기/재검증 필요 표시와 만료 source/asset은 거부한다. source TTL 최소는 원 release의 모든 행과 provenance asset 중 최소값이며 연장하지 않는다.
 
 lane full proof는 기존 `evaluate_cycle2.full_gate`의 179개 raw/default-tolerance 및 exact-mask 조건을 모두 통과해야 한다. 여기에 source plan의 `validation_count=179`·DEV/full release hash, worker source hash, manifest/checkpoint/weights, 실제 full plan의 모든 원행과 proof case index/image SHA를 확인한다. manifest에 checkpoint hash가 없는 기존 lane export 형식도 세 canonical과 full179 plan/report의 checkpoint hash가 모두 실제 checkpoint와 같아야 한다.
+
+## V2의 Rescue export 호환 증거
+
+동결된 Rescue trainer는 manifest에 `trained_checkpoint_sha256`를 기록하지 않는다. V1은 이 manifest를 일괄 거부했으며 아직 실제 준비를 실행하지 않았다. V2는 architecture가 정확히 `frozen legacy YOLOX-Nano specialists plus four tile P2 rescue`인 redaction에만 별도 증거를 허용한다. 이 경로의 entry에는 다음 두 pointer를 추가한다.
+
+- `origin_manifest`: 학습이 export한 원 `model.json`
+- `training_selection_freeze`: 그 학습의 원 `candidate-freeze.json`
+
+원 manifest와 child manifest는 `confidence`, `training_provenance` 두 필드를 제외한 모든 값이 정확히 같아야 한다. 원 manifest의 `training_complete=true`도 확인한다. freeze는 `training_complete=true`, 정수 `TEST_images=0`, `manifest_sha256=origin_manifest.sha256`, `checkpoint_sha256=실제 entry checkpoint SHA`, `onnx_sha256=실제 ONNX SHA`, `confidence=원 manifest confidence`를 모두 만족해야 한다.
+
+child에 연결된 두 strict canonical proof는 child manifest·같은 실제 checkpoint를 확인하며 기존 기본 raw 허용오차·post 일치·양성 face/plate 조건을 그대로 통과해야 한다. 표준 provenance의 release hash·폐기/재검증/만료 검사도 유지한다. 다른 detector architecture의 누락 필드는 계속 거부한다. 학습 source·원 export·가중치·threshold를 수정하거나 기존 FP32/GPU 증거를 소급하지 않는다.
 
 ```powershell
 # 모든 CPU proof가 준비되고 root가 세 parent와 request를 확정한 후에만 실행
