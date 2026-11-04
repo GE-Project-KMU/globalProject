@@ -5,7 +5,7 @@ from pathlib import Path
 import psutil
 ROOT=Path(__file__).resolve().parents[1]
 # Explicit script families, restricted to this project. Resident API services are excluded.
-RESEARCH=re.compile(r"^(?:train_|improve_|refine_|supervise_|evaluate_|compare_|verify_trained_models|benchmark_|probe_|verify_gpu_runtime|export_redaction_final12|finalize_privacy_family_v9_results|create_gpu_runtime_profiles|finalize_lane_|select_redaction_inference|gpu_(?:model_set|inference_worker)|prepare_(?:final_gpu|representative)|cycle2_device_memory|privacy_family_).*\.py$",re.I)
+RESEARCH=re.compile(r"^(?:train_|improve_|refine_|supervise_|evaluate_|compare_|verify_trained_models|benchmark_|probe_|verify_gpu_runtime|export_redaction_final12|finalize_privacy_family_v9_results|finalize_privacy_family_v10_results|create_gpu_runtime_profiles|finalize_lane_|select_redaction_inference|gpu_(?:model_set|inference_worker)|prepare_(?:final_gpu|representative)|cycle2_device_memory|privacy_family_).*\.py$",re.I)
 
 def lexical_inside(path,root):
     """String-only boundary check: never stat/resolve an external process path."""

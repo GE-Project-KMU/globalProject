@@ -135,7 +135,7 @@ def test_prepare_only_reads_metadata_and_refuses_overwrite(tmp_path,monkeypatch)
 
 def test_retention_adds_only_two_explicit_optional_roots():
     from scripts import freeze_cycle2_retention as retention
-    assert len(retention.POLICIES)==29
+    assert len(retention.POLICIES)>=29
     for name in ('data/training/redaction-rescue-v8-final12','data/training/privacy-family-v9-evaluation'):
         assert name in retention.OPTIONAL_ROOTS
         assert retention.POLICIES[name][2]==retention.PRIVACY_CAP

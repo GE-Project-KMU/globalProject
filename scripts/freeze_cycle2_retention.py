@@ -15,6 +15,8 @@ from scripts import cycle2_research_writer_guard as writer_guard
 # Frozen source dependencies: exact known nonpersonal controls must stay at original paths.
 PROTECTED_CONTROLS={'.cache/cycle2-rescue-v8-preflight.log': '8fc5f869ed5d32d14ab42f0ad0567ec7865382464bb0aacc4c73593b915fa99c', '.cache/cycle2-rescue-v8-preflight-observer.log': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'data/training/redaction-rescue-v8-env-repair/before.json': 'caa25cc806aa187d49fc97a156dba54142fd61b77e0b9ffeeec27a80cc7a0f7e', 'data/training/redaction-rescue-v8-env-repair/after.json': '01a3232a942f93cf5b1f845f673c52c2e994c22cc8c7806458e65b78e95cde1d', 'data/training/redaction-rescue-v8-env-repair/import-success.json': 'be1fe14662bc1e4a2119010e1a3c49e592c595ff15fa8b0e983cd6273a4a5879', 'data/training/redaction-rescue-v8-env-repair/requirements-snapshot.txt': '850b0fef35c2cca7066f3dbb06ec6a2dcc83889b68e3713113904b3512eccbc6', 'data/training/redaction-rescue-v8-env-repair/install.log': 'f30363bc13659f869f59d25e6c3190e475f718297ff40cf3603fc24e5dd59cfd', 'data/training/redaction-rescue-v8-env-repair/install-compatible.log': 'a6b154a7881bb39af4834474715be31180f68de4981a3decc3646ed79ced4b0b', 'data/training/redaction-rescue-v8-env-repair/publisher-wheel-metadata.json': '736aadfb3f92b08b00175d25c2bd5a13a0418ecc84b94b7b4d2cac0e3a393c66'}
 
+PROTECTED_CONTROLS.update({'.cache/cycle2-final12-cpu-export.log':'876244ebd991b231e90ddd16a678fea71ff5f18b55aebb03046728ce2ce44079'})
+
 def protected_controls():
     for name,pin in PROTECTED_CONTROLS.items():
         path=r.project_path(name,file=True)
@@ -62,6 +64,8 @@ POLICIES={
  PROTOTYPE:('synthetic_prototype',[PROTOTYPE_CONTEXT],PROTOTYPE_CAP),
  'data/training/redaction-rescue-v8':('privacy_model',[PRIVACY,'data/training/redaction-rescue-v8/plan.json'],PRIVACY_CAP),
  'data/training/redaction-rescue-v8-final12':('privacy_model',[PRIVACY,'data/training/redaction-rescue-v8-final12/plan.json'],PRIVACY_CAP),
+ 'data/training/redaction-rescue-v8-final12-retry1':('privacy_model',[PRIVACY,'data/training/redaction-rescue-v8-final12-retry1/plan.json'],PRIVACY_CAP),
+ 'data/training/privacy-family-v10-evaluation':('family_evaluation',[PRIVACY,'data/training/privacy-family-v10-evaluation/protocol.json'],PRIVACY_CAP),
  'data/training/privacy-family-v9-evaluation':('family_evaluation',[PRIVACY,'data/training/privacy-family-v9-evaluation/protocol.json'],PRIVACY_CAP),
  'data/training/privacy-family-v8-evaluation':('family_evaluation',[PRIVACY,'data/training/privacy-family-v8-evaluation/protocol.json'],PRIVACY_CAP),
  'data/public/a2d2-cycle2-v5':('lane_source',[LANE],LANE_CAP),
@@ -79,7 +83,7 @@ OPTIONAL_ROOTS={'data/training/cycle2-logs','data/training/research-pothole-rdd2
                 'data/training/pothole-small-v9','data/training/redaction-rescue-v8',
                 'data/training/lane-cycle2-v5-retry1','data/training/pothole-family-v9',
                 'data/training/pothole-family-v10','data/training/privacy-family-v8-evaluation',
-                'data/training/lane-cycle2-retry1-evaluation','data/training/redaction-rescue-v8-final12','data/training/privacy-family-v9-evaluation'}
+                'data/training/lane-cycle2-retry1-evaluation','data/training/redaction-rescue-v8-final12','data/training/privacy-family-v9-evaluation','data/training/redaction-rescue-v8-final12-retry1','data/training/privacy-family-v10-evaluation'}
 CYCLE='public-cycle2-v7'
 
 
@@ -126,7 +130,7 @@ def category(path,tag):
 def minimal_control_provenance(path,formats=None):
     if path.suffix.lower()!='.json':return False
     value=r.read(path)
-    allowed=formats if formats is not None else {'privacy-family-v9-winner-freeze','privacy-family-v9-predeclared-protocol-v1','pothole-family-v9-validation-freeze-v1','pothole-family-one-shot-comparison-v1',
+    allowed=formats if formats is not None else {'privacy-family-v10-winner-freeze','privacy-family-v10-predeclared-protocol-v1','privacy-family-v9-winner-freeze','privacy-family-v9-predeclared-protocol-v1','pothole-family-v9-validation-freeze-v1','pothole-family-one-shot-comparison-v1',
         'pothole-family-v10-CPU-validation-freeze-v1','pothole-family-v10-one-shot-comparison-v1',
         'lane-cycle2-retry1-completed-CPU-artifact-freeze-v1','lane-cycle2-retry1-one-shot-comparison-v1'}
     if not isinstance(value,dict) or value.get('format') not in allowed:return False
@@ -142,13 +146,13 @@ def minimal_control_provenance(path,formats=None):
     return not individual(value)
 
 
-OPERATOR_PHASES={'CPU-fixed12-export','fixed12-VAL508','idle-observer','baseline-VAL508','rescue-VAL508-import','winner-freeze','fresh','regression'}|{'strict-'+role+'-'+label for role in ('baseline','winner') for label in ('face','license_plate')}
+OPERATOR_PHASES={'fixed12-VAL508','idle-observer','baseline-VAL508','rescue-VAL508-import','winner-freeze','fresh','regression'}|{'strict-'+role+'-'+label for role in ('baseline','winner') for label in ('face','license_plate')}
 
 def valid_log_source(name):
     if re.fullmatch(r'\.cache/cycle2[a-zA-Z0-9_.-]*\.log',name):return True
     path=Path(name)
     if path.as_posix()!=name:return False
-    if path.parent.as_posix() not in {'.cache/privacy-family-v8-operator','.cache/privacy-family-v8-operator-retry1','.cache/privacy-family-v9-operator'}:return False
+    if path.parent.as_posix() not in {'.cache/privacy-family-v8-operator','.cache/privacy-family-v8-operator-retry1','.cache/privacy-family-v9-operator','.cache/privacy-family-v10-operator'}:return False
     return path.name in {phase+suffix for phase in OPERATOR_PHASES for suffix in ('.log','-observer.log')}
 
 def prepare_log_migration(receipt_path,receipt_sha256,manifest_path,manifest_sha256,output_path):
@@ -174,7 +178,7 @@ def prepare_log_migration(receipt_path,receipt_sha256,manifest_path,manifest_sha
             aggregate+=1;continue
         try:r.eligible(source,'identifiable_manifest')
         except r.PreservedResearchFile:aggregate+=1;continue
-        prefix='operator-v9--' if '/privacy-family-v9-operator/' in item['source'] else 'operator-retry1--' if '/privacy-family-v8-operator-retry1/' in item['source'] else 'operator-original--' if '/privacy-family-v8-operator/' in item['source'] else ''
+        prefix='operator-v10--' if '/privacy-family-v10-operator/' in item['source'] else 'operator-v9--' if '/privacy-family-v9-operator/' in item['source'] else 'operator-retry1--' if '/privacy-family-v8-operator-retry1/' in item['source'] else 'operator-original--' if '/privacy-family-v8-operator/' in item['source'] else ''
         destination='data/training/cycle2-logs/'+prefix+source.name
         if r.project_path(destination).exists():raise ValueError('log_migration_destination_exists')
         entries.append({'from_log':item['source'],'to_log':destination,'sha256':snapshot[0]})

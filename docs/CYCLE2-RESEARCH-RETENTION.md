@@ -80,3 +80,6 @@ soak의 `generated-nonpersonal.mp4`는 일반 영상 suffix 허용에 추가하�
 
 
 V9 operator의 개인별 phase 로그도 정확한 `.cache/privacy-family-v9-operator/<등록phase>.log`와 SHA 목록만 이관 계획에 허용한다. 목적지 prefix는 `operator-v9--`이며 원 V8/retry1과 충돌하지 않는다. `strict-*-license_plate.log`처럼 실제 canonical label을 정확히 사용한다. queue JSON·receipt/control JSON은 이동하지 않으며 metadata 안의 private 필드를 일반 provenance로 보존하지 않는다. 새 exporter와 정확한 V9 publisher script도 writer 차단 대상이다.
+
+
+V10 packaging-only revision은 정확히 `redaction-rescue-v8-final12-retry1`과 `privacy-family-v10-evaluation` 두 training root를 더한31개 범위다. 두 root는 optional이며 원 개인정보 최소기한 이하만 허용한다. V10의 정확 control format도 개인별 필드가 있으면 보존 예외를 적용하지 않는다. 고정 실패 CPUexport 로그 `.cache/cycle2-final12-cpu-export.log`는 새 exporter plan이 참조하는 정확SHA876244…와 비개인 검사를 확인해 원경로를 보존한다. V10 operator의 같은10개 phase 로그는 `operator-v10--` prefix의 수동 이관 계획만 지원한다. ROOT가 소유하는 CPUexport는 queue phase가 아니므로 `CPU-fixed12-export`를 phase allowlist에서 제외한다. 새31scope 선언은 원8control·원파일·기한을 갱신하거나 실제 자료 정리를 실행하지 않는다.

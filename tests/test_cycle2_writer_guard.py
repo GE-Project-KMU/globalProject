@@ -81,7 +81,7 @@ def test_lexical_boundary_rejects_prefix_sibling(tmp_path):
     assert g.lexical_inside(tmp_path/'scripts/train_x.py',tmp_path)
 
 
-@pytest.mark.parametrize('phase',['CPU-fixed12-export','baseline-VAL508','rescue-VAL508-import','fixed12-VAL508','winner-freeze','strict-baseline-face','strict-baseline-license_plate','strict-winner-face','strict-winner-license_plate','fresh','regression'])
+@pytest.mark.parametrize('phase',['baseline-VAL508','rescue-VAL508-import','fixed12-VAL508','winner-freeze','strict-baseline-face','strict-baseline-license_plate','strict-winner-face','strict-winner-license_plate','fresh','regression'])
 def test_new_V9_operator_phase_logs_have_exact_allowlist(phase):
     assert f.valid_log_source('.cache/privacy-family-v9-operator/'+phase+'.log')
     assert not f.valid_log_source('.cache/privacy-family-v9-operator/'+phase+'-receipt.json')
