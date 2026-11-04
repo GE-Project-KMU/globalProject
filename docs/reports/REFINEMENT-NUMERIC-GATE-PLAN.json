@@ -1,0 +1,15 @@
+{
+  "created_before_final_predictions": true,
+  "positive_validation_cases_manifest_sha256": "ab89e49c96b85ead54d41c1c5266a220a96842307c9b49ddcf80f0c662170077",
+  "lane_predeclared_positive_cases": 3,
+  "lane_full_VAL_images": 100,
+  "privacy_predeclared_positive_classes": [
+    "face",
+    "license_plate"
+  ],
+  "raw_rtol": 0.001,
+  "raw_atol": 0.0001,
+  "postprocess_mask_exact_required": true,
+  "test_pixels_for_numeric_gate": 0,
+  "new_GPU_support_claimed": false
+}

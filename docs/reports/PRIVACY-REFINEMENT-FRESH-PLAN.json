@@ -1,0 +1,20 @@
+{
+  "created_before_final_predictions": true,
+  "models": {
+    "baseline": "data/training/redaction-inference-options-v4/option-tiled/model.json",
+    "candidate": "data/training/redaction-refinement-v6/model.json"
+  },
+  "baseline_manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+  "candidate_release_sha256": "0e9df987709aa20bf65dc579b37d64d0ccace5b2f9eb65b86303f8def5d4c5e5",
+  "benchmark_manifest": "data/training/research-redaction-v6/fresh-test.json",
+  "benchmark_sha256": "3379cadd52685de1ad4abb1760fcc5293966794b84570a8fe9aeaf1e16bc5e01",
+  "role": "new_unseen_recording_or_source_only_no_physical_person_route_independence",
+  "checkpoint_threshold_selection": "development VAL only; no post-TEST tuning",
+  "test_used_for_fitting_or_selection": false,
+  "physical_independence_verified": false,
+  "required_candidate_positive_VAL_proofs": 2,
+  "raw_rtol": 0.001,
+  "raw_atol": 0.0001,
+  "project_acceptance_eligible": false,
+  "production_approved": false
+}

@@ -1,0 +1,20 @@
+{
+  "created_before_final_predictions": true,
+  "models": {
+    "baseline": "data/training/lane-refinement-baseline-v4/lane.json",
+    "candidate": "data/training/lane-refinement-v4/lane.json"
+  },
+  "baseline_manifest_sha256": "3c644ae26a594c0d17b7c995d16d34a1f9dde1281fa18385cd8f8cbe4d06d59f",
+  "candidate_release_sha256": "234c83581edc8797831d00b9e7e3b32edf47e192322adeb20c0618900c5e4e03",
+  "benchmark_manifest": "data/public/a2d2-refinement-v3/fresh-test.json",
+  "benchmark_sha256": "99558c0d15176fcd28c611d8b1a3fe5f73ed1946e98e5579f032e72d9fa1de6c",
+  "role": "new_unseen_recording_or_source_only_no_physical_person_route_independence",
+  "checkpoint_threshold_selection": "development VAL only; no post-TEST tuning",
+  "test_used_for_fitting_or_selection": false,
+  "physical_independence_verified": false,
+  "required_candidate_positive_VAL_proofs": 3,
+  "raw_rtol": 0.001,
+  "raw_atol": 0.0001,
+  "project_acceptance_eligible": false,
+  "production_approved": false
+}
