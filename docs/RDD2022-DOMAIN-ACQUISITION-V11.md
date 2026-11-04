@@ -19,3 +19,5 @@ Figshare 관측 서명 lifetime은10초, 응답 시점 서명 age는 약2.6초�
 64바이트 Range 성공은 archive 무결성 증거가 아니다. 전체 MD5·ZIP CRC는 미검증이며 관측 multipart ETag도 공식 MD5의 대체로 사용하지 않았다. **검증된 archive0개, 새 사용가능 이미지0개**다. 3회 probe 한도를 소진해 중단했으며 자동 bulk transfer나 재시도는 하지 않는다. 추가 취득은 새 전송 phase의 예산·시간·체크섬 검증 절차를 따로 고정한 뒤 판단해야 한다. 원본을 실제로 받더라도 공식 전체 MD5를 통과하기 전에는 사용가능 source로 표시할 수 없다.
 
 코드는 `scripts/probe_rdd2022_domain_v11.py`, 공개 집계는 [RDD2022-DOMAIN-V11-AVAILABILITY.json](reports/RDD2022-DOMAIN-V11-AVAILABILITY.json)이다. 합성 HTTP 계약15개는 bounded range·redirect host·크기·ZIP prefix·deadline·오류 body 비기록·200 전체응답 미수용을 확인했다. 이는 실제 전체 archive 취득 성공 시험이 아니다. GPU·기존 TEST 추론·원기한 연장·기존 파일 삭제는 수행하지 않았다.
+
+위 수치는 3회 probe phase의 보존된 snapshot이다. 이후 별도로 승인된 bulk phase는 전체 MD5/CRC를 통과했으며, 새 split·학습 없이 XML/history metadata 감사를 마쳤다. 현재 결과와 미국 추가 학습을 실행하지 않은 판단은 [별도 전송·감사 문서](RDD2022-DOMAIN-V11-TRANSFER.md)에 기록했다. 원 probe receipt와 예산을 사후 수정하지 않았다.

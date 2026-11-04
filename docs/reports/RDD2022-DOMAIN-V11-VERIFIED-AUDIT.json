@@ -1,0 +1,448 @@
+{
+  "format": "rdd2022-domain-v11-verified-archive-GT-metadata-results-v1",
+  "source": {
+    "official_article": "https://api.figshare.com/v2/articles/21431547",
+    "file_id": 38030910,
+    "bytes": 13264172619,
+    "publisher_md5": "b62bd51d2ffcfaa76c60f234f0cc2bb3",
+    "sha256": "5d230a2941e8f2ac5fbca1a0faddee393314368dd17f9304effc11ec532845b6",
+    "source_expires_at": "2026-11-10T17:07:24.286159+00:00",
+    "license": "CC-BY-4.0"
+  },
+  "protocol_sha256": {
+    "probe_plan": "2ddc84941daa5bfed1e25b272ba1d7cb8788c966857fc27a91d9ef71cf93c93a",
+    "bulk_plan": "495c1872562cffc9e33c2c6adcaa3953f990c094f2a5e44bfb124a10d7947514",
+    "annotation_audit_plan": "790cdfeb6a23401adc5b5883067d933b8d820ffd20036785cfdcc2797be59173",
+    "transfer_receipt": "a48e59b64add4fd980557943cdd66aea4265cbc8e33e705b4dfc3e7d050ee0de",
+    "metadata_receipt": "bea5142b0effb2a5e041b6fe211711cc687384a1f486cddfef3fd98acc5c33d5"
+  },
+  "executed_source_sha256": {
+    "scripts/acquire_rdd2022_domain_v11.py": "6d58e1526f2c041a359b676d3fd5b0e3ff4b5903a7039dac9ee17ad4488dbfe6",
+    "scripts/audit_rdd2022_domain_v11.py": "ea09da37736fd67dba53fa1e4895a0db5f3a9d47a31f573e698d745dae7c566e"
+  },
+  "transfer": {
+    "whole_publisher_MD5_verified": true,
+    "all_members_CRC_verified": true,
+    "archive_entries": 85852,
+    "uncompressed_bytes_including_nested_containers": 27096647528,
+    "attempts": 1,
+    "partial_bytes": 0,
+    "wall_seconds": 1687.2964532999904,
+    "wall_scope": "Full transfer plus streaming hash, archive publish, ZIP structure and complete CRC validation; not network-only duration",
+    "signed_URL_logged": false,
+    "error_body_logged": false
+  },
+  "annotation": {
+    "publisher_country_archive_groups": 7,
+    "distinct_publisher_countries": 6,
+    "country_groups": {
+      "China_Drone": {
+        "totals": {
+          "images": 2401,
+          "JPG": 2401,
+          "PNG": 0,
+          "XML": 2401,
+          "duplicate_image_keys": 0
+        },
+        "publisher_splits": {
+          "train": {
+            "XML": 2401,
+            "image_annotation_matches": 2401,
+            "noD40_annotation_images": 2337,
+            "D40_boxes": 86,
+            "invalid_D40_boxes": 0,
+            "invalid_boxes": 0,
+            "all_boxes": 3840,
+            "invalid_dimensions": 0,
+            "D40_positive_annotation_images": 64,
+            "images": 2401,
+            "JPG": 2401,
+            "D40_positive_matched_images": 64,
+            "noD40_matched_images": 2337,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 2401,
+            "duplicate_XML_keys": 0
+          }
+        }
+      },
+      "China_MotorBike": {
+        "totals": {
+          "images": 2477,
+          "JPG": 2477,
+          "PNG": 0,
+          "XML": 1977,
+          "duplicate_image_keys": 0
+        },
+        "publisher_splits": {
+          "test": {
+            "images": 500,
+            "image_without_annotation": 500,
+            "JPG": 500,
+            "D40_positive_matched_images": 0,
+            "noD40_matched_images": 0,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 0,
+            "duplicate_XML_keys": 0
+          },
+          "train": {
+            "XML": 1977,
+            "image_annotation_matches": 1977,
+            "noD40_annotation_images": 1813,
+            "D40_boxes": 235,
+            "invalid_D40_boxes": 0,
+            "invalid_boxes": 0,
+            "all_boxes": 4927,
+            "invalid_dimensions": 0,
+            "D40_positive_annotation_images": 164,
+            "images": 1977,
+            "JPG": 1977,
+            "D40_positive_matched_images": 164,
+            "noD40_matched_images": 1813,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 1977,
+            "duplicate_XML_keys": 0
+          }
+        }
+      },
+      "Czech": {
+        "totals": {
+          "images": 3538,
+          "JPG": 3538,
+          "PNG": 0,
+          "XML": 2829,
+          "duplicate_image_keys": 0
+        },
+        "publisher_splits": {
+          "test": {
+            "images": 709,
+            "image_without_annotation": 709,
+            "JPG": 709,
+            "D40_positive_matched_images": 0,
+            "noD40_matched_images": 0,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 0,
+            "duplicate_XML_keys": 0
+          },
+          "train": {
+            "XML": 2829,
+            "image_annotation_matches": 2829,
+            "noD40_annotation_images": 2675,
+            "D40_boxes": 197,
+            "invalid_D40_boxes": 0,
+            "invalid_boxes": 0,
+            "all_boxes": 1745,
+            "invalid_dimensions": 0,
+            "D40_positive_annotation_images": 154,
+            "images": 2829,
+            "JPG": 2829,
+            "D40_positive_matched_images": 154,
+            "noD40_matched_images": 2675,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 2829,
+            "duplicate_XML_keys": 0
+          }
+        }
+      },
+      "India": {
+        "totals": {
+          "images": 9665,
+          "JPG": 9665,
+          "PNG": 0,
+          "XML": 7706,
+          "duplicate_image_keys": 0
+        },
+        "publisher_splits": {
+          "test": {
+            "images": 1959,
+            "image_without_annotation": 1959,
+            "JPG": 1959,
+            "D40_positive_matched_images": 0,
+            "noD40_matched_images": 0,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 0,
+            "duplicate_XML_keys": 0
+          },
+          "train": {
+            "XML": 7706,
+            "image_annotation_matches": 7706,
+            "noD40_annotation_images": 6176,
+            "D40_boxes": 3187,
+            "invalid_D40_boxes": 0,
+            "invalid_boxes": 0,
+            "all_boxes": 8203,
+            "invalid_dimensions": 0,
+            "D40_positive_annotation_images": 1530,
+            "images": 7706,
+            "JPG": 7706,
+            "D40_positive_matched_images": 1530,
+            "noD40_matched_images": 6176,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 7706,
+            "duplicate_XML_keys": 0
+          }
+        }
+      },
+      "Japan": {
+        "totals": {
+          "images": 13133,
+          "JPG": 13133,
+          "PNG": 0,
+          "XML": 10506,
+          "duplicate_image_keys": 0
+        },
+        "publisher_splits": {
+          "test": {
+            "images": 2627,
+            "image_without_annotation": 2627,
+            "JPG": 2627,
+            "D40_positive_matched_images": 0,
+            "noD40_matched_images": 0,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 0,
+            "duplicate_XML_keys": 0
+          },
+          "train": {
+            "XML": 10506,
+            "image_annotation_matches": 10506,
+            "D40_positive_annotation_images": 1390,
+            "D40_boxes": 2243,
+            "invalid_D40_boxes": 0,
+            "invalid_boxes": 1,
+            "all_boxes": 24754,
+            "invalid_dimensions": 0,
+            "noD40_annotation_images": 9116,
+            "images": 10506,
+            "JPG": 10506,
+            "D40_positive_matched_images": 1390,
+            "noD40_matched_images": 9116,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 10506,
+            "duplicate_XML_keys": 0
+          }
+        }
+      },
+      "Norway": {
+        "totals": {
+          "images": 10201,
+          "JPG": 10201,
+          "PNG": 0,
+          "XML": 8161,
+          "duplicate_image_keys": 0
+        },
+        "publisher_splits": {
+          "test": {
+            "images": 2040,
+            "image_without_annotation": 2040,
+            "JPG": 2040,
+            "D40_positive_matched_images": 0,
+            "noD40_matched_images": 0,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 0,
+            "duplicate_XML_keys": 0
+          },
+          "train": {
+            "XML": 8161,
+            "image_annotation_matches": 8161,
+            "noD40_annotation_images": 7905,
+            "D40_boxes": 461,
+            "invalid_D40_boxes": 0,
+            "invalid_boxes": 0,
+            "all_boxes": 11229,
+            "invalid_dimensions": 0,
+            "D40_positive_annotation_images": 256,
+            "images": 8161,
+            "JPG": 8161,
+            "D40_positive_matched_images": 256,
+            "noD40_matched_images": 7905,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 8161,
+            "duplicate_XML_keys": 0
+          }
+        }
+      },
+      "United_States": {
+        "totals": {
+          "images": 6005,
+          "JPG": 6005,
+          "PNG": 0,
+          "XML": 4805,
+          "duplicate_image_keys": 0
+        },
+        "publisher_splits": {
+          "test": {
+            "images": 1200,
+            "image_without_annotation": 1200,
+            "JPG": 1200,
+            "D40_positive_matched_images": 0,
+            "noD40_matched_images": 0,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 0,
+            "duplicate_XML_keys": 0
+          },
+          "train": {
+            "XML": 4805,
+            "image_annotation_matches": 4805,
+            "noD40_annotation_images": 4689,
+            "D40_boxes": 135,
+            "invalid_D40_boxes": 0,
+            "invalid_boxes": 0,
+            "all_boxes": 11014,
+            "invalid_dimensions": 0,
+            "D40_positive_annotation_images": 116,
+            "images": 4805,
+            "JPG": 4805,
+            "D40_positive_matched_images": 116,
+            "noD40_matched_images": 4689,
+            "contradictory_D40_annotation_keys": 0,
+            "unique_images_with_annotation": 4805,
+            "duplicate_XML_keys": 0
+          }
+        }
+      }
+    },
+    "D40_positive_matched_images": 3674,
+    "D40_boxes": 6544,
+    "XML_history_processing_wall_seconds": 5.704853200004436
+  },
+  "historical": {
+    "release_count": 6,
+    "all_six_releases_including_interrupted_and_quarantined": {
+      "countries": {
+        "Bangladesh-source-unverified-location": {
+          "test": {
+            "rows": 97,
+            "positive_pothole_rows": 97,
+            "unique_sha256_images": 97
+          },
+          "train": {
+            "rows": 2188,
+            "positive_pothole_rows": 2188,
+            "unique_sha256_images": 2188
+          },
+          "validation": {
+            "rows": 250,
+            "positive_pothole_rows": 250,
+            "unique_sha256_images": 250
+          }
+        },
+        "China_Drone": {
+          "validation": {
+            "rows": 300,
+            "positive_pothole_rows": 200,
+            "no_pothole_rows": 100,
+            "unique_sha256_images": 300
+          }
+        },
+        "China_MotorBike": {
+          "test": {
+            "rows": 300,
+            "positive_pothole_rows": 200,
+            "no_pothole_rows": 100,
+            "unique_sha256_images": 300
+          }
+        },
+        "Czech": {
+          "test": {
+            "rows": 279,
+            "no_pothole_rows": 125,
+            "positive_pothole_rows": 154,
+            "unique_sha256_images": 279
+          }
+        },
+        "India": {
+          "train": {
+            "rows": 8129,
+            "positive_pothole_rows": 4860,
+            "no_pothole_rows": 3269,
+            "unique_sha256_images": 4149
+          }
+        },
+        "Japan": {
+          "test": {
+            "rows": 486,
+            "positive_pothole_rows": 243,
+            "no_pothole_rows": 243,
+            "unique_sha256_images": 438
+          },
+          "train": {
+            "rows": 5861,
+            "positive_pothole_rows": 2735,
+            "no_pothole_rows": 3126,
+            "unique_sha256_images": 4441
+          },
+          "validation": {
+            "rows": 1179,
+            "positive_pothole_rows": 652,
+            "no_pothole_rows": 527,
+            "unique_sha256_images": 1064
+          }
+        }
+      },
+      "country_evidence_basis": {
+        "country_field": 19069
+      },
+      "invalid_or_missing_image_SHA": 0,
+      "historical_any_TEST_unique_SHA": 1114,
+      "cross_historical_release_split_overlap_unique_SHA": {
+        "train_test": 163,
+        "validation_test": 35,
+        "train_validation": 606
+      },
+      "country_is_publisher_metadata_not_verified_physical_location": true
+    },
+    "US100_never_train": {
+      "countries": {
+        "United_States": {
+          "test": {
+            "rows": 100,
+            "positive_pothole_rows": 50,
+            "no_pothole_rows": 50,
+            "unique_sha256_images": 100
+          }
+        }
+      },
+      "country_evidence_basis": {
+        "country_field": 100
+      },
+      "invalid_or_missing_image_SHA": 0,
+      "historical_any_TEST_unique_SHA": 100,
+      "cross_historical_release_split_overlap_unique_SHA": {
+        "train_test": 0,
+        "validation_test": 0,
+        "train_validation": 0
+      },
+      "country_is_publisher_metadata_not_verified_physical_location": true
+    },
+    "US100_rows_permanently_excluded": 100
+  },
+  "decision": {
+    "additional_US_training_executed": false,
+    "minimum_additional_positive_images_required": 200,
+    "raw_US_D40_positive_images": 116,
+    "previous_US100_positive_images_forbidden_for_training": 50,
+    "upper_bound_after_these50_before_further_exclusions": 66,
+    "sufficiency_passed": false,
+    "no_new_split_or_model_selection": true
+  },
+  "controls": {
+    "source_expiry_extended": false,
+    "existing_source_cache_modified": false,
+    "historical_control_files_verified_unchanged": 8,
+    "research_asset_scan": false,
+    "retention_register_or_delete": false,
+    "image_decodes": 0,
+    "model_inferences": 0,
+    "training_updates": 0,
+    "new_splits": 0,
+    "GPU_used": false
+  },
+  "limits": [
+    "Publisher country label is not verified physical road identity",
+    "Annotation bounds are machine checks; publisher omissions and real pothole completeness are unverified",
+    "Historical releases include interrupted/quarantined experiments; aggregate overlaps do not establish current single-release leakage",
+    "No future training membership or independent holdout has been created",
+    "Publisher TEST without XML is unlabelled, not confirmed noD40 negative",
+    "66 is a raw upper bound after the known50-positive TEST exclusion, not a new eligible TRAIN release; additional duplicate/block/identity QC has not been applied",
+    "Target-domain source absence is observed metadata; causal attribution of low AP has not been demonstrated"
+  ]
+}

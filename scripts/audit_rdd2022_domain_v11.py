@@ -186,7 +186,9 @@ def run():
         if sha256(ROOT/ref['path'])!=ref['sha256']:raise ValueError('metadata_changed_during_audit')
     result={'format':'rdd2022-domain-v11-annotation-metadata-results-v1','plan_sha256':sha256(PLAN),'archive_sha256':receipt['sha256'],
         'official_whole_MD5_verified':True,'whole_archive_CRC_verified':True,'source_expires_at':prior.EXPIRY,'source_expiry_extended':False,
-        'countries':countries,'historical_release_count':len(historical),'historical_per_release':historical,
+        'countries':countries,'publisher_country_archive_groups':7,'distinct_publisher_countries':6,
+        'China_MotorBike_and_Drone_are_separate_archive_groups_not_separate_countries':True,
+        'historical_release_count':len(historical),'historical_per_release':historical,
         'historical_combined_with_duplicate_rows':historical_counts(combined),'US100_never_train':historical_counts(old_test),
         'US100_rows_permanently_excluded':100,'all_historical_TEST_permanently_excluded':True,
         'image_decodes':0,'model_inferences':0,'new_splits':0,'training_updates':0,'GPU_used':False,

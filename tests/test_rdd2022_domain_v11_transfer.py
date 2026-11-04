@@ -1,5 +1,6 @@
 """Synthetic small archive transfer/structure guards; no source photos or GPU."""
 import hashlib,io,json,time,zipfile
+from datetime import datetime,timedelta,timezone
 import httpx,pytest
 from scripts import acquire_rdd2022_domain_v11 as a
 
@@ -8,6 +9,9 @@ from scripts import acquire_rdd2022_domain_v11 as a
 def files(tmp_path,monkeypatch):
     root=tmp_path/'bulk';root.mkdir()
     monkeypatch.setattr(a,'DEST',root);monkeypatch.setattr(a,'PARTIAL',root/'official.zip.download');monkeypatch.setattr(a,'ARCHIVE',root/'official.zip')
+    # Synthetic fixtures remain runnable after the real acquisition expires;
+    # this changes no real source plan, payload, or production expiry check.
+    monkeypatch.setattr(a.prior,'EXPIRY',(datetime.now(timezone.utc)+timedelta(days=1)).isoformat())
     monkeypatch.setattr(a.shutil,'disk_usage',lambda path:type('Disk',(),{'free':100*1024**3})())
     return root
 
