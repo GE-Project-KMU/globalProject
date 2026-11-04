@@ -1,12 +1,12 @@
 {
   "format": "public-cycle-final-software-verification-v1",
-  "verified_at": "2026-11-04T14:51:09.102005+00:00",
+  "verified_at": "2026-11-04T15:02:47.570889+00:00",
   "python_tests": {
-    "passed": 693,
+    "passed": 702,
     "subtests_passed": 189,
     "http_tests_included": 75,
     "skipped": 2,
-    "elapsed_seconds": 85.59,
+    "elapsed_seconds": 105.27,
     "skip_reasons": [
       "Exclusive CUDA opt-in test was not enabled in this generic run; real GPU model-set validation is separate.",
       "Windows account cannot create symlinks; junction guard tested separately."
@@ -63,11 +63,54 @@
   },
   "unexpected_service_errors": 0,
   "test_log_sha256": {
-    "pytest": "1b884b8f0e5a74b34d5280af955aecae0d188eeedfbc8a296e84c09cfece363e",
+    "pytest": "85d5c4880f380a073c22ea4101b4709a9198551741778b1ad099771a775c721f",
     "build": "071d09a0ef876e4b9d4b586e0f8a7cd0ee1c9951421e2947dfd7ccb41d226c43",
     "e2e": "1ad93732975ccee6b9c11b702a46b9fda54bde49266ca630f44adb5d64b4d5ed"
   },
   "trained_accuracy_or_field_acceptance_established_by_these_tests": false,
   "user_recordings_used": false,
-  "weights_uploaded": false
+  "weights_uploaded": false,
+  "service_log_delta_during_final_python_tests": {
+    "analysis": {
+      "new_bytes": 30808,
+      "traceback_count": 0,
+      "error_line_count": 0
+    },
+    "frontend": {
+      "new_bytes": 0,
+      "traceback_count": 0,
+      "error_line_count": 0
+    },
+    "gateway": {
+      "new_bytes": 56958,
+      "traceback_count": 0,
+      "error_line_count": 0
+    },
+    "gateway_tls": {
+      "new_bytes": 609,
+      "traceback_count": 0,
+      "error_line_count": 0
+    },
+    "identity": {
+      "new_bytes": 55204,
+      "traceback_count": 0,
+      "error_line_count": 0
+    },
+    "inspection": {
+      "new_bytes": 39811,
+      "traceback_count": 0,
+      "error_line_count": 0
+    },
+    "media": {
+      "new_bytes": 20205,
+      "traceback_count": 0,
+      "error_line_count": 0
+    },
+    "reporting": {
+      "new_bytes": 9842,
+      "traceback_count": 0,
+      "error_line_count": 0
+    }
+  },
+  "unexpected_service_errors_during_final_python_tests": 0
 }
