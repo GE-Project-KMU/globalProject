@@ -1,0 +1,289 @@
+{
+  "format": "final-frozen-models-CPU-benchmark-public-results-v1",
+  "status": "completed_research_benchmark",
+  "binding": {
+    "model_set_sha256": "fda53437ca10b9fa7e0f87eb2b8160adcbde076c39c0fa2c80aa52104a5f443c",
+    "protocol_sha256": "384b50775490f484b0fc1b71522e8933a27e4309a49bb7df3022b0d912d7342b",
+    "execution_sha256": "8b16a5564eb8efbf742659c70c8942e8135d0747e9c447d0b3e7ab70d8179e33",
+    "private_aggregate_sha256": "97e78f4959477cd454c208d5dde821a60e2054fc8ca35c89a081dbb0a189121f",
+    "helper_sha256": "c80bcd18d588838570382a5672ad0455698e8b5fa9dc8fe2708a23c692e6f425"
+  },
+  "models": {
+    "pothole": {
+      "manifest_sha256": "d45897d802dfa7d13b19d52c664f06a989c685e6aa810d47b224c62edf276cc2",
+      "weights_sha256": "10844440b5a0329e54ecf1ec8c2a4bd60de9ad644e881c0935da5c7638cc4814",
+      "CPU_canonical_proof_count": 3
+    },
+    "lane": {
+      "manifest_sha256": "79d07ddbda872433cb5eba1b7c40d13641522375b8d5371eb954ad93204dcff0",
+      "weights_sha256": "e4b187fa33e7bd133bbec37800090d192f12d4ccaf2ee4a7be22f4cdfcecfc97",
+      "CPU_canonical_proof_count": 3
+    },
+    "redaction": {
+      "manifest_sha256": "35d05364eb1596a3dc634ea95a42aa29371a398c3f322f5be31eebb4e292b2dd",
+      "weights_sha256": "a9df6a605d0349a19ef394fcf83752b80377ef09ecf7deb5fdaabb995afdadbc",
+      "CPU_canonical_proof_count": 2
+    }
+  },
+  "code_sha256": {
+    "model_adapter": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "pipeline": "2676daa2607cbaf926d4709edbec1ce6bf3271c5cf5d2b9e4c76cae918834dc6",
+    "inference_runner": "cc637c3130baefea0b627c94273450fa7a15ef2db2b9c1869c075e0a1f15398d",
+    "evidence_writer": "6746223ef3bb14e425f56b5e864c3d1535ecdc569c04e62f6b4117eb2eba6386",
+    "material_policy": "c5f2026f0e10d0f97e430e60bb2a68af18d8b397b4bd8f7b28287d779f1e9b72",
+    "governance": "fe6704cbe7c28753df490bbe5bc8bcd41af5f113f115380d6b90150d51f35baf",
+    "benchmark_helper": "c80bcd18d588838570382a5672ad0455698e8b5fa9dc8fe2708a23c692e6f425"
+  },
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.4",
+    "opencv": "5.0.0",
+    "system": "Windows",
+    "machine": "AMD64"
+  },
+  "runtime": {
+    "engine": "onnxruntime-cpu",
+    "version": "1.31.1",
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "OpenCV_threads": 1,
+    "precision": "FP32",
+    "GPU_operations": 0
+  },
+  "input": {
+    "kind": "newly_generated_nonpersonal_synthetic",
+    "size": [
+      1280,
+      720
+    ],
+    "frames_per_run": 16,
+    "source_or_TEST_photos_read": 0,
+    "timeline": "synthetic frame index divided by12",
+    "physical_capture_time_inferred": false
+  },
+  "measurement": {
+    "order": [
+      "default",
+      "fast",
+      "fast",
+      "default"
+    ],
+    "profiles": {
+      "default": {
+        "cpu_threads": 2,
+        "allow_spinning": true,
+        "model_workers": 1
+      },
+      "fast": {
+        "cpu_threads": 8,
+        "allow_spinning": false,
+        "model_workers": 3
+      }
+    },
+    "io_profile": "overlap",
+    "runs": [
+      {
+        "profile": "default",
+        "frames": 16,
+        "model_sessions": 3,
+        "model_load_seconds": 1.710830399999395,
+        "warmup_calls": 5,
+        "warmup_seconds": 4.60644649999449,
+        "untimed_raw_post_proof_seconds": 16.98848860000726,
+        "pipeline_wall_including_teardown": 15.14543869998306,
+        "teardown_seconds": 0.08130640001036227,
+        "processing_seconds": 15.064132299972698,
+        "processing_fps": 1.0621255629857285,
+        "actual_timed_model_predict_calls": {
+          "pothole": 16,
+          "lane": 16,
+          "redaction": 16
+        },
+        "model_predict_median_ms": {
+          "pothole": 25.53155002533458,
+          "lane": 453.7236000178382,
+          "redaction": 440.0564999668859
+        },
+        "stage_total_ms": {
+          "quality": 169.70229998696595,
+          "redaction": 7.838499848730862,
+          "tracking": 0.1759999431669712,
+          "PNG_publish": 605.8762000175193,
+          "JSON": 3.3002999844029546
+        },
+        "stage_times_overlap_and_cannot_be_summed": true
+      },
+      {
+        "profile": "fast",
+        "frames": 16,
+        "model_sessions": 3,
+        "model_load_seconds": 1.6921114000142552,
+        "warmup_calls": 5,
+        "warmup_seconds": 2.349121200037189,
+        "untimed_raw_post_proof_seconds": 8.903647500032093,
+        "pipeline_wall_including_teardown": 7.922789599979296,
+        "teardown_seconds": 0.08769149996805936,
+        "processing_seconds": 7.835098100011237,
+        "processing_fps": 2.042093129628722,
+        "actual_timed_model_predict_calls": {
+          "pothole": 16,
+          "lane": 16,
+          "redaction": 16
+        },
+        "model_predict_median_ms": {
+          "pothole": 23.20584998233244,
+          "lane": 364.75729997619055,
+          "redaction": 482.71250003017485
+        },
+        "stage_total_ms": {
+          "quality": 418.99560001911595,
+          "redaction": 7.232399890199304,
+          "tracking": 0.23610005155205727,
+          "PNG_publish": 792.0630000880919,
+          "JSON": 3.257800010032952
+        },
+        "stage_times_overlap_and_cannot_be_summed": true
+      },
+      {
+        "profile": "fast",
+        "frames": 16,
+        "model_sessions": 3,
+        "model_load_seconds": 1.7078525999677368,
+        "warmup_calls": 5,
+        "warmup_seconds": 2.3741008999641053,
+        "untimed_raw_post_proof_seconds": 0.0,
+        "pipeline_wall_including_teardown": 8.001243100035936,
+        "teardown_seconds": 0.08911299996543676,
+        "processing_seconds": 7.912130100070499,
+        "processing_fps": 2.0222114396042903,
+        "actual_timed_model_predict_calls": {
+          "pothole": 16,
+          "lane": 16,
+          "redaction": 16
+        },
+        "model_predict_median_ms": {
+          "pothole": 23.28039999702014,
+          "lane": 372.7851000148803,
+          "redaction": 494.59635000675917
+        },
+        "stage_total_ms": {
+          "quality": 422.20769997220486,
+          "redaction": 7.676299777813256,
+          "tracking": 0.24179992033168674,
+          "PNG_publish": 799.6349998284131,
+          "JSON": 3.532000002451241
+        },
+        "stage_times_overlap_and_cannot_be_summed": true
+      },
+      {
+        "profile": "default",
+        "frames": 16,
+        "model_sessions": 3,
+        "model_load_seconds": 1.8132190000033006,
+        "warmup_calls": 5,
+        "warmup_seconds": 4.934464299993124,
+        "untimed_raw_post_proof_seconds": 0.0,
+        "pipeline_wall_including_teardown": 15.451344300003257,
+        "teardown_seconds": 0.0829597000265494,
+        "processing_seconds": 15.368384599976707,
+        "processing_fps": 1.0410983598122765,
+        "actual_timed_model_predict_calls": {
+          "pothole": 16,
+          "lane": 16,
+          "redaction": 16
+        },
+        "model_predict_median_ms": {
+          "pothole": 25.961700011976063,
+          "lane": 453.2136499765329,
+          "redaction": 467.9483999789227
+        },
+        "stage_total_ms": {
+          "quality": 173.86229988187551,
+          "redaction": 7.0713001186959445,
+          "tracking": 0.2044000430032611,
+          "PNG_publish": 612.9570999764837,
+          "JSON": 4.950399976223707
+        },
+        "stage_times_overlap_and_cannot_be_summed": true
+      }
+    ],
+    "median_processing_fps": {
+      "default": 1.0516119613990025,
+      "fast": 2.0321522846165063
+    },
+    "same_run_fast_over_default_ratio": 1.9324164798516088,
+    "processing_scope": [
+      "application preprocessing",
+      "model inference",
+      "postprocessing",
+      "quality",
+      "tracking",
+      "opaque redaction",
+      "PNG publish",
+      "JSON save",
+      "final flush"
+    ],
+    "separately_measured_and_excluded": [
+      "session load",
+      "five warmups per session",
+      "raw/post proof",
+      "session teardown"
+    ],
+    "stages_overlap_and_cannot_be_summed": true,
+    "context": "Root-coordinated isolated model measurement; normal OS/service background activity not a hardware isolation guarantee"
+  },
+  "equivalence": {
+    "source_model_threshold_unchanged": true,
+    "raw_comparison_frames": 16,
+    "raw_models": 3,
+    "raw_rtol": 0.001,
+    "raw_atol": 0.0001,
+    "raw_max_abs_error": 0.0,
+    "post_exact": true,
+    "PNG_bytes_exact_across_four_runs": true,
+    "quality_tracking_lane_semantics_exact": true,
+    "all_three_timed_predict_calls_each_run": 16,
+    "saved_frames_each_run": 16,
+    "raw_arrays_written": 0,
+    "evidence_scope": "synthetic16 only; no new positive-VAL or independent accuracy claim"
+  },
+  "memory": {
+    "frame_boundary_RSS_guard_passed": true,
+    "RSS_budget_bytes": 8589934592,
+    "max_recorded_run_boundary_RSS_bytes": 456740864,
+    "continuous_peak_RSS_measured": false,
+    "raw_RAM_reference_budget_bytes": 536870912,
+    "output_budget_bytes": 1073741824
+  },
+  "retention": {
+    "synthetic_generated_at": "2026-11-04T22:31:18.424353+00:00",
+    "unreviewed_expires_at": "2026-11-05T00:31:18.424353+00:00",
+    "rule": "minimum of generation UTC+2h and original model source expiry",
+    "source_deadlines_extended": false,
+    "registration_or_deletion_performed_by_this_audit": false
+  },
+  "acceptance": {
+    "processing_target_fps": 10,
+    "processing_target_met": false,
+    "ten_fps_field_acceptance": false,
+    "ten_minute_sustained_test_completed": false,
+    "camera_decode_GNSS_depth_API_measured": false,
+    "GPU_support_changed": false,
+    "independent_accuracy_proven": false,
+    "production_approved": false,
+    "project_acceptance_passed": false
+  },
+  "limitations": [
+    "CPU fast improves this same-run synthetic benchmark but remains below10FPS",
+    "No direct speed comparison against earlier model sets or GPU runs",
+    "Lane assessment lacks validated capture geometry in this synthetic scope",
+    "CPU numerical/output equivalence does not override GPU raw failures or target accuracy deficits"
+  ],
+  "artifact_audit": {
+    "read_only_saved_PNG_checksums_verified_count": 64,
+    "individual_frame_hashes_or_paths_published": false,
+    "original_sources_modified": false,
+    "model_sessions_or_tests_executed": false
+  }
+}
