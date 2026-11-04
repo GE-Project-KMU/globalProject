@@ -1,0 +1,70 @@
+{
+  "format": "lane-numeric-supported-profile-v1",
+  "status": "verified_in_restricted_environment",
+  "required_runtime_profile": {
+    "engine": "onnxruntime-cpu",
+    "version": "1.31.1",
+    "system": "Windows",
+    "machine": "AMD64",
+    "providers": [
+      "CPUExecutionProvider"
+    ]
+  },
+  "manifest_sha256": "6e3a9871233efa6e089c5589ae7d102bb6f48e7a806ea1114d72540c8e7baf87",
+  "onnx_sha256": "0cbf89f5bfd751bc9ae2cb071f887609d9ff40a9f2f3914c129a44806dc1f548",
+  "checkpoint_sha256": "84b680b3f0c2d6c99d7abd9bf61a2e504ddd3c77095bc245e12a2627d3e4e801",
+  "full_validation_proof_sha256": "604fdbb7a3cbf2287690f8b67f07f8d7219152253f95f73b7f47d88499295e14",
+  "canonical_proof_sha256": [
+    "2a560e2839b3b03c6b4f68e69e7784021c1c8e8462f69626637d3d320bac8f70",
+    "f2adafbd4d6733fa2117db9eb24917d974bdeabbb7bec3431472b5adf0289f22",
+    "18c744497f96b19686a51c5338a15349592764e8da0a2315c2369d83f08e5204"
+  ],
+  "runtime_guard_sha256": "c6219afa6bbfec7941fe86cd17b5864838fcf0f60c115db8a35a247461e31af7",
+  "eval_setup_sha256": "b6eda0407d8308822f6ab61ef6f8820de9f5b7f6e50d93ff58c13ba15a101041",
+  "validator_sha256": "0cd7838ad3a1d6bfce554ce30399d452e6ec2e750119c8e1ff670a5388886855",
+  "original_torch_reference": "FP32 unchanged trained state; CPU torch2.7.1",
+  "rtol": 0.001,
+  "atol": 0.0001,
+  "threshold": 0.4,
+  "full_validation_images": 100,
+  "raw_comparison_pairs_per_image": 3,
+  "raw_failures": 0,
+  "post_exact_failures": 0,
+  "canonical_positive_VAL": 3,
+  "learned_state_unchanged": true,
+  "gradient_steps": 0,
+  "threshold_reselected": false,
+  "test_accessed": false,
+  "accuracy_improvement_evidence": false,
+  "production_approved": false,
+  "project_acceptance_eligible": false,
+  "legacy_failures": [
+    {
+      "status": "not_portably_verified",
+      "validation_images": 100,
+      "raw_failures": 0,
+      "post_failures": 1,
+      "runtime": "ORT1.20.1",
+      "original_proof_sha256": "07543bfae73b74f69c8d07c3458ea0ec5c393d81b06b0b4ce9aa061c19d1b2b4",
+      "accuracy_acceptance_passed": false
+    },
+    {
+      "status": "not_portably_verified",
+      "validation_images": 100,
+      "raw_failures": 0,
+      "post_failures": 1,
+      "runtime": "ORT1.20.1",
+      "original_proof_sha256": "041d210d3f1b070a53ffcaa24d60b61358b2e9aca52eedc349d98e949d8bfddc",
+      "accuracy_acceptance_passed": false
+    }
+  ],
+  "actual_legacy_runtime_rejected": true,
+  "guard_contract_tests": 20,
+  "vision_and_model_regression_tests": 109,
+  "limits": [
+    "Only tested Windows AMD64 ORT1.31.1 CPU profile is supported; no general portability claim",
+    "VAL numerical parity is not independent accuracy validation",
+    "Existing TEST cohorts are regression only; no TEST accessed in this diagnostic",
+    "Original ORT1.20.1 failure remains a failure; no tolerance or mask criterion relaxed"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "checks": {
+    "NHWC_MatMul_matches_independent_numpy_einsum": true,
+    "input_output_dtype_stays_float32": true,
+    "learned_parameter_bytes_preserved": true,
+    "nonpointwise_kernel_rejected": true,
+    "strided_kernel_rejected": true,
+    "full_checkpoint_state_bytes_identical": true,
+    "synthetic_function_equivalence_default_tolerance": true,
+    "source_factory_not_mutated": true,
+    "CPU_only_no_cuda_initialized": true
+  },
+  "passed": true,
+  "accuracy_evidence": false,
+  "recipe_sha256": "0d9739ee496b8f0e78174f4a136a41efec7d45a124df6a925cc7d94915ff9ad5",
+  "scope": "synthetic independent NumPy linear map, shape, dtype and state identity only"
+}

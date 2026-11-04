@@ -1,0 +1,33 @@
+{
+  "accuracy_evidence": false,
+  "checks": {
+    "mean_control_checkpoint_state_exact": true,
+    "mean_control_geometry_and_finite": true,
+    "mean_control_synthetic_forward_equivalence": true,
+    "resize_width_height_checkpoint_state_exact": true,
+    "resize_width_height_geometry_and_finite": true,
+    "resize_width_height_synthetic_forward_equivalence": true,
+    "resize_height_width_checkpoint_state_exact": true,
+    "resize_height_width_geometry_and_finite": true,
+    "resize_height_width_synthetic_forward_equivalence": true,
+    "resize_fp64_checkpoint_state_exact": true,
+    "resize_fp64_geometry_and_finite": true,
+    "resize_fp64_synthetic_forward_equivalence": true,
+    "pool_fp64_checkpoint_state_exact": true,
+    "pool_fp64_geometry_and_finite": true,
+    "pool_fp64_synthetic_forward_equivalence": true,
+    "pool_and_resize_fp64_checkpoint_state_exact": true,
+    "pool_and_resize_fp64_geometry_and_finite": true,
+    "pool_and_resize_fp64_synthetic_forward_equivalence": true,
+    "original_factory_not_mutated": true,
+    "signed_rectangular_mean_matches_independent_numpy_double_sum": true,
+    "constant_mean_has_no_shift_or_clamp": true,
+    "identical_masks_do_not_override_raw_failure": true,
+    "CPU_only_no_cuda_initialization": true
+  },
+  "passed": true,
+  "torch": "2.7.1+cu126",
+  "factory_sha256": "648961d31d6b6bd77f6f5b54f447e5f08a6d7c3928d133b15ed246ca1fd07f72",
+  "diagnostic_script_sha256": "f465d82c11dcac4300bf82b93c2b43ac80ab463576a6a3d545124f385e397118",
+  "scope": "synthetic numerical/shape/learned-state safety only; not model quality or speed"
+}

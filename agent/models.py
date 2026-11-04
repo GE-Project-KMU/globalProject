@@ -5,6 +5,7 @@ explicit blocked state, never a source of synthetic positive detections.
 """
 import json
 import math
+import platform
 from datetime import datetime,timezone
 import cv2
 import numpy as np
@@ -13,6 +14,26 @@ from .paths import workspace_path, sha256
 
 class ModelNotReady(RuntimeError):
     pass
+
+SUPPORTED_CPU_PROFILE={"engine":"onnxruntime-cpu","version":"1.31.1","system":"Windows","machine":"AMD64","providers":["CPUExecutionProvider"]}
+
+def enforce_runtime_profile(manifest,network):
+    """Fail closed for numerically verified, narrowly scoped export children.
+
+    Legacy manifests do not claim this profile and retain their existing policy.
+    Available providers are irrelevant: only the loaded session is checked.
+    """
+    if "required_runtime_profile" not in manifest:return
+    profile=manifest["required_runtime_profile"]
+    if not isinstance(profile,dict) or profile!=SUPPORTED_CPU_PROFILE:
+        raise ValueError("unsupported_required_runtime_profile")
+    if (getattr(network,"backend",None)!=profile["engine"] or
+        getattr(network,"backend_version",None)!=profile["version"] or
+        platform.system()!=profile["system"] or platform.machine()!=profile["machine"]):
+        raise ValueError("required_runtime_profile_mismatch")
+    session=getattr(network,"session",None)
+    if session is None or session.get_providers()!=profile["providers"]:
+        raise ValueError("required_runtime_session_providers_mismatch")
 
 class OrtNetwork:
     """CPU ORT, retaining the net.setInput/forward adapter interface."""
@@ -106,6 +127,7 @@ def readiness(manifest_path,backend="onnxruntime"):
             if type(threshold) not in (int,float) or not math.isfinite(threshold) or not 0<threshold<1:raise ValueError("invalid_paint_threshold")
         try:
             network=load_network(weights,backend)
+            enforce_runtime_profile(manifest,network)
         except (cv2.error,ValueError) as exc:
             raise ValueError("onnx_load_failed: " + str(exc)) from exc
         return {"ready": True, "status": "ready", "research_only":manifest.get("research_only",False),
@@ -124,6 +146,7 @@ class OnnxModel:
         self.manifest = state["manifest"]
         try:
             self.net = load_network(state["weights"],backend)
+            enforce_runtime_profile(self.manifest,self.net)
         except (cv2.error,ValueError) as exc:
             raise ModelNotReady("onnx_load_failed: " + str(exc)) from exc
         self.backend=getattr(self.net,"backend",backend)
