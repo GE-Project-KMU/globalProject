@@ -1,0 +1,92 @@
+{
+  "original_trainer_subset": {
+    "train_face": 3000,
+    "validation_face": 400,
+    "validation_plate": 108,
+    "total": 3508
+  },
+  "revision_lineage": {
+    "V9_stop_sha256": "dfd8b3769f36fe4ea31a53467c160c8078bca985ff14a64dc3a0c2b8992a415e",
+    "failed_export_sha256": "279d0f60ee2e09b75c0cb669ded3bb9ebc25c136a8f0f72bc20a0cf483dc0f57",
+    "independent_parent_preservation_sha256": "7a4a7b84d6dafb8d11b775271031c14974c51fecf58caf4930fcfc41b6ca230c",
+    "old_failed_wrapper_parent_verification_was_not_reached": true
+  },
+  "revision_reason": "Exact original trainer provenance predicate TRAIN face3000 plus ALL VAL508; packaging-only correction after preserved V9 export failure, same epoch12 EMA and all selection math",
+  "parent_V9_protocol_sha256": "af88de6497d426565635a2c16eb7779e0ec002112878429efbbd0ce28e7aa4be",
+  "parent_V9_parallel_protocol_sha256": "4f5ef0ef01512c4ceb680876f6b91c6c6adb40f35ca7b0ce6ff8c2e1b56eb546",
+  "export_plan_sha256": "56d58768fd4814ce6e46f0b00e069230e4ad3d564a0ef93d0d602c498415c051",
+  "export_source_sha256": "76513ae98a97dc9e6ae49d8054635f01c9683b3503435c6e54653e475acd612f",
+  "format": "privacy-family-v10-predeclared-protocol-v1",
+  "source_sha256": "747d6533934e71a209f822b30a54e6bc0f4c45c479b750144df2003cd36f8c86",
+  "predeclaration_sha256": "2717f0a737aa73d72afca8cc567519d0630c3ae2ebe77b980d608a9018228117",
+  "family_aliases": {
+    "rescue_v8_AP_selected": "rescue_v8"
+  },
+  "parent_V8_protocol_sha256": "5777de565111135f3793d247a332d5bb4c5cae4635378f8cfacfcbbff3cb4f59",
+  "parent_V8_source_sha256": "95b5dc346e30f0ee8341afdcdc874754507ce4c937f55261bdcb71b15779ca10",
+  "trainer_source_sha256": "7bc192db04ff79ff0cad9c3b440aa8357c99f387eecf4a7093ce3f59d9475f65",
+  "trainer_plan_sha256": "6bbd59191a2c352a6a2bf7dc0fbd15f25ced0f500be6010fa3011a4e0f94164d",
+  "old_operator_stop_sha256": "4d8e065302d758d790745721c6045b583bdb4dff8555762ae52696a3919e7a1b",
+  "development_sha256": "37cdd77565438c1254768347a7d7abe37c686ba20239c3ade2fda23cd98a8d0c",
+  "comparison_backend": "native-gpu",
+  "P2_parent_protocol_sha256": "31503ca3a9e1b4da72d8bd248b655d8b101a2462cd7c1f35881a4d9578353c36",
+  "runtime_profile": {
+    "engine": "torch-native-fp32",
+    "torch": "2.7.1+cu126",
+    "cudnn_benchmark": false,
+    "TF32": false
+  },
+  "baseline_manifest_sha256": "971dd630295aaffce09760b73ba07c080e92a65a76daad5d4a91bf0a14642edc",
+  "baseline_checkpoint_sha256": "6c985f7e3afb0fa061cbb82d7ec7b304eb5f9fbfcd0cf9f775dbab28873c82ad",
+  "VAL_images": 508,
+  "VAL_face": 400,
+  "VAL_plate": 108,
+  "families": [
+    "legacy_v4",
+    "rescue_v8",
+    "fixed_final12"
+  ],
+  "candidate_choice_predeclaration_timing": "V9 epoch12 EMA choice fixed after six development epochs, before final weights and all V8/V9/V10 TEST inference; not before all VAL",
+  "revision_timing": "V10 packaging/provenance correction after original training completed and V9 export failed; same predeclared epoch12 EMA, no reselection or new training",
+  "learning_unchanged": true,
+  "extra_gradient_updates": 0,
+  "fixed_final12_epoch": 12,
+  "fixed_final12_state": "EMA",
+  "backend_fairness": "Complete native FP32 baseline508, original AP-selected native508 metadata import, final12 EMA native508; same frozen evaluator and runtime",
+  "confidence_grid": [
+    0.01,
+    0.03,
+    0.05,
+    0.1,
+    0.2,
+    0.35,
+    0.5
+  ],
+  "largeface_gate": "sqrtGTarea>=64 fixed confidence.1; recall>=baseline-.01",
+  "family_winner": "both-class Recall95 feasible: macroPrecision then minRecall; otherwise minRecall then macroPrecision; exact tie legacy_v4 then rescue_v8 then fixed_final12",
+  "canonical_positive_cases": "Same sorted common correctly detected positive face and plate VAL cases, baseline/winner four strict CPU proofs",
+  "strict_before_TEST": {
+    "raw_rtol": 0.001,
+    "raw_atol": 0.0001,
+    "CPU_ORT": "1.31.1",
+    "no_tolerance_relaxation": true
+  },
+  "benchmarks": {
+    "fresh": {
+      "sha256": "8230874168c8b2d4d8de09c5c11cb3197f641c0ef6a28999ef77e3ea2465c9a7",
+      "samples": 200,
+      "role": "new blind source; physical identity independence unverified"
+    },
+    "regression": {
+      "sha256": "03dbb7a8e60b0316e4c06508bcb76175097f594a29d0a25d40a2129998ae4c8a",
+      "samples": 1400,
+      "role": "previously examined regression only"
+    }
+  },
+  "one_shot_attempt_receipt": true,
+  "TEST_predictions_before_freeze": 0,
+  "source_expires_at": "2026-11-10T16:55:19.285523+00:00",
+  "research_only": true,
+  "production_approved": false,
+  "user_recordings_used": false
+}
