@@ -15,6 +15,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  compose-runtime:
+    name: Docker Compose / nginx / PostgreSQL smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+      PYTHONPYCACHEPREFIX: ${{ github.workspace }}/.cache/pycache
+      COMPOSE_PROJECT_NAME: roadwatch-ci-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - name: Prepare isolated workspace environment
+        run: |
+          mkdir -p .cache/tmp .cache/pip data/logs
+          echo "TMPDIR=$GITHUB_WORKSPACE/.cache/tmp" >> "$GITHUB_ENV"
+          python -m venv .venv
+          .venv/bin/python -m pip install -r requirements.txt
+          .venv/bin/python scripts/manage.py env
+          echo "ROAD_CONTAINER_UID=$(id -u)" >> .env
+          echo "ROAD_CONTAINER_GID=$(id -g)" >> .env
+          mkdir -p data/containers/{identity,media,inspection,analysis,reporting,gateway}
+          docker compose config --quiet
+      - name: Build actual backend and frontend container images
+        run: |
+          docker build --target backend --tag roadwatch-backend:local .
+          docker compose build frontend
+      - name: Start six services and five PostgreSQL stores
+        run: docker compose up --detach --no-build --wait --wait-timeout 240
+      - name: Exercise synthetic data through nginx and gateway
+        run: |
+          .venv/bin/python scripts/seed_demo.py
+          .venv/bin/python scripts/compose_probe.py
+      - name: Stop only this job's Compose project
+        if: always()
+        run: docker compose down --volumes --remove-orphans
+
   postgres-spatial:
     name: PostgreSQL / PostGIS migrations and HTTP
     runs-on: ubuntu-24.04
