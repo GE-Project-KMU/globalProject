@@ -12,7 +12,7 @@ from uuid import uuid4
 from concurrent.futures import ThreadPoolExecutor
 import pytest
 from PIL import Image
-from test_http import client, auth, setup, data, utc, wait_job,env_values
+from test_http import client, auth, setup, data, utc, wait_job,env_values,test_identity
 
 pytestmark = pytest.mark.http
 
