@@ -1,0 +1,120 @@
+{
+  "format": "pothole-resolution-export-canonical-v1",
+  "exports": {
+    "models": {
+      "nano960": {
+        "manifest": {
+          "path": "data/training/pothole-resolution-v10/nano960/model.json",
+          "sha256": "b9afc89d3240b96d0f58f1aaa1697f81209ecdb153a45696101fd2cac9486ce8"
+        },
+        "checkpoint": {
+          "path": "data/training/pothole-resolution-v10/nano960/best.pt",
+          "sha256": "ca846f416269a860bb6002bfce7d763efd999d01b48d2257773a276fd10947e2"
+        },
+        "weights_sha256": "68e503a1186da5cfd2019d54dc4c3fb8f5f3d0ade19625b2c127531cb48a6eb5",
+        "input_size": [
+          960,
+          960
+        ],
+        "output_shape": [
+          1,
+          18900,
+          6
+        ]
+      },
+      "nano1280": {
+        "manifest": {
+          "path": "data/training/pothole-resolution-v10/nano1280/model.json",
+          "sha256": "17eac9d158330a42c3ea24af3f48bae323b5da08d9c61f428c4260da9465e674"
+        },
+        "checkpoint": {
+          "path": "data/training/pothole-resolution-v10/nano1280/best.pt",
+          "sha256": "ca846f416269a860bb6002bfce7d763efd999d01b48d2257773a276fd10947e2"
+        },
+        "weights_sha256": "5dc79bc6135de163a5497d2684306f15bacd6898dce78419a7c2b67aa4edf573",
+        "input_size": [
+          1280,
+          1280
+        ],
+        "output_shape": [
+          1,
+          33600,
+          6
+        ]
+      }
+    },
+    "plan_sha256": "9913b5cccee29b0ee665dc29fa27a80562cdf29f3b010bff4c7be35b314a1e4d",
+    "checkpoint_unchanged": true,
+    "GPU_used": false,
+    "TEST_images": 0
+  },
+  "canonical": {
+    "960": {
+      "format": "pothole-family-canonical-results-v1",
+      "manifest_sha256": "b9afc89d3240b96d0f58f1aaa1697f81209ecdb153a45696101fd2cac9486ce8",
+      "checkpoint_sha256": "ca846f416269a860bb6002bfce7d763efd999d01b48d2257773a276fd10947e2",
+      "plan_sha256": "e2a87504cbe967391dbb9dc07f4a692176156e4c16989b15d8f61604956cc7c7",
+      "rtol": 0.001,
+      "atol": 0.0001,
+      "all_passed": true,
+      "positive_VAL_cases": 3,
+      "results": [
+        {
+          "index": 0,
+          "passed": true,
+          "proof_sha256": "f4cf9d17fbafa88a6166fd80908e7f3a6188fbc0488c0bc6779287e38a0de00f",
+          "adapter_result_count": 5
+        },
+        {
+          "index": 1,
+          "passed": true,
+          "proof_sha256": "dda68ea1c791dedf064d135255b49cd484be1aa504253aa0502208716c685b02",
+          "adapter_result_count": 3
+        },
+        {
+          "index": 2,
+          "passed": true,
+          "proof_sha256": "15c50bedd9bdf93e5e2d40dc68aa431b51a5e34e0ea75067b0b8b6142004539c",
+          "adapter_result_count": 3
+        }
+      ],
+      "TEST_inference_performed": false,
+      "reference_ORT": "1.31.1"
+    },
+    "1280": {
+      "format": "pothole-family-canonical-results-v1",
+      "manifest_sha256": "17eac9d158330a42c3ea24af3f48bae323b5da08d9c61f428c4260da9465e674",
+      "checkpoint_sha256": "ca846f416269a860bb6002bfce7d763efd999d01b48d2257773a276fd10947e2",
+      "plan_sha256": "f1257063a11cc4e5b09d4c21f62e1fe78014ccc7632cdf4a8a873a52bec11941",
+      "rtol": 0.001,
+      "atol": 0.0001,
+      "all_passed": true,
+      "positive_VAL_cases": 3,
+      "results": [
+        {
+          "index": 0,
+          "passed": true,
+          "proof_sha256": "a647d244597a980d464b695a4221fe7e3fdd56a86ad8c3497a0693f9e282009a",
+          "adapter_result_count": 6
+        },
+        {
+          "index": 1,
+          "passed": true,
+          "proof_sha256": "7d2ff3754dab6e8340e688009b4f638a5fc1f741ebcc8785e2a89221d1e6967a",
+          "adapter_result_count": 6
+        },
+        {
+          "index": 2,
+          "passed": true,
+          "proof_sha256": "811941efdec7bd998a0fc5b1a4097a81a01ce5f858300995bb65b81b0e135fda",
+          "adapter_result_count": 10
+        }
+      ],
+      "TEST_inference_performed": false,
+      "reference_ORT": "1.31.1"
+    }
+  },
+  "accuracy_evaluation_performed": false,
+  "TEST_images": 0,
+  "GPU_used": false
+}
