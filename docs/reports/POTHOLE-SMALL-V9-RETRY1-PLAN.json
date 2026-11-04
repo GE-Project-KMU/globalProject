@@ -1,0 +1,29 @@
+{
+  "format": "pothole-small-v9-sequential-full-restart-v1",
+  "copied_input_sha256": {
+    "plan.json": "9578d1d2e0f85ea193d2536132f5b8fd0767b2b9ea54e8d718774aa2cafa833b",
+    "release.json": "43bcbd0c5160276dc8de9507e40db0a8776ff35e74faf971dcdf69fdddd6d52f",
+    "preflight.json": "a65b60f91d58aaf26790a5e0fdd61790421abfaf5ffc9cade3ba2bcd2ae36974",
+    "GPU-memory-preflight.json": "8da86dfc8a527ba7003d6b57b1397784bbc403781d80f77617461cc5d593b8f4"
+  },
+  "stopped_parent_receipts": {
+    "data/training/pothole-small-v9/shared-training-supervisor.json": "9a0d0be257bb5d8a6da631ed1173a5936475c0de1f3c4727a0f95848beef262f",
+    "data/training/public-nextcycle/P2-shared-training-supervisor.json": "6ca051555e1d0bb5230dfff99067a727393a43e720d9e297531653f2f9b7e111",
+    "data/training/public-nextcycle/lane-shared-training-supervisor.json": "e1dc25e806312c6dec3f11eb831ab6491fd66e4927a8141d2fbb83fa57f06f4c"
+  },
+  "supervisor_sha256": "82c2d9401e7cc6460e6ebac92b077d633872bf9421ca493d529e12b0409d5938",
+  "learning_source_sha256": "d3484a4447648e510a6233e2ccec1a28ed357991b792c2cb7c4828f941559b77",
+  "restart_from_official_initialization": true,
+  "optimizer_state_resumed": false,
+  "prior_partial_weights_used": false,
+  "GPU_training_policy": "one training process at a time; CPU/code work may run concurrently",
+  "sampled_device_limit_GiB": 9,
+  "initial_device_idle_limit_GiB": 2,
+  "learning_recipe_changed": false,
+  "TEST_used": false,
+  "memory_failure_limits": [
+    "Probe batches did not cover full shared training peak",
+    "10.32GiB device peak observed; no own-log OOM signatures",
+    "CuDNN autotune/workspaces possible cause, not established by allocation trace"
+  ]
+}
