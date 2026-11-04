@@ -1,0 +1,176 @@
+{
+  "format": "pothole-v6-validation-diagnostic-v1",
+  "scope": "existing validation only; not a fresh benchmark",
+  "plan_sha256": "da892c885b1bbcf776006f653f2b5bee254826b5cb49458e3cb59b5bda11f95d",
+  "manifest_sha256": "b1d5c070c2b4c769531e404e887c604dee3945bf04ddbc9ebd9a01dc588cbdca",
+  "weights_sha256": "201cbb306a5f332a57a4a9b1a5a51aecca639a3088974078895429bb0b940330",
+  "images": 652,
+  "test_images": 0,
+  "gpu_used": false,
+  "operating_confidence": 0.1,
+  "source_expires_at": "2026-11-10T17:14:46.862846+00:00",
+  "domains": {
+    "original": {
+      "operating": {
+        "overall": {
+          "gt": 330,
+          "tp": 231,
+          "fn": 99,
+          "fp": 183,
+          "images": 402,
+          "recall": 0.7,
+          "precision": 0.5579710144927537
+        },
+        "size_bins": {
+          "<16": {
+            "gt": 4,
+            "tp": 2,
+            "fn": 2,
+            "recall": 0.5
+          },
+          "16_to_32": {
+            "gt": 75,
+            "tp": 48,
+            "fn": 27,
+            "recall": 0.64
+          },
+          "32_to_64": {
+            "gt": 176,
+            "tp": 130,
+            "fn": 46,
+            "recall": 0.7386363636363636
+          },
+          "64_plus": {
+            "gt": 75,
+            "tp": 51,
+            "fn": 24,
+            "recall": 0.68
+          }
+        }
+      },
+      "floor_001": {
+        "overall": {
+          "gt": 330,
+          "tp": 271,
+          "fn": 59,
+          "fp": 644,
+          "images": 402,
+          "recall": 0.8212121212121212,
+          "precision": 0.29617486338797816
+        },
+        "size_bins": {
+          "<16": {
+            "gt": 4,
+            "tp": 2,
+            "fn": 2,
+            "recall": 0.5
+          },
+          "16_to_32": {
+            "gt": 75,
+            "tp": 61,
+            "fn": 14,
+            "recall": 0.8133333333333334
+          },
+          "32_to_64": {
+            "gt": 176,
+            "tp": 148,
+            "fn": 28,
+            "recall": 0.8409090909090909
+          },
+          "64_plus": {
+            "gt": 75,
+            "tp": 60,
+            "fn": 15,
+            "recall": 0.8
+          }
+        }
+      }
+    },
+    "mwpd": {
+      "operating": {
+        "overall": {
+          "gt": 539,
+          "tp": 379,
+          "fn": 160,
+          "fp": 468,
+          "images": 250,
+          "recall": 0.7031539888682746,
+          "precision": 0.4474616292798111
+        },
+        "size_bins": {
+          "<16": {
+            "gt": 0,
+            "tp": 0,
+            "fn": 0,
+            "recall": null
+          },
+          "16_to_32": {
+            "gt": 10,
+            "tp": 5,
+            "fn": 5,
+            "recall": 0.5
+          },
+          "32_to_64": {
+            "gt": 113,
+            "tp": 67,
+            "fn": 46,
+            "recall": 0.5929203539823009
+          },
+          "64_plus": {
+            "gt": 416,
+            "tp": 307,
+            "fn": 109,
+            "recall": 0.7379807692307693
+          }
+        }
+      },
+      "floor_001": {
+        "overall": {
+          "gt": 539,
+          "tp": 444,
+          "fn": 95,
+          "fp": 2577,
+          "images": 250,
+          "recall": 0.8237476808905381,
+          "precision": 0.14697120158887786
+        },
+        "size_bins": {
+          "<16": {
+            "gt": 0,
+            "tp": 0,
+            "fn": 0,
+            "recall": null
+          },
+          "16_to_32": {
+            "gt": 10,
+            "tp": 6,
+            "fn": 4,
+            "recall": 0.6
+          },
+          "32_to_64": {
+            "gt": 113,
+            "tp": 85,
+            "fn": 28,
+            "recall": 0.7522123893805309
+          },
+          "64_plus": {
+            "gt": 416,
+            "tp": 353,
+            "fn": 63,
+            "recall": 0.8485576923076923
+          }
+        }
+      }
+    }
+  },
+  "inference_seconds": {
+    "median": 0.027391199982957914,
+    "p95": 0.03693022000952624
+  },
+  "limits": [
+    "Existing validation diagnostic for next research recipe; no independent acceptance claim.",
+    "Size refers to square-root GT area after640 aspect-preserving scale, not object real-world dimensions.",
+    "CPU timing excludes decode and runs under shared training host load; not pipeline FPS.",
+    "Publisher annotations only; no human privacy approval."
+  ]
+}

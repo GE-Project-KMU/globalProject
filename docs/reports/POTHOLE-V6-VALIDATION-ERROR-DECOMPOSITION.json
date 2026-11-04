@@ -1,0 +1,59 @@
+{
+  "format": "pothole-v6-VAL-error-decomposition-v1",
+  "source_sha256": "0c97c1aa265b92462a015acf68827dd12212b9333c2eb4f9a93accc4926f0a1e",
+  "parent_aggregate_sha256": "20f2e9a684ed295fffff0db6080d4010d0f0f3cf78e9356eca2b5655779c91c8",
+  "private_predictions_sha256": "8078171ecd9f26cc53ca085ed683b0f2de43621cffe1971434077bbdf273d7ad",
+  "validation_images": 652,
+  "additional_model_inferences": 0,
+  "additional_image_reads": 0,
+  "test_images": 0,
+  "gpu_used": false,
+  "operating_confidence": 0.1,
+  "source_expires_at": "2026-11-10T17:14:46.862846+00:00",
+  "domains": {
+    "original": {
+      "tp": 231,
+      "fn": 99,
+      "fp": 183,
+      "images": 402,
+      "images_without_GT": 201,
+      "FP_on_images_without_GT": 35,
+      "FN_best_sameclass_prediction_IoU": {
+        "0_1_to_0_5": 38,
+        "below_0_1": 61
+      },
+      "FP_best_sameclass_GT_IoU": {
+        "0_1_to_0_5": 60,
+        "below_0_1": 119,
+        "at_least_0_5": 4
+      }
+    },
+    "mwpd": {
+      "tp": 379,
+      "fn": 160,
+      "fp": 468,
+      "images": 250,
+      "images_without_GT": 0,
+      "FP_on_images_without_GT": 0,
+      "FN_best_sameclass_prediction_IoU": {
+        "0_1_to_0_5": 82,
+        "below_0_1": 78
+      },
+      "FP_best_sameclass_GT_IoU": {
+        "0_1_to_0_5": 217,
+        "below_0_1": 236,
+        "at_least_0_5": 15
+      }
+    }
+  },
+  "interpretation": {
+    "below_0_1": "No close operating-point prediction/GT; background/confidence failure is possible but cause not proven.",
+    "0_1_to_0_5": "Some box overlap, but below IoU0.5; localization or annotation disagreement is possible, not established.",
+    "at_least_0_5": "One-to-one matching collision or duplicate prediction/annotation is possible; human audit not performed."
+  },
+  "limits": [
+    "Metadata-only existing validation diagnostic, not independent evaluation.",
+    "Publisher annotations may be incomplete; background false positives are label-relative.",
+    "No operating threshold or weights were changed."
+  ]
+}
