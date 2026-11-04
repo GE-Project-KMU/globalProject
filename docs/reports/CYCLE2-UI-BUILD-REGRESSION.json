@@ -1,0 +1,61 @@
+{
+  "format": "cycle2-software-UI-build-regression-v1",
+  "verified_at": "2026-11-04T17:13:23.983943+00:00",
+  "browser_tests_passed": 26,
+  "browser_elapsed": "1.2m",
+  "build_passed": true,
+  "actual_gateway_workflow_profiles": [
+    "default",
+    "overlap"
+  ],
+  "browser_error_assertions_passed": true,
+  "service_log_deltas": {
+    "analysis": {
+      "new_bytes": 3190,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "frontend": {
+      "new_bytes": 72,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "gateway": {
+      "new_bytes": 19809,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "gateway_tls": {
+      "new_bytes": 0,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "identity": {
+      "new_bytes": 18378,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "inspection": {
+      "new_bytes": 9978,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "media": {
+      "new_bytes": 4064,
+      "tracebacks": 0,
+      "error_lines": 0
+    },
+    "reporting": {
+      "new_bytes": 5641,
+      "tracebacks": 0,
+      "error_lines": 0
+    }
+  },
+  "unexpected_service_errors": 0,
+  "user_recordings_used": false,
+  "model_accuracy_or_10FPS_established": false,
+  "log_sha256": {
+    "ui": "d101c041452df0e35db0d0c3f1e778a42976c2ec79574aa3985cba3dfb029724",
+    "build": "d376ca8a21c90941cdf4bbac681e5df75aa112afac17ed40f9f2a67ade27e04b"
+  }
+}
