@@ -1,0 +1,27 @@
+{
+  "format": "pothole-mwpd-final-plan-v1",
+  "created_before_final_predictions": true,
+  "models": {
+    "baseline": "data/training/pothole-nano-rdd2020-v4/model.json",
+    "candidate": "data/training/pothole-mwpd-v6/model.json"
+  },
+  "baseline_manifest_sha256": "28efe86e7c9eacdf90d11caf0eb942dbb19b0a4d6830229069b3277cc8a45a6a",
+  "candidate_release_sha256": "5b1798968f27eb60939d80d5952447135b6bb49bf6ad16e9f64cfe75d2f8faca",
+  "benchmark_manifest": "data/training/pothole-mwpd-v6/final-benchmark.json",
+  "benchmark_sha256": "7497babaf45a3bcd652b5f0cf6a5807f5f0da1e636878475e6272792c999f415",
+  "role": "new_unused_source_image_and_filename_block_cohorts_not_verified_physical_routes",
+  "positive_images": 97,
+  "negative_images": 48,
+  "negative_source_country": "Czech",
+  "metrics": [
+    "combined AP50 at .01 floor",
+    "MWPD positive-only AP50",
+    "frozen .1 operating precision/recall",
+    "no-D40 negative FP/image and any-FP fraction"
+  ],
+  "candidate_selection": "frozen 12epoch mean(old VAL,new VAL) with old VAL<=3pp absolute drop; never final TEST",
+  "test_used_for_selection": false,
+  "physical_route_independence_verified": false,
+  "production_approved": false,
+  "script_sha256": "6b30a28b6ef5c5f542e91aa636f60902493ba77f272b601bc89bc78efebd5e5f"
+}
