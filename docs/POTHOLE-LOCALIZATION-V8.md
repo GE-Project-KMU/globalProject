@@ -19,3 +19,9 @@
 ```
 
 진행·완료된 출력은 덮어쓰지 않는다. 소스·자료·난도 파일·초기 checkpoint·계획 SHA가 달라지면 학습을 거부한다. 실패와 초기 모델 유지도 결과로 기록한다.
+
+실제 학습은 최대18epoch와 optimizer4,593회 갱신으로 종료했다. 사전 규칙은 epoch17을 선택했다. 기존 RDD VAL AP50은65.6795%→64.3444%로1.3351%p 하락하고 MWPD VAL은59.1452%→62.2429%로3.0976%p 올랐다. 동일 가중 평균은62.4124%→63.2937%로0.8813%p 개선되어 기존 도메인3%p 제한을 통과했다. 이는 최종 TEST 정확도 또는80% 달성 결과가 아니다.
+
+실행한 학습 소스와 원본 export manifest는 수정하지 않았다. 실제 개발 release에TEST가0장인 사실을 명시하는 별도 `model-development.json` 패키지를 만들고 원본 manifest·선택 receipt SHA를 연결했다. 기존3분할 모델의 검증 조건은 그대로 유지하며 개발 전용 표시·train/validation 양쪽 존재·test0·최종TEST 이전 export를 모두 충족해야 별도 경로를 허용한다.
+
+고정한 양성 VAL3장에서 실제 앱 ONNX Runtime1.31.1, 격리 ONNX Runtime1.31.1, 원본 FP32 PyTorch를 비교했다. raw 기본 오차(rtol0.001/atol0.0001), 후처리, 실제 양성 검출을 모두 통과했다(검출 수4/1/2). [학습 집계](reports/POTHOLE-LOCALIZATION-V8-RESULTS.json)와 [변환 검증](reports/POTHOLE-LOCALIZATION-V8-CANONICAL.json)은 TEST0 결과다. 이 후보의 최종 채택은 추가 용량 후보까지 사전 VAL 규칙으로 비교한 후 확정한다.
