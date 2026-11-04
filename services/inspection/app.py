@@ -139,6 +139,8 @@ async def ingest(b:Observation,req:Request,response:Response):
     if stamp(b.captured_at)<stamp(run["started_at"])-2 or (run.get("ended_at") and stamp(b.captured_at)>stamp(run["ended_at"])+2):fail(422,"INVALID_RUN_TIME")
     image=(await remote("media","/internal/images/"+b.image.file_id,p)).json()["data"]
     if image["sha256"]!=b.image.sha256 or stamp(image["captured_at"])!=stamp(b.captured_at):fail(422,"IMAGE_REFERENCE_MISMATCH")
+    expires=min(expires,float(image["expires"]))
+    if expires<=now():fail(410,"DATA_EXPIRED")
     bundle=(await remote("analysis","/internal/model-version/"+b.model_version,p)).json()["data"]
     if bundle["config_hash"]!=b.config_hash:fail(422,"CONFIG_HASH_MISMATCH")
     profile=(await remote("analysis","/api/v1/profiles/"+b.profile_id,p)).json()["data"]

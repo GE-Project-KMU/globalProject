@@ -20,6 +20,7 @@ class Approval(BaseModel):
     size_bytes:int=Field(gt=0,le=5000000)
     mime:str
     captured_at:str;reviewed_at:str
+    source_expires_at:str|None=Field(default=None,max_length=64)
     redaction_model_version:str=Field(min_length=1,max_length=150)
     @field_validator("file_id","device_id")
     @classmethod
@@ -92,10 +93,23 @@ async def approve(b:Approval,req:Request):
     await remote("identity","/internal/devices/"+b.device_id,p)
     captured=stamp(b.captured_at);reviewed=stamp(b.reviewed_at)
     if captured>now()+2 or reviewed<captured or reviewed>now()+2:fail(422,"INVALID_TIME")
-    if captured+90*86400<=now():fail(410,"DATA_EXPIRED")
-    id=uid();store.create(id,p["org_id"],"approval",{**b.model_dump(),"reviewer_id":p["sub"],"approved_at":iso(),"approval_expires_at":now()+900,"used":False},captured+90*86400)
+    source_expiry=stamp(b.source_expires_at) if b.source_expires_at is not None else None
+    if source_expiry is not None and source_expiry<=captured:fail(422,"INVALID_SOURCE_RETENTION")
+    expires=min(captured+90*86400,source_expiry) if source_expiry is not None else captured+90*86400
+    if expires<=now():fail(410,"DATA_EXPIRED")
+    try:
+        existing=store.get(b.file_id,p["org_id"],"image",expired=True)
+        if existing["expires"]<=now():fail(410,"DATA_EXPIRED")
+        previous=stamp(existing["source_expires_at"]) if existing.get("source_expires_at") is not None else None
+        if previous!=source_expiry:fail(409,"IMAGE_RETENTION_CONFLICT")
+    except HTTPException as e:
+        if e.status_code!=404:raise
+    fields=b.model_dump(exclude_none=True)
+    if source_expiry is not None:fields["source_expires_at"]=iso(source_expiry)
+    approval_expiry=min(now()+900,expires)
+    id=uid();store.create(id,p["org_id"],"approval",{**fields,"reviewer_id":p["sub"],"approved_at":iso(),"approval_expires_at":approval_expiry,"used":False},expires)
     store.audit(p,"image.approve",id)
-    return ok({"approval_id":id,"expires_at":iso(now()+900)})
+    return ok({"approval_id":id,"expires_at":iso(approval_expiry)})
 @app.post("/api/v1/images",status_code=201)
 @serialized_image
 async def upload(req:Request,response:Response,file:UploadFile=File(...),metadata:str=Form(...)):
@@ -109,6 +123,13 @@ async def upload(req:Request,response:Response,file:UploadFile=File(...),metadat
         fail(410,"DATA_EXPIRED")
     except HTTPException as e:
         if e.status_code!=404:raise
+    # Check the immutable source deadline before reading/decompressing pixels.
+    # A retry of an existing live image may use its original consumed approval.
+    try:store.get(id,p["org_id"],"image")
+    except HTTPException as e:
+        if e.status_code!=404:raise
+        pending=store.get(b["approval_id"],p["org_id"],"approval")
+        if pending["approval_expires_at"]<now():fail(409,"APPROVAL_EXPIRED")
     content=await file.read(5000001)
     if len(content)>5000000:fail(413,"PAYLOAD_TOO_LARGE")
     try:
@@ -128,6 +149,11 @@ async def upload(req:Request,response:Response,file:UploadFile=File(...),metadat
         old=store.get(id,p["org_id"],"image")
         if old["state"]!="ready":fail(410,"DATA_RESTRICTED")
         if old["sha256"]!=sha or old["device_id"]!=p["sub"] or old["captured_at"]!=b["captured_at"]:fail(409,"IDEMPOTENCY_CONFLICT")
+        if old.get("approval_id")!=b["approval_id"]:
+            retry=store.get(b["approval_id"],p["org_id"],"approval",expired=True)
+            previous=stamp(old["source_expires_at"]) if old.get("source_expires_at") is not None else None
+            requested=stamp(retry["source_expires_at"]) if retry.get("source_expires_at") is not None else None
+            if previous!=requested:fail(409,"IMAGE_RETENTION_CONFLICT")
         response.status_code=200
         return ok({"image_id":id,"state":"ready","sha256":sha,"expires_at":iso(old["expires"]),"deduplicated":True})
     except HTTPException as e:
@@ -136,14 +162,15 @@ async def upload(req:Request,response:Response,file:UploadFile=File(...),metadat
     if approval["device_id"]!=p["sub"]:fail(403,"FORBIDDEN")
     if approval["approval_expires_at"]<now() or approval["used"]:fail(409,"APPROVAL_EXPIRED")
     if any(approval[k]!=b[k] for k in ("file_id","sha256","captured_at")) or approval["size_bytes"]!=len(content) or approval["mime"]!=mime:fail(422,"APPROVAL_MISMATCH")
+    expires=min(stamp(b["captured_at"])+90*86400,float(approval["expires"]))
+    if expires<=now():fail(410,"DATA_EXPIRED")
     path=FILES/id;tmp=FILES/(id+"."+uid()+".tmp");tmp.write_bytes(content);tmp.replace(path)
-    expires=stamp(b["captured_at"])+90*86400
     with store.tx() as s:
         a=store.get(b["approval_id"],p["org_id"],"approval",s)
         if a["used"]:fail(409,"APPROVAL_ALREADY_USED")
         payload={k:v for k,v in a.items() if k not in ("id","org_id","kind","version","created","expires")};payload["used"]=True
         store.change(a["id"],p["org_id"],payload,a["version"],s)
-        store.create(id,p["org_id"],"image",{"sha256":sha,"perceptual_hash":perceptual_hash,"device_id":p["sub"],"captured_at":b["captured_at"],"mime":mime,"width":width,"height":height,"state":"ready","approval_id":a["id"]},expires,s)
+        store.create(id,p["org_id"],"image",{"sha256":sha,"perceptual_hash":perceptual_hash,"device_id":p["sub"],"captured_at":b["captured_at"],"mime":mime,"width":width,"height":height,"state":"ready","approval_id":a["id"],"source_expires_at":approval.get("source_expires_at")},expires,s)
     return ok({"image_id":id,"state":"ready","sha256":sha,"expires_at":iso(expires),"deduplicated":False})
 @app.get("/internal/images/{id}")
 def verify(id:UUIDString,req:Request):
