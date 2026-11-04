@@ -25,6 +25,16 @@ def enforce_runtime_profile(manifest,network):
     """
     if "required_runtime_profile" not in manifest:return
     profile=manifest["required_runtime_profile"]
+    from .gpu_worker_client import GPU_PROFILE
+    if profile==GPU_PROFILE:
+        if (getattr(network,'backend',None)!=GPU_PROFILE['engine'] or
+            getattr(network,'backend_version',None)!=GPU_PROFILE['version'] or
+            platform.system()!=GPU_PROFILE['system'] or platform.machine()!=GPU_PROFILE['machine'] or
+            getattr(network,'session',None) is None or network.session.get_providers()!=GPU_PROFILE['providers'] or
+            getattr(network,'runtime_options',{}).get('use_tf32') is not False or
+            getattr(network,'runtime_options',{}).get('device_capability')!=[7,5]):
+            raise ValueError('required_gpu_runtime_profile_mismatch')
+        return
     if not isinstance(profile,dict) or profile!=SUPPORTED_CPU_PROFILE:
         raise ValueError("unsupported_required_runtime_profile")
     if (getattr(network,"backend",None)!=profile["engine"] or
@@ -38,11 +48,15 @@ def enforce_runtime_profile(manifest,network):
 class OrtNetwork:
     """CPU ORT, retaining the net.setInput/forward adapter interface."""
     backend="onnxruntime-cpu"
-    def __init__(self,weights):
+    def __init__(self,weights,*,cpu_threads=2,allow_spinning=True):
+        validate_cpu_options(cpu_threads,allow_spinning)
         try:import onnxruntime as ort
         except ImportError as exc:raise ValueError("onnxruntime_runtime_required") from exc
         self.backend_version=self.version=ort.__version__
-        options=ort.SessionOptions();options.intra_op_num_threads=2;options.inter_op_num_threads=1;options.log_severity_level=3
+        options=ort.SessionOptions();options.intra_op_num_threads=cpu_threads;options.inter_op_num_threads=1;options.log_severity_level=3
+        options.add_session_config_entry('session.intra_op.allow_spinning','1' if allow_spinning else '0')
+        options.add_session_config_entry('session.inter_op.allow_spinning','1' if allow_spinning else '0')
+        self.runtime_options={'cpu_intra_op_threads':cpu_threads,'cpu_inter_op_threads':1,'allow_spinning':allow_spinning}
         try:
             # A byte-loaded self-contained model cannot resolve external tensor
             # files against an arbitrary filesystem path.
@@ -72,21 +86,41 @@ class OpenCVClassicNetwork:
     def setInput(self,value):self.net.setInput(value)
     def forward(self):return self.net.forward()
 
-def load_network(weights,backend="onnxruntime"):
-    if backend=="onnxruntime":return OrtNetwork(weights)
+def validate_cpu_options(cpu_threads,allow_spinning):
+    if type(cpu_threads) is not int or not 1<=cpu_threads<=32 or type(allow_spinning) is not bool:
+        raise ValueError('invalid_cpu_runtime_options')
+
+
+def load_network(weights,backend="onnxruntime",*,cpu_threads=2,allow_spinning=True):
+    validate_cpu_options(cpu_threads,allow_spinning)
+    if backend=="onnxruntime":return OrtNetwork(weights,cpu_threads=cpu_threads,allow_spinning=allow_spinning)
+    if (cpu_threads,allow_spinning)!=(2,True):raise ValueError('cpu_options_require_onnxruntime')
     if backend=="opencv-classic":return OpenCVClassicNetwork(weights)
     raise ValueError("unsupported_inference_backend")
 
 def runtime_metadata(models):
     """Describe actual loaded adapters; test/custom factories remain explicit."""
-    values={task:{"engine":getattr(model,"backend","custom-unverified"),"version":getattr(model,"backend_version",None)} for task,model in models.items()}
+    values={task:{"engine":getattr(model,"backend","custom-unverified"),"version":getattr(model,"backend_version",None),
+        "runtime_options":getattr(getattr(model,'net',None),'runtime_options',None)} for task,model in models.items()}
     engines={value["engine"] for value in values.values()};versions={value["version"] for value in values.values()}
     return {"engine":next(iter(engines)) if len(engines)==1 else "mixed","version":next(iter(versions)) if len(versions)==1 else None,"models":values,
-            "device":"cpu" if engines and engines<={"onnxruntime-cpu","opencv-classic-diagnostic"} else "unspecified"}
+            "device":"cpu" if engines and engines<={"onnxruntime-cpu","opencv-classic-diagnostic"} else "cuda" if engines=={'onnxruntime-cuda-worker'} else "unspecified"}
 
 
-def readiness(manifest_path,backend="onnxruntime"):
+def configured_network(weights,backend,cpu_threads,allow_spinning,manifest=None):
+    if backend=='onnxruntime-cuda':
+        from .gpu_worker_client import CudaWorkerNetwork
+        try:return CudaWorkerNetwork(weights,manifest)
+        except Exception as error:raise ValueError('cuda_worker_not_ready:'+type(error).__name__) from error
+    # Preserve legacy/custom factory signatures for the unchanged defaults.
+    if (cpu_threads,allow_spinning)==(2,True):return load_network(weights,backend)
+    return load_network(weights,backend,cpu_threads=cpu_threads,allow_spinning=allow_spinning)
+
+
+def readiness(manifest_path,backend="onnxruntime",*,cpu_threads=2,allow_spinning=True,_network_sink=None):
+    network=None
     try:
+        validate_cpu_options(cpu_threads,allow_spinning)
         manifest_path = workspace_path(manifest_path, exists=True)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if not isinstance(manifest,dict):raise ValueError("model_manifest_object_required")
@@ -126,31 +160,42 @@ def readiness(manifest_path,backend="onnxruntime"):
             threshold=manifest["paint_threshold"]
             if type(threshold) not in (int,float) or not math.isfinite(threshold) or not 0<threshold<1:raise ValueError("invalid_paint_threshold")
         try:
-            network=load_network(weights,backend)
+            network=configured_network(weights,backend,cpu_threads,allow_spinning,manifest)
             enforce_runtime_profile(manifest,network)
         except (cv2.error,ValueError) as exc:
             raise ValueError("onnx_load_failed: " + str(exc)) from exc
-        return {"ready": True, "status": "ready", "research_only":manifest.get("research_only",False),
+        result={"ready": True, "status": "ready", "research_only":manifest.get("research_only",False),
                 "deployment_ready":manifest.get("production_approved") is True and not manifest.get("research_only",False)
                     and not manifest.get("deployment_blocked_reasons"),
                 "inference_backend":getattr(network,"backend",backend),"inference_backend_version":getattr(network,"backend_version",None),"manifest": manifest, "weights": str(weights)}
+        if backend=='onnxruntime-cuda':
+            if _network_sink is not None:_network_sink.append(network)
+            else:network.close()
+        return result
     except (FileNotFoundError, KeyError, ValueError,TypeError,AttributeError, json.JSONDecodeError) as exc:
+        if backend=='onnxruntime-cuda' and network is not None:network.close()
         return {"ready": False, "status": "model_not_ready", "reason": str(exc)}
 
 
 class OnnxModel:
-    def __init__(self, manifest_path,backend="onnxruntime"):
-        state = readiness(manifest_path,backend)
+    def __init__(self, manifest_path,backend="onnxruntime",*,cpu_threads=2,allow_spinning=True):
+        gpu_networks=[]
+        state = readiness(manifest_path,backend,cpu_threads=cpu_threads,allow_spinning=allow_spinning,
+            **({'_network_sink':gpu_networks} if backend=='onnxruntime-cuda' else {}))
         if not state["ready"]:
             raise ModelNotReady(state["reason"])
         self.manifest = state["manifest"]
         try:
-            self.net = load_network(state["weights"],backend)
+            self.net = gpu_networks[0] if gpu_networks else configured_network(state["weights"],backend,cpu_threads,allow_spinning,self.manifest)
             enforce_runtime_profile(self.manifest,self.net)
         except (cv2.error,ValueError) as exc:
             raise ModelNotReady("onnx_load_failed: " + str(exc)) from exc
         self.backend=getattr(self.net,"backend",backend)
         self.backend_version=getattr(self.net,"backend_version",None)
+
+    def close(self):
+        close=getattr(getattr(self,'net',None),'close',None)
+        if close:close()
 
     def predict(self, frame):
         if frame is None or frame.ndim != 3 or frame.shape[2] != 3:

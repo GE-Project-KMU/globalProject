@@ -24,3 +24,4 @@ htmlcov/
 *.svo2
 *.mp4
 *.avi
+.venv-performance/

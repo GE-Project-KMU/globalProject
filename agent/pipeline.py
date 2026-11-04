@@ -8,6 +8,7 @@ import numpy as np
 from .capture import replay
 from .models import OnnxModel, ModelNotReady, frame_quality, redact,runtime_metadata
 from .lane import measure_patch
+from .inference_runner import create_models,InferenceRunner,close_models
 from .paths import workspace_path, atomic_json, sha256
 
 
@@ -120,63 +121,66 @@ def straight_solid_outline(paint, nominal_width_px):
 
 
 def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_manifest,
-                  stereo=False, profile_path=None, sample_fps=10):
+                  stereo=False, profile_path=None, sample_fps=10, cpu_profile="default", inference_backend="cpu",gpu_profile=None):
     # All real models must load before any processing; no heuristic potholes.
-    models = {"pothole": OnnxModel(pothole_manifest), "lane": OnnxModel(lane_manifest),
-              "redaction": OnnxModel(redaction_manifest)}
-    output = workspace_path(output)
-    output.mkdir(parents=True, exist_ok=True)
-    profile = json.loads(workspace_path(profile_path, exists=True).read_text(encoding="utf-8")) if profile_path else {}
-    h_matrix = profile.get("homography")
-    if h_matrix is not None:
-        h_matrix = np.asarray(h_matrix, dtype=np.float64)
-        if h_matrix.shape != (3, 3) or not np.isfinite(h_matrix).all() or abs(np.linalg.det(h_matrix)) < 1e-12:
-            raise ValueError("invalid_homography")
-    tracker, observations, started = Tracker(), [], datetime.now(timezone.utc)
-    run_id = str(uuid.uuid4())
-    for sample in replay(source, sample_fps=sample_fps):
-        frame = sample["frame"]
-        if stereo:
-            if frame.shape[1] % 2:
-                raise ValueError("side_by_side_even_width_required")
-            frame = frame[:, :frame.shape[1] // 2]
-        quality = frame_quality(frame)
-        potholes = tracker.update(models["pothole"].predict(frame), sample["pts_seconds"])
-        paint = models["lane"].predict(frame)
-        redacted = redact(frame, models["redaction"].predict(frame))
-        image_path = output / f"{sample['frame_id']:09d}.redacted.png"
-        if not cv2.imwrite(str(image_path), redacted):
-            raise RuntimeError("image_write_failed")
-        lane = {"grade": "unassessable", "retention_pct": None, "valid_area_ratio": None,
-                "segment_support_ratio": None, "outline_supported": False,
-                "unassessable_reason": "missing_calibrated_geometry"}
-        if h_matrix is not None and profile.get("line_type") == "solid" and profile.get("nominal_lane_width_px"):
-            size = profile.get("bev_size", [512, 512])
-            bev = cv2.warpPerspective(paint, h_matrix, tuple(size), flags=cv2.INTER_NEAREST)
-            outline, reason = straight_solid_outline(bev, profile["nominal_lane_width_px"])
-            if outline is not None:
-                result = measure_patch(outline, np.zeros_like(outline), bev, np.ones_like(outline))
-                lane.update(result)
-                # A single frame is a patch, not a supported 10m segment.
-                lane["patch_grade"] = result["grade"]
-                lane["patch_retention_pct"] = result["retention_pct"]
-                lane.update(grade="unassessable", retention_pct=None, segment_support_ratio=None,
-                            unassessable_reason="segment_distance_support_not_available")
-            else:
-                lane["unassessable_reason"] = reason
-        elif profile.get("line_type") == "dashed":
-            lane["unassessable_reason"] = "intentional_gap_geometry_required"
-        item = {"run_id": run_id, "frame_id": sample["frame_id"], "pts_seconds": sample["pts_seconds"],
-                "quality": quality, "potholes": potholes, "lane": lane,
-                "image": {"path": image_path.relative_to(workspace_path(".")).as_posix(), "sha256": sha256(image_path),
-                          "redacted": True, "reviewed_for_sharing": False},
-                "expires_at": (started + timedelta(days=90)).isoformat(),
-                "status": "awaiting_human_review"}
-        observations.append(item)
-    result = {"run_id": run_id, "started_at": started.isoformat(), "source": str(workspace_path(source)),
-              "analyzed_frames": len(observations), "observations": observations,
-              "runtime":runtime_metadata(models)["engine"],"runtime_details":runtime_metadata(models), "limitations": ["No validated target accuracy is claimed.",
-              "Single-frame lane patch values are not 10m segment judgments.",
-              "Outputs need human image review and complete acquisition metadata before API ingestion."]}
-    atomic_json(output / "analysis.json", result)
-    return result
+    models = create_models({"pothole":pothole_manifest,"lane":lane_manifest,"redaction":redaction_manifest},cpu_profile,OnnxModel,inference_backend=inference_backend,gpu_profile=gpu_profile)
+    try:
+        output = workspace_path(output)
+        output.mkdir(parents=True, exist_ok=True)
+        profile = json.loads(workspace_path(profile_path, exists=True).read_text(encoding="utf-8")) if profile_path else {}
+        h_matrix = profile.get("homography")
+        if h_matrix is not None:
+            h_matrix = np.asarray(h_matrix, dtype=np.float64)
+            if h_matrix.shape != (3, 3) or not np.isfinite(h_matrix).all() or abs(np.linalg.det(h_matrix)) < 1e-12:
+                raise ValueError("invalid_homography")
+        tracker, observations, started = Tracker(), [], datetime.now(timezone.utc)
+        run_id = str(uuid.uuid4())
+        with InferenceRunner(models,cpu_profile) as runner:
+            for sample in replay(source, sample_fps=sample_fps):
+                frame = sample["frame"]
+                if stereo:
+                    if frame.shape[1] % 2:
+                        raise ValueError("side_by_side_even_width_required")
+                    frame = frame[:, :frame.shape[1] // 2]
+                quality = frame_quality(frame)
+                predictions = runner.predict(frame)
+                potholes = tracker.update(predictions["pothole"], sample["pts_seconds"])
+                paint = predictions["lane"]
+                redacted = redact(frame, predictions["redaction"])
+                image_path = output / f"{sample['frame_id']:09d}.redacted.png"
+                if not cv2.imwrite(str(image_path), redacted):
+                    raise RuntimeError("image_write_failed")
+                lane = {"grade": "unassessable", "retention_pct": None, "valid_area_ratio": None,
+                        "segment_support_ratio": None, "outline_supported": False,
+                        "unassessable_reason": "missing_calibrated_geometry"}
+                if h_matrix is not None and profile.get("line_type") == "solid" and profile.get("nominal_lane_width_px"):
+                    size = profile.get("bev_size", [512, 512])
+                    bev = cv2.warpPerspective(paint, h_matrix, tuple(size), flags=cv2.INTER_NEAREST)
+                    outline, reason = straight_solid_outline(bev, profile["nominal_lane_width_px"])
+                    if outline is not None:
+                        result = measure_patch(outline, np.zeros_like(outline), bev, np.ones_like(outline))
+                        lane.update(result)
+                        # A single frame is a patch, not a supported 10m segment.
+                        lane["patch_grade"] = result["grade"]
+                        lane["patch_retention_pct"] = result["retention_pct"]
+                        lane.update(grade="unassessable", retention_pct=None, segment_support_ratio=None,
+                                    unassessable_reason="segment_distance_support_not_available")
+                    else:
+                        lane["unassessable_reason"] = reason
+                elif profile.get("line_type") == "dashed":
+                    lane["unassessable_reason"] = "intentional_gap_geometry_required"
+                item = {"run_id": run_id, "frame_id": sample["frame_id"], "pts_seconds": sample["pts_seconds"],
+                        "quality": quality, "potholes": potholes, "lane": lane,
+                        "image": {"path": image_path.relative_to(workspace_path(".")).as_posix(), "sha256": sha256(image_path),
+                                  "redacted": True, "reviewed_for_sharing": False},
+                        "expires_at": (started + timedelta(days=90)).isoformat(),
+                        "status": "awaiting_human_review"}
+                observations.append(item)
+        result = {"run_id": run_id, "started_at": started.isoformat(), "source": str(workspace_path(source)),
+                  "analyzed_frames": len(observations), "observations": observations,
+                  "runtime":runtime_metadata(models)["engine"],"runtime_details":runtime_metadata(models), "cpu_profile":cpu_profile, "limitations": ["No validated target accuracy is claimed.",
+                  "Single-frame lane patch values are not 10m segment judgments.",
+                  "Outputs need human image review and complete acquisition metadata before API ingestion."]}
+        atomic_json(output / "analysis.json", result)
+        return result
+    finally:close_models(models)

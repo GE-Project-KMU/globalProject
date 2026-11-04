@@ -1,0 +1,14 @@
+# Dedicated project CUDA-worker environment; never install into the CPU app venv.
+# CUDA/cuDNN DLLs are process-locally preloaded from the pinned project Torch env.
+coloredlogs==15.0.1
+flatbuffers==25.12.19
+humanfriendly==10.0
+mpmath==1.3.0
+numpy==1.26.4
+onnxruntime-gpu==1.20.2
+opencv-python-headless==4.10.0.84
+packaging==26.3
+pillow==11.3.0
+protobuf==7.36.2
+pyreadline3==3.5.6
+sympy==1.14.0

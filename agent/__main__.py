@@ -24,6 +24,9 @@ def main(argv=None):
     commands = parser.add_subparsers(dest="command", required=True)
     workflow = commands.add_parser("workflow")
     workflow.add_argument("config")
+    workflow.add_argument("--inference-backend",choices=["cpu","cuda"],help="CUDA requires a verified local GPU child profile; default stays CPU")
+    workflow.add_argument("--gpu-profile",help="Registered project-local GPU bundle profile")
+    workflow.add_argument("--cpu-profile", choices=["default","fast"], help="CPU execution only: default2/spinning/serial; fast8/no-spin/3independent workers")
     profile = commands.add_parser("validate-profile"); profile.add_argument("profile")
     calibrate = commands.add_parser("calibrate"); calibrate.add_argument("request"); calibrate.add_argument("output")
     review = commands.add_parser("approve-review"); review.add_argument("package"); review.add_argument("decisions")
@@ -69,6 +72,9 @@ def main(argv=None):
     analyze.add_argument("--profile")
     analyze.add_argument("--stereo", action="store_true")
     analyze.add_argument("--sample-fps", type=float, default=10)
+    analyze.add_argument("--inference-backend",choices=["cpu","cuda"],default="cpu")
+    analyze.add_argument("--gpu-profile",help="Registered project-local GPU bundle profile")
+    analyze.add_argument("--cpu-profile", choices=["default","fast"], default="default", help="Explicit CPU inference settings; weights, thresholds and runtime guards unchanged")
     validate = commands.add_parser("validate-data")
     validate.add_argument("manifest")
     validate.add_argument("--annotation", action="store_true")
@@ -95,7 +101,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == "workflow":
-            result = execute_config(args.config)
+            result = execute_config(args.config,cpu_profile=args.cpu_profile,inference_backend=args.inference_backend,gpu_profile=args.gpu_profile)
         elif args.command == "sdk-probe":
             camera=ZedSDK()
             try:
@@ -171,7 +177,7 @@ def main(argv=None):
         elif args.command == "analyze":
             result = analyze_video(args.source, args.output, pothole_manifest=args.pothole_manifest,
                                    lane_manifest=args.lane_manifest, redaction_manifest=args.redaction_manifest,
-                                   stereo=args.stereo, profile_path=args.profile, sample_fps=args.sample_fps)
+                                   stereo=args.stereo, profile_path=args.profile, sample_fps=args.sample_fps,cpu_profile=args.cpu_profile,inference_backend=args.inference_backend,gpu_profile=args.gpu_profile)
         elif args.command == "validate-data":
             value = json.loads(workspace_path(args.manifest, exists=True).read_text(encoding="utf-8"))
             if args.annotation:
