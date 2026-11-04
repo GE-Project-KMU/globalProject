@@ -1,0 +1,22 @@
+{
+  "learning_plan_sha256": "210a0a7db06348a63a9c17b249a394c85e655bf960488a1584ad31c05cba04ab",
+  "training_source_sha256": "401fab5253cfa29492ca4747d9a3eee1ee57a17304cbd414731b32200f513a84",
+  "learning_source_sha256": "401fab5253cfa29492ca4747d9a3eee1ee57a17304cbd414731b32200f513a84",
+  "observer_source_sha256": "0ce1a2d8da7ae1900945a5fc87da6f462e6772f76d02f6de13ce1ee3761e9d6d",
+  "preparation_source_sha256": "b1bbc920be4c339399317a4768736ee96383ab6638895a308f4fec49b510c356",
+  "device_budget_bytes": 9663676416,
+  "GPU_start_requires_new_root_slot": true,
+  "must_wait_for_root_Nano_GPU_release": true,
+  "source_expiries_extended": false,
+  "user_recordings_used": false,
+  "TEST_images_loaded": 0,
+  "scope": "device-reported sampled FB memory under WDDM; not exact process sum or hard quota",
+  "format": "lane-shared-supervision-plan-v1",
+  "supervisor_source_sha256": "73fee0fc2e94b3c0b85fb9b18b942fb5ef7bd7fc621175054ce18edae22b99a1",
+  "command_scope": "fixed workspace Python3.11 + train_lane_cycle2.py train only",
+  "identity": "own direct child PID/create_time/PPID; never other model process",
+  "only_own_lane_training_child_can_be_stopped": true,
+  "training_math_changed": false,
+  "global_OOM_zero_claimed": false,
+  "OOM_detection_scope": "own child log only"
+}
