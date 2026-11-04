@@ -1,0 +1,10 @@
+{
+  "format": "source-byte-checkout-preservation-v1",
+  "tracked_Python_files_checked": 297,
+  "index_equals_executed_working_bytes": true,
+  "active_source_pins_unchanged": true,
+  "Python_semantic_change": false,
+  "runtime_SHA_guards_relaxed": false,
+  "training_plan_rewritten": false,
+  "reason": "Git text eol=lf converted CRLF executed source while published plans preserved original raw SHA; store Python bytes just like JSON machine evidence"
+}
