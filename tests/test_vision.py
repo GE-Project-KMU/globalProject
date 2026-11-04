@@ -711,8 +711,10 @@ def test_local_retention_removes_only_expired_known_artifacts(folder):
     atomic_json(temporary/"retention.json",{"expires_at":(datetime.now(timezone.utc)-timedelta(seconds=1)).isoformat()})
     (temporary/"chunk.mp4").write_bytes(b"test-raw")
     results=folder/"results";job=results/uid();job.mkdir(parents=True)
-    atomic_json(job/"review.json",{"run":{"started_at":(datetime.now(timezone.utc)-timedelta(days=91)).isoformat()}})
     (job/"000.redacted.png").write_bytes(b"test-derived");(job/"unrelated.txt").write_text("preserve")
+    captured=(datetime.now(timezone.utc)-timedelta(days=91)).isoformat()
+    atomic_json(job/"review.json",{'local_material':{'state':'unreviewed','expires_at':(datetime.fromisoformat(captured)+timedelta(days=7)).isoformat()},
+        'items':[{'observation':{'captured_at':captured,'image':{'sha256':sha256(job/'000.redacted.png')}},'image_path':str(job/'000.redacted.png')}]})
     assert len(purge_local_material(work=work,results=results))==2 and temporary.exists()
     purge_local_material(work=work,results=results,dry_run=False)
     assert not temporary.exists() and not (job/"000.redacted.png").exists() and (job/"unrelated.txt").exists()

@@ -1,5 +1,6 @@
 """Warmed real-model 2D pipeline benchmark on nonpersonal synthetic frames."""
 import argparse,json,time,sys
+from datetime import datetime,timezone,timedelta
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 import numpy as np
@@ -13,6 +14,7 @@ def run(output):
     if output.exists():raise ValueError('new_pipeline_benchmark_output_required')
     output.mkdir(parents=True)
     frame=synthetic_frames()[1]
+    synthetic_at=datetime.now(timezone.utc);synthetic_expires=(synthetic_at+timedelta(hours=1)).isoformat()
     models={profile:create_models(MANIFESTS,profile) for profile in ('default','fast')}
     for profile,values in models.items():
         with InferenceRunner(values,profile) as runner:
@@ -25,7 +27,8 @@ def run(output):
             pipeline.create_models=lambda *a,**k:models[profile]
             started=time.perf_counter()
             result=pipeline.analyze_video(output/'synthetic-memory-source',output/f'run-{index}',
-                pothole_manifest=MANIFESTS['pothole'],lane_manifest=MANIFESTS['lane'],redaction_manifest=MANIFESTS['redaction'],cpu_profile=profile)
+                pothole_manifest=MANIFESTS['pothole'],lane_manifest=MANIFESTS['lane'],redaction_manifest=MANIFESTS['redaction'],cpu_profile=profile,
+                source_expires_at=synthetic_expires,source_captured_at=synthetic_at.isoformat())
             elapsed=time.perf_counter()-started
             results.setdefault(profile,[]).append({'elapsed_seconds':elapsed,'frames':8,'processing_fps':8/elapsed})
             hashes.setdefault(profile,[]).append([row['image']['sha256'] for row in result['observations']])

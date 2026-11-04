@@ -13,6 +13,7 @@ from cryptography.exceptions import InvalidTag
 from .capture import EncryptedStore
 from .paths import workspace_path, sha256
 from .tls import gateway_tls
+from .material_policy import expiry,instant,capture_time
 
 
 class Outbox:
@@ -39,11 +40,13 @@ class Outbox:
         raw = bytes(row["payload"])
         return json.loads(self.cipher.decrypt(raw[:12], raw[12:], row["id"].encode()))
 
-    def enqueue(self, observation, image, *, reviewed_by, confirmed_human_review=False,lineage=None):
+    def enqueue(self, observation, image, *, reviewed_by, confirmed_human_review=False,lineage=None,source_expires_at=None):
         from .governance import identities,blocked_identities
         if set(identities(observation|(lineage or {})))&blocked_identities():raise ValueError("source_or_observation_revoked")
         if not confirmed_human_review or not reviewed_by.strip():
             raise ValueError("explicit_human_review_required")
+        if observation.get('image',{}).get('redacted') is not True or observation.get('image',{}).get('reviewed_for_sharing') is not True:
+            raise ValueError('explicit_reviewed_redacted_image_required')
         identifier = str(uuid.UUID(observation["observation_id"]))
         path = workspace_path(image, exists=True)
         if path.suffix.lower() not in (".png", ".jpg", ".jpeg") or "raw" in [part.casefold() for part in path.parts]:
@@ -59,11 +62,15 @@ class Outbox:
         digest = sha256(path)
         if observation.get("image", {}).get("sha256") != digest:
             raise ValueError("reviewed_image_hash_mismatch")
-        captured = datetime.fromisoformat(observation["captured_at"].replace("Z", "+00:00"))
-        if captured.tzinfo is None or captured + timedelta(days=90) <= datetime.now(timezone.utc):
-            raise ValueError("observation_expired")
+        # This API records a NEW human review now. A previously expired
+        # unreviewed image cannot acquire a fresh ninety-day lifetime here.
+        try:expiry(observation['captured_at'],approved=False,source_expires_at=source_expires_at)
+        except ValueError as error:
+            if str(error)=='local_material_expired':raise ValueError('observation_expired') from None
+            raise
         item = {"observation": observation, "image_path": str(path), "mime": mime,
                 "reviewed_by": reviewed_by, "reviewed_at": datetime.now(timezone.utc).isoformat()}
+        if source_expires_at is not None:item['source_expires_at']=instant(source_expires_at).isoformat()
         if lineage:
             if set(lineage)-{"sample_id","source_id"} or any(not isinstance(v,str) or not v for v in lineage.values()):raise ValueError("invalid_local_lineage")
             item["lineage"]=lineage
@@ -71,7 +78,7 @@ class Outbox:
             existing = db.execute("SELECT * FROM queue WHERE id=?", (identifier,)).fetchone()
             if existing:
                 old = self.decode(existing)
-                if old["observation"] != observation or old["image_path"] != str(path):
+                if old["observation"] != observation or old["image_path"] != str(path) or old.get('source_expires_at')!=item.get('source_expires_at'):
                     raise ValueError("immutable_outbox_id_conflict")
                 return identifier
             db.execute("INSERT INTO queue(id,payload,state,created_at) VALUES(?,?,?,?)",
@@ -89,7 +96,9 @@ class Outbox:
             for row in db.execute("SELECT * FROM queue").fetchall():
                 item=self.decode(row)
                 captured=datetime.fromisoformat(item["observation"]["captured_at"].replace("Z","+00:00"))
-                if captured+timedelta(days=90)<=now:
+                deadline=captured+timedelta(days=90)
+                if item.get('source_expires_at'):deadline=min(deadline,instant(item['source_expires_at']))
+                if deadline<=now:
                     expired.append(row["id"])
                     if not dry_run:db.execute("DELETE FROM queue WHERE id=?",(row["id"],))
         return {"expired":expired,"deleted":not dry_run}
@@ -134,7 +143,10 @@ class Outbox:
                     item = self.decode(row)
                     observation, path = item["observation"], workspace_path(item["image_path"], exists=True)
                     captured = datetime.fromisoformat(observation["captured_at"].replace("Z", "+00:00"))
-                    if captured + timedelta(days=90) <= datetime.now(timezone.utc):
+                    capture_time(observation['captured_at'])
+                    deadline=captured+timedelta(days=90)
+                    if item.get('source_expires_at'):deadline=min(deadline,instant(item['source_expires_at']))
+                    if deadline <= datetime.now(timezone.utc):
                         self._update(row["id"], "expired", "DATA_EXPIRED")
                         results.append({"id": row["id"], "state": "expired"})
                         continue
@@ -151,6 +163,7 @@ class Outbox:
                                        "sha256": observation["image"]["sha256"], "size_bytes": path.stat().st_size,
                                        "mime": item["mime"], "captured_at": observation["captured_at"],
                                        "reviewed_at": item["reviewed_at"], "redaction_model_version": observation["model_version"]}
+                            if item.get('source_expires_at'):payload['source_expires_at']=item['source_expires_at']
                             approval = client.post("image-approvals", json=payload, headers={"Authorization": "Bearer " + reviewer_token})
                             approval.raise_for_status()
                             approval_id = approval.json()["data"]["approval_id"]

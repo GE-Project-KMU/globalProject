@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse
 import base64
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timezone,timedelta
 import json
 import os
 from pathlib import Path
@@ -141,13 +141,14 @@ def prepare(base='http://127.0.0.1:8000'):
         key=folder/'local.key'
         run=record(video,folder/'capture',seconds=.6,chunk_seconds=1,minimum_free_bytes=0,key_path=key)
         from agent.equipment import CHECKS
-        run.update(original_capture_verified=True,device_id=device_id,profile_id=profile['profile_id'],precheck={k:True for k in CHECKS},conditions={'daylight':True,'dry_asphalt':True})
+        run.update(original_capture_verified=True,device_id=device_id,profile_id=profile['profile_id'],precheck={k:True for k in CHECKS},conditions={'daylight':True,'dry_asphalt':True},source_expires_at=(datetime.now(timezone.utc)+timedelta(hours=1)).isoformat())
         # These are generated fixture timestamps/conditions, never field attestations.
         run['synthetic_contract_fixture']=True
         run_path=folder/'run.json';atomic_json(run_path,run)
         from agent import pipeline
         with patch.object(pipeline,'OnnxModel',SyntheticOnnxModel):
-            diagnostic=pipeline.analyze_video(video,folder/'diagnostic',pothole_manifest=bundle['pothole'],lane_manifest=bundle['lane'],redaction_manifest=bundle['redaction'],stereo=True)
+            diagnostic=pipeline.analyze_video(video,folder/'diagnostic',pothole_manifest=bundle['pothole'],lane_manifest=bundle['lane'],redaction_manifest=bundle['redaction'],stereo=True,
+                source_expires_at=run['source_expires_at'],source_captured_at=run['started_at'])
         package=analyze_samples(run_samples(run_path,key_path=key),folder/'analysis',run=run,profile_path=profile_path,device_id=device_id,bundle=bundle,model_factory=SyntheticOnnxModel)
         for item in package['items']:item['observation']['demo']=True
         package['synthetic_contract_fixture']=True
@@ -191,6 +192,7 @@ def prepare(base='http://127.0.0.1:8000'):
         for item in package['items']:
             obs=item['observation'];detail=check(client.get('/api/v1/observations/'+obs['observation_id'],headers=auth));details.append(detail)
             assert detail['demo'] is True
+            assert datetime.fromisoformat(detail['expires_at'].replace('Z','+00:00'))<=datetime.fromisoformat(run['source_expires_at'])
             image=client.get(detail['image_content_path'],headers=auth);assert image.status_code==200
             assert len(image.content)>0
         detail=details[0]
@@ -208,6 +210,7 @@ def prepare(base='http://127.0.0.1:8000'):
                 'mask_changed_generated_checkerboard':True,'runtime':package['runtime']['engine'],'production_fixture_readiness_rejected':True,'unreviewed_ingestion_rejected':True,
                 'missing_reviewer_blocked':True,'injected_local_503_count':fault.injected,'queue_reopened_and_recovered':True,'encrypted_queue_payload':True,'stale_review_conflict':True,
                 'scoped_report_contains_workflow_observations':True,'http_methods':dict(methods),'http_statuses':dict(statuses),'unexpected_live_5xx':0,
+                'original_source_cap_inherited_by_local_queue_and_server_observation':True,
                 'real_AI_accuracy_measured':False,'real_human_privacy_approval_claimed':False,'field_calibration_or_GNSS_verified':False,'private_deletion_pending':True}
         atomic_json(folder/'aggregate.json',result)
         atomic_json(folder/'private-receipt.json',{'identity':identity,'run_id':run['run_id'],'observation_ids':[i['observation']['observation_id'] for i in package['items']],

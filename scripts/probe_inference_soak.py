@@ -119,7 +119,7 @@ def run():
         rss,kind=memory_bytes();memory.append({'elapsed_seconds':deadline.elapsed(),'memory_bytes':rss})
     try:
         with patch.object(pipeline,'OnnxModel',ObservedModel),patch.object(pipeline,'replay',generated_samples):
-            result=pipeline.analyze_video(fixture,output/'analysis',pothole_manifest=MODELS['pothole'],lane_manifest=MODELS['lane'],redaction_manifest=MODELS['redaction'],cpu_profile='default',inference_backend='cpu')
+            result=pipeline.analyze_video(fixture,output/'analysis',pothole_manifest=MODELS['pothole'],lane_manifest=MODELS['lane'],redaction_manifest=MODELS['redaction'],cpu_profile='default',inference_backend='cpu',source_expires_at=expires)
         gc.collect()
         if deadline is None or deadline.elapsed()<DURATION:raise AssertionError('full_soak_duration_not_reached')
         if sorted(closed)!=sorted(MODELS) or any(ref() is not None for ref in refs):raise AssertionError('owned_model_objects_not_released')

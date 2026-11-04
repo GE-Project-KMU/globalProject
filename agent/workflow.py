@@ -19,6 +19,7 @@ from .segments import Distance, Segments
 from .paths import workspace_path, atomic_json, sha256
 from .outbox import Outbox
 from .tls import gateway_tls
+from .material_policy import source_deadline,capture_time,expiry,safe_file,instant
 
 
 def read_json(path):
@@ -39,8 +40,11 @@ def overlay_mask(mask):
 def run_samples(manifest_path, *, key_path="data/agent/local.key", sample_fps=10):
     """Authenticate/decrypt bounded chunks in memory; no plaintext temp files."""
     manifest = read_json(manifest_path)
-    if datetime.fromisoformat(manifest["expires_at"]) <= datetime.now(timezone.utc):
-        raise ValueError("raw_run_expired")
+    try:source_deadline(manifest.get('expires_at'),required=True)
+    except ValueError as error:
+        if str(error)=='source_material_expired':raise ValueError('raw_run_expired') from None
+        raise
+    source_deadline(manifest.get('source_expires_at'))
     store = EncryptedStore(key_path)
     indexes, records = [], []
     for chunk in manifest["chunks"]:
@@ -50,6 +54,7 @@ def run_samples(manifest_path, *, key_path="data/agent/local.key", sample_fps=10
             if sha256(workspace_path(asset["path"], exists=True)) != asset["sha256"]:
                 raise ValueError("capture_chunk_digest_mismatch")
         index=json.loads(store.decrypt_bytes(chunk["index"]["path"]))
+        for metadata in index['frames']:capture_time(metadata['captured_at'])
         indexes.append(index);records.extend(index["nmea"])
     fixes=build_fixes(records)
     for chunk,index in zip(manifest["chunks"],indexes):
@@ -61,6 +66,7 @@ def run_samples(manifest_path, *, key_path="data/agent/local.key", sample_fps=10
 
 def video_samples(source, metadata_path, *, sample_fps=10, stereo=False):
     metadata = read_json(metadata_path)
+    for row in metadata['frames']:capture_time(row['captured_at'])
     by_frame = {row["frame_id"]: row for row in metadata["frames"]}
     fixes = build_fixes(metadata.get("nmea", []))
     for sample in replay(source, sample_fps=sample_fps):
@@ -81,6 +87,8 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
         raise ValueError("video_replay_requires_verified_original_acquisition")
     if not isinstance(bundle.get("version"), str) or not bundle["version"]:
         raise ValueError("model_bundle_version_required")
+    cap=source_deadline(run.get("source_expires_at"))
+    source_cap=cap.isoformat() if cap else None
     models = create_models({task:bundle[task] for task in ("pothole","lane","redaction")},cpu_profile,model_factory,inference_backend=inference_backend,gpu_profile=gpu_profile)
     try:
         for task, model in models.items():
@@ -99,8 +107,12 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
                 at = sample["captured_at"]
                 moment = datetime.fromisoformat(at.replace("Z", "+00:00"))
                 if moment.tzinfo is None or (last_at and moment <= last_at): raise ValueError("monotonic_capture_utc_required")
+                capture_time(at)
                 last_at = moment
-                if moment + timedelta(days=7) <= datetime.now(timezone.utc): raise ValueError("raw_frame_expired")
+                try:material_expires=expiry(at,source_expires_at=source_cap)
+                except ValueError as error:
+                    if str(error)=='local_material_expired':raise ValueError('raw_frame_expired') from None
+                    raise
                 image, roi, matrix, size = geometry(sample["frame"], profile)
                 quality = frame_quality(image)
                 if run.get("conditions") != {"daylight":True,"dry_asphalt":True}:
@@ -140,6 +152,7 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
                 bev_image=cv2.warpPerspective(image,matrix,size)
                 valid,lane_status=lane_evidence(bev_image,bev,valid,profile,distance)
                 evidence = {"frame_id": sample["frame_id"], "captured_at": at, "location": location,
+                            "material_expires_at":material_expires,
                             "quality": quality, "image_path": image_path.relative_to(workspace_path(".")).as_posix(),
                             "image_sha256": sha256(image_path)}
                 evidence["lineage"]={key:sample[key] for key in ("sample_id","source_id") if sample.get(key)}
@@ -176,7 +189,7 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
             detail = {k: track[k] for k in ("bbox_xywh_px", "confidence", "track_observations", "candidate_state")}
             detail["bbox_xywh_px"] = [float(x) for x in detail["bbox_xywh_px"]]
             detail["occluded"] = False
-            observations.append({"observation": observation("pothole", track["event_id"], detail, evidence), "image_path": evidence["image_path"],"lineage":evidence["lineage"]})
+            observations.append({"observation": observation("pothole", track["event_id"], detail, evidence), "image_path": evidence["image_path"],"lineage":evidence["lineage"],"material_expires_at":evidence['material_expires_at'],"source_expires_at":source_cap})
         lane_results = segments.finish()
         represented={(item["distance_epoch"],item["lane_track_id"]) for item in lane_results}
         for (epoch,identifier),(track,evidence) in held.items():
@@ -192,7 +205,7 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
             if overlay["paint_mask_rle"] is not None: item["lane"]["paint_mask_rle"] = overlay["paint_mask_rle"]
             else: item["overlay_omitted_reason"] = "rle_count_limit"
             observations.append({"observation": observation("lane_segment", item["lane"]["segment_id"], item["lane"], item["evidence"]),
-                                 "image_path": item["evidence"]["image_path"],"lineage":item["evidence"]["lineage"]})
+                                 "image_path": item["evidence"]["image_path"],"lineage":item["evidence"]["lineage"],"material_expires_at":item['evidence']['material_expires_at'],"source_expires_at":source_cap})
         retained={workspace_path(item["image_path"]) for item in observations}
         removed_images=0
         for image_path in generated_images:
@@ -206,6 +219,7 @@ def analyze_samples(samples, output, *, run, profile_path, device_id, bundle, mo
                   "model_acceptance":{task:model.manifest.get("production_approved",False) for task,model in models.items()},
                   "retained_photos":len(retained),"removed_unreferenced_photos":removed_images,
                   "review_instructions": "Inspect every selected image; supply observation IDs to approve-review. No automatic approval."}
+        result['local_material']={'state':'unreviewed','expires_at':min(expiry(frame['captured_at'],source_expires_at=source_cap) for frame in frame_items),'source_expires_at':source_cap}
         atomic_json(output / "review.json", result)
         return result
 
@@ -339,6 +353,9 @@ def sync_run(package_path, gateway, device_token, *, transport=None,ca_bundle=No
 
 def approve_review(package_path, decisions_path, *, reviewed_by, queue_path="data/agent/outbox.sqlite", key_path="data/agent/local.key"):
     package, decisions = read_json(package_path), read_json(decisions_path)
+    package_file=workspace_path(package_path,exists=True)
+    if package.get('local_material',{}).get('state')!='unreviewed':raise ValueError('explicit_unreviewed_material_policy_required')
+    source_deadline(package['local_material']['expires_at'],required=True)
     if not reviewed_by.strip(): raise ValueError("reviewer_required")
     selected = {row["observation_id"]: row for row in decisions}
     known = {row["observation"]["observation_id"] for row in package["items"]}
@@ -351,11 +368,34 @@ def approve_review(package_path, decisions_path, *, reviewed_by, queue_path="dat
         value = json.loads(json.dumps(item["observation"]))
         decision = selected.get(value["observation_id"])
         if not decision or decision.get("approve") is not True: continue
-        if decision.get("image_sha256") != value["image"]["sha256"] or sha256(workspace_path(item["image_path"], exists=True)) != value["image"]["sha256"]:
+        source_deadline(item['material_expires_at'],required=True)
+        source=safe_file(item['image_path'],package_file.parent)
+        caps=[value for value in (package['local_material'].get('source_expires_at'),package.get('run',{}).get('source_expires_at'),item.get('source_expires_at')) if value is not None]
+        source_cap=min(instant(value) for value in caps).isoformat() if caps else None
+        unreviewed_max=expiry(value['captured_at'],source_expires_at=source_cap)
+        if instant(item['material_expires_at'])>instant(unreviewed_max):raise ValueError('unreviewed_material_expiry_extension_refused')
+        approved_expiry=expiry(value['captured_at'],approved=True,source_expires_at=source_cap)
+        if decision.get("image_sha256") != value["image"]["sha256"] or sha256(source) != value["image"]["sha256"]:
             raise ValueError("reviewed_image_hash_mismatch")
         value["image"]["reviewed_for_sharing"] = True
         Observation.model_validate(value)
-        ready.append((value, item["image_path"],item.get("lineage")))
-    for value, path,lineage in ready:
-        queued.append(outbox.enqueue(value, path, reviewed_by=reviewed_by, confirmed_human_review=True,lineage=lineage))
+        ready.append((value,source,item.get('lineage'),source_cap,approved_expiry))
+    for value,source,lineage,source_cap,approved_expiry in ready:
+        folder=package_file.parent/'approved'/value['observation_id']
+        safe_file(folder/'approved.redacted.png',folder,exists=False)
+        folder.mkdir(parents=True,exist_ok=True)
+        path=folder/'approved.redacted.png'
+        marker=folder/'review.json'
+        safe_file(marker,folder,exists=False,suffixes=('.json',))
+        if marker.exists():
+            previous=read_json(marker)
+            if [item.get('observation') for item in previous.get('items',[])]!=[value] or previous.get('local_material',{}).get('expires_at')!=approved_expiry or sha256(path)!=value['image']['sha256']:raise ValueError('immutable_approved_copy_conflict')
+        else:
+            if path.exists():raise ValueError('unowned_approved_copy_exists')
+            raw=source.read_bytes()
+            if hashlib.sha256(raw).hexdigest()!=value['image']['sha256']:raise ValueError('reviewed_image_hash_mismatch')
+            with path.open('xb') as stream:stream.write(raw)
+            atomic_json(marker,{'items':[{'observation':value,'image_path':path.relative_to(workspace_path('.')).as_posix(),'lineage':lineage or {}}],
+                        'local_material':{'state':'approved','expires_at':approved_expiry,'source_expires_at':source_cap}})
+        queued.append(outbox.enqueue(value,path,reviewed_by=reviewed_by,confirmed_human_review=True,lineage=lineage,source_expires_at=source_cap))
     return {"queued": queued, "reviewed_by": reviewed_by}

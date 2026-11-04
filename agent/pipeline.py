@@ -10,6 +10,7 @@ from .models import OnnxModel, ModelNotReady, frame_quality, redact,runtime_meta
 from .lane import measure_patch
 from .inference_runner import create_models,InferenceRunner,close_models
 from .paths import workspace_path, atomic_json, sha256
+from .material_policy import source_deadline,capture_time,current,expiry,guarded_samples
 
 
 def infer_potholes(source, manifest_path, output):
@@ -121,7 +122,12 @@ def straight_solid_outline(paint, nominal_width_px):
 
 
 def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_manifest,
-                  stereo=False, profile_path=None, sample_fps=10, cpu_profile="default", inference_backend="cpu",gpu_profile=None):
+                  stereo=False, profile_path=None, sample_fps=10, cpu_profile="default", inference_backend="cpu",gpu_profile=None,
+                  source_expires_at=None,source_captured_at=None):
+    moment=current()
+    captured=capture_time(source_captured_at,now=moment) if source_captured_at is not None else None
+    cap=source_deadline(source_expires_at,required=captured is None,now=moment)
+    unreviewed=expiry(captured.isoformat(),source_expires_at=cap.isoformat() if cap else None,now=moment) if captured else min(cap,moment+timedelta(days=7)).isoformat()
     # All real models must load before any processing; no heuristic potholes.
     models = create_models({"pothole":pothole_manifest,"lane":lane_manifest,"redaction":redaction_manifest},cpu_profile,OnnxModel,inference_backend=inference_backend,gpu_profile=gpu_profile)
     try:
@@ -136,7 +142,7 @@ def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_
         tracker, observations, started = Tracker(), [], datetime.now(timezone.utc)
         run_id = str(uuid.uuid4())
         with InferenceRunner(models,cpu_profile) as runner:
-            for sample in replay(source, sample_fps=sample_fps):
+            for sample in guarded_samples(replay(source, sample_fps=sample_fps),unreviewed):
                 frame = sample["frame"]
                 if stereo:
                     if frame.shape[1] % 2:
@@ -173,7 +179,7 @@ def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_
                         "quality": quality, "potholes": potholes, "lane": lane,
                         "image": {"path": image_path.relative_to(workspace_path(".")).as_posix(), "sha256": sha256(image_path),
                                   "redacted": True, "reviewed_for_sharing": False},
-                        "expires_at": (started + timedelta(days=90)).isoformat(),
+                        "expires_at": unreviewed,
                         "status": "awaiting_human_review"}
                 observations.append(item)
         result = {"run_id": run_id, "started_at": started.isoformat(), "source": str(workspace_path(source)),
@@ -181,6 +187,8 @@ def analyze_video(source, output, *, pothole_manifest, lane_manifest, redaction_
                   "runtime":runtime_metadata(models)["engine"],"runtime_details":runtime_metadata(models), "cpu_profile":cpu_profile, "limitations": ["No validated target accuracy is claimed.",
                   "Single-frame lane patch values are not 10m segment judgments.",
                   "Outputs need human image review and complete acquisition metadata before API ingestion."]}
+        result["local_material"]={"state":"unreviewed","expires_at":unreviewed,"source_expires_at":cap.isoformat() if cap else None,
+                                  "source_captured_at":captured.isoformat() if captured else None,"capture_time_inferred":False}
         atomic_json(output / "analysis.json", result)
         return result
     finally:close_models(models)

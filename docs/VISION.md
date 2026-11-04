@@ -82,7 +82,7 @@ DeepLabV3-MobileNetV3는 **남은 도막으로 추가 학습한 2클래스** ONN
 
 ```powershell
 .\.venv\Scripts\python.exe -m agent model-status data\models\pothole.json
-.\.venv\Scripts\python.exe -m agent analyze data\agent\work\left.mp4 --output data\agent\analysis\run-01 --pothole-manifest data\models\pothole.json --lane-manifest data\models\lane.json --redaction-manifest data\models\redaction.json --profile data\profiles\vehicle-a.json
+.\.venv\Scripts\python.exe -m agent analyze data\agent\work\left.mp4 --output data\agent\analysis\run-01 --pothole-manifest data\models\pothole.json --lane-manifest data\models\lane.json --redaction-manifest data\models\redaction.json --profile data\profiles\vehicle-a.json --source-expires-at CONFIRMED_ORIGINAL_DEADLINE_UTC
 ```
 
 `model-status`는 파일·해시·목표 클래스·ONNX 로딩을 확인하며 정확도 합격을 인증하지 않는다. `analyze`는 세 모델이 모두 준비된 후에만 처리한다. 결과 사진은 자동 마스킹됐더라도 `reviewed_for_sharing=false`이며 자동 업로드되지 않는다.
@@ -233,7 +233,7 @@ depth 출력은 AES-GCM 암호화된다. `ZedSDK`는 pyzed를 지연 import하�
 
 SDK 어댑터는 신경망 가중치를 자동 다운로드하지 않도록 classical ULTRA 모드를 명시한다. `road_relative_step`은 주변 스테레오 지지점의 평면 대비 잔차를 선택적으로 계산하며 지지가 없으면 null이다. 이 실험값을 실제 깊이 인증이나 심각도 등급으로 공개하지 않는다. 가시 차선 색상은 도막 모델이 찾은 영역에서 HSV 백색/황색 규칙으로 프로파일과 대조하며 불명확/불일치/경계 정렬 불일치는 유효 영역에서 제외한다. 이 색상/기하 규칙을 별도 학습 AI의 성능으로 주장하지 않는다.
 
-`purge-local`은 기본 dry-run이며 `--apply`로 raw run 7일, 중단 작업의 복호화 사본 기한, review 사진/목록 90일, 만료 큐 payload를 정리한다. 작업 스케줄러/cron에서 매일 실행할 운영 작업으로 등록해야 한다. `data/agent-jobs/results`의 생성 사진/목록만 지우며 같은 디렉터리의 관계없는 파일은 보존한다. 임의 위치로 복사한 자료나 별도 depth 진단 사본의 보관은 작업자가 동일 기한으로 관리해야 한다.
+`purge-local`은 기본 dry-run이며 `--apply`로 raw run 7일, 중단 작업의 복호화 사본 기한, 명시된 미검토 review/analysis 사진·목록 7일, 승인된 별도 사본 90일 및 만료 큐 payload를 정리한다. 모든 기한은 명시된 원자료 계약 기한을 넘기지 않는다. 운영자가 작업 스케줄러/cron에 매일 실행하도록 등록해야 하며 도구가 스케줄을 자동 생성하지는 않는다. 기본 범위는 `data/agent-jobs/results`다. 진단 출력에는 `purge-local --results data/agent/analysis`처럼 해당 생성 결과 루트를 명시한다. SHA가 일치하는 알려진 파일만 정리하고 같은 디렉터리의 관계없는 파일은 보존한다. 기존 기한·해시 근거가 없는 legacy 결과는 추정 삭제하지 않고 거부하므로 별도 확인이 필요하다.
 
 ## 탐지 학습·독립 평가 명령
 

@@ -1,0 +1,65 @@
+{
+  "format": "local-material-expiry-verification-v1",
+  "policy": {
+    "unreviewed_days": 7,
+    "approved_separate_copy_days": 90,
+    "original_contract_cap_inherited": true,
+    "future_capture_tolerance_seconds": 2,
+    "diagnostic_source_context_required_before_models_or_pixels": true,
+    "missing_legacy_policy_refused_not_guessed": true,
+    "automatic_schedule_configured": false
+  },
+  "verification": {
+    "focused_tests_passed": 95,
+    "non_http_regression_passed": 599,
+    "regression_subtests_passed": 189,
+    "preexisting_skips": 2,
+    "http_tests_not_run_in_non_http_command": 75,
+    "browser_all_passed": 25,
+    "browser_with_source_cap_and_actual_gateway_passed": true,
+    "test_images": "programmatically_generated_nonpersonal_only_for_new_policy_tests",
+    "GPU_inference_or_training_performed_by_this_workunit": false,
+    "unexpected_errors_in_actual_source_cap_workflow": 0,
+    "intentional_mock_UI_failures_are_not_counted_as_unexpected_errors": true,
+    "latest_policy_tests_including_CLI_passed": 18,
+    "separate_server_HTTP_tests_reported_passed": 60,
+    "separate_server_original_cap_actual_15_second_expiry_checked": true
+  },
+  "checks": [
+    "Missing, naive, expired source context rejected before model load or pixel read",
+    "Future capture rejected; stale unreviewed review cannot be revived by editing metadata",
+    "Unreviewed photo/package expire at capture+7d or original cap, whichever earlier",
+    "Approval makes a byte-identical separate image and reviewed package, never extends original unreviewed image",
+    "Approved copy and encrypted outbox inherit min capture+90d and original cap",
+    "Source cap transmitted only in actual approval payload, inherited by server observation",
+    "Expired queued source cannot make an HTTP request",
+    "Diagnostic analysis JSON and bound generated PNGs are recognized by cleanup",
+    "Changed hashes, outside-folder paths, junctions and legacy metadata refused; unrelated source files preserved",
+    "Actual isolated workflow UI and scoped report followed by privacy deletion and local queue/photo revocation"
+  ],
+  "limits": [
+    "Local future-expiry unit cases use explicit simulated clocks; server cap expiry elapsed-time HTTP evidence is maintained separately by backend tests.",
+    "The 600-second soak and historical CPU/CUDA benchmark precede this policy fix and are not retroactively claimed to include it.",
+    "No field privacy acceptance or model accuracy is established.",
+    "Unclassified legacy or interrupted artifacts require operator review; the tool does not guess their capture/deadline."
+  ],
+  "source_sha256": {
+    "agent/material_policy.py": "c5f2026f0e10d0f97e430e60bb2a68af18d8b397b4bd8f7b28287d779f1e9b72",
+    "agent/pipeline.py": "2ac467481e4e8c2cb477f0d5e2ff2e0bfb0c8ad2d544a7cba96925f7877c978b",
+    "agent/workflow.py": "83d32089e4f4da57f4b989bf5ca255773b41b7ba8ca5421d859f0be7ed35b7d4",
+    "agent/outbox.py": "fad9a5fdd04dad387472e0e5e42d58464468c453f32047d57b1364614cb8309a",
+    "agent/retention.py": "dbb4e7fb18d7c7cebf9b7ce2afde51d76328e2d08efca751cc8eebf233ea846b",
+    "agent/__main__.py": "a1d4d11ad0fe09be2b8f242670c3cb62824ef2c7e57f6a34512fef189029d2d6",
+    "scripts/probe_synthetic_workflow.py": "dcdbdc1bd0707d7912f2334586aa38ce6cdd92b9b380a5cb4e9106424e583bde",
+    "scripts/probe_inference_soak.py": "c358fb0daa463507734129b0d9f0aa88ee718c11cfbd3f2ccdf9d276effa78bb",
+    "scripts/benchmark_cpu_pipeline.py": "9b605e58b01527fce6f62eef8c0ee8b353a475a699b0c612d03113a89f123bfd",
+    "scripts/benchmark_verified_pipeline.py": "fd2e2f9117bb0a37b8bff10dc07eb2f727ff2b04d74c9fe9b72521165f2d834e",
+    "tests/test_material_policy.py": "25563b7b06722d2f5a4c739cf59e35ddddd9ee8416df9e87891d17ab8c5dbdf2",
+    "tests/test_vision.py": "369f14fe4267e86ce2e82c9995ce1c0ae8049d51a9e24657e02ca45b2ce1b607"
+  },
+  "prior_execution": {
+    "soak_v1_commit": "39e1106",
+    "soak_executed_source_sha256": "8997f3715a9b89f293f5b13b36c28f3cd17f1c37b1ce2bfe5e5da5a7b8b7b3a4",
+    "policy_fix_included_in_that_execution": false
+  }
+}

@@ -72,6 +72,8 @@ def main(argv=None):
     analyze.add_argument("--profile")
     analyze.add_argument("--stereo", action="store_true")
     analyze.add_argument("--sample-fps", type=float, default=10)
+    analyze.add_argument("--source-expires-at",help="Original explicit timezone-aware source deadline; never inferred from file timestamps")
+    analyze.add_argument("--source-captured-at",help="Verified source capture UTC; allows capture+7d when no explicit deadline exists")
     analyze.add_argument("--inference-backend",choices=["cpu","cuda"],default="cpu")
     analyze.add_argument("--gpu-profile",help="Registered project-local GPU bundle profile")
     analyze.add_argument("--cpu-profile", choices=["default","fast"], default="default", help="Explicit CPU inference settings; weights, thresholds and runtime guards unchanged")
@@ -87,6 +89,7 @@ def main(argv=None):
     enqueue.add_argument("image")
     enqueue.add_argument("--reviewed-by", required=True)
     enqueue.add_argument("--confirm-human-review", action="store_true")
+    enqueue.add_argument("--source-expires-at",help="Original source-contract deadline, inherited by queue and server approval")
     commands.add_parser("queue-status")
     drain = commands.add_parser("upload")
     drain.add_argument("--gateway", default="http://127.0.0.1:8000/api/v1")
@@ -97,6 +100,7 @@ def main(argv=None):
     purge.add_argument("--directory", default="data/agent/runs")
     purge.add_argument("--apply", action="store_true")
     purge_local=commands.add_parser("purge-local");purge_local.add_argument("--apply",action="store_true")
+    purge_local.add_argument('--results',default='data/agent-jobs/results',help='Explicit generated review/diagnostic result root; unrelated files remain untouched')
     revoke=commands.add_parser("revoke-data");revoke.add_argument("request");revoke.add_argument("--apply",action="store_true")
     args = parser.parse_args(argv)
     try:
@@ -177,7 +181,8 @@ def main(argv=None):
         elif args.command == "analyze":
             result = analyze_video(args.source, args.output, pothole_manifest=args.pothole_manifest,
                                    lane_manifest=args.lane_manifest, redaction_manifest=args.redaction_manifest,
-                                   stereo=args.stereo, profile_path=args.profile, sample_fps=args.sample_fps,cpu_profile=args.cpu_profile,inference_backend=args.inference_backend,gpu_profile=args.gpu_profile)
+                                   stereo=args.stereo, profile_path=args.profile, sample_fps=args.sample_fps,cpu_profile=args.cpu_profile,inference_backend=args.inference_backend,gpu_profile=args.gpu_profile,
+                                   source_expires_at=args.source_expires_at,source_captured_at=args.source_captured_at)
         elif args.command == "validate-data":
             value = json.loads(workspace_path(args.manifest, exists=True).read_text(encoding="utf-8"))
             if args.annotation:
@@ -195,7 +200,7 @@ def main(argv=None):
         elif args.command == "enqueue":
             observation = json.loads(workspace_path(args.observation, exists=True).read_text(encoding="utf-8"))
             result = {"observation_id": Outbox().enqueue(observation, args.image, reviewed_by=args.reviewed_by,
-                                                         confirmed_human_review=args.confirm_human_review)}
+                                                         confirmed_human_review=args.confirm_human_review,source_expires_at=args.source_expires_at)}
         elif args.command == "queue-status":
             result = Outbox().list()
         elif args.command == "upload":
@@ -209,7 +214,7 @@ def main(argv=None):
         elif args.command == "purge-raw":
             result = purge_expired_runs(args.directory, dry_run=not args.apply)
         elif args.command == "purge-local":
-            result = {"raw":purge_expired_runs(dry_run=not args.apply),"material":purge_local_material(dry_run=not args.apply),
+            result = {"raw":purge_expired_runs(dry_run=not args.apply),"material":purge_local_material(results=args.results,dry_run=not args.apply),
                       "queue":Outbox().purge_expired(dry_run=not args.apply)}
         elif args.command == "revoke-data":
             request=json.loads(workspace_path(args.request,exists=True).read_text(encoding="utf-8"))
