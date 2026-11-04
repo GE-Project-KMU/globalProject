@@ -1,0 +1,21 @@
+{
+  "format": "recorded-drive-model-probe-public-plan-v1",
+  "plan_sha256": "49b126e6d69f211f0317e282b2d0e0231927a3df9d045b57467d7e1677bf1fd3",
+  "status": "frozen_before_inference",
+  "source_files": 16,
+  "planned_left_frames": 80,
+  "sampling": "five equally spaced message indices including endpoints; floor(k*(N-1)/4), deduplicated",
+  "model_weights_sha256": {
+    "pothole": "9b956d8ead74d1b11db0d1c43bac9ae5bdda2b0d6b843062319ae28de2f2f269",
+    "lane": "0cbf89f5bfd751bc9ae2cb071f887609d9ff40a9f2f3914c129a44806dc1f548",
+    "redaction": "bf54a5ad4211e945e71c84502a75a2d32e03de397883d70df8c64881c515aa3a"
+  },
+  "script_sha256": "93e752daada064a0c65ae8c142e983e9fe4481f93be62b36d1e3770bebac2c2a",
+  "reader_sha256": "81c56f1420a9745f600d0833eac3e78f53f6849f439d044a3a4912315e718e6b",
+  "authorized_until_utc": "2026-11-05T14:59:00+00:00",
+  "raw_pixel_files_written": false,
+  "labels_available": false,
+  "threshold_or_model_selection_planned": false,
+  "training_planned": false,
+  "accuracy_claim_planned": false
+}

@@ -46,7 +46,10 @@ def _bounded_chunk(chunk):
     return data
 
 class RecordedMcapReader:
-    def __init__(self,source):
+    def __init__(self,source,*,processing_guard=None):
+        if processing_guard is not None and not callable(processing_guard):raise ValueError('processing_guard_callable_required')
+        self.guard=processing_guard if processing_guard is not None else lambda:None
+        self.guard()
         self.source=workspace_path(source,exists=True)
         if not self.source.is_file():raise ValueError('recording_file_required')
         self.stream=None;self.codec=None;self.closed=False;self.eof=False;self.flushed=False
@@ -57,7 +60,7 @@ class RecordedMcapReader:
             'stereo_split_basis':'side_by_side_topic_and_even_decoded_width_only','sdk_image_timestamp_verified':False}
         try:
             import av
-            self.av=av;self.stream=self.source.open('rb');self.messages=self._messages()
+            self.av=av;self.guard();self.stream=self.source.open('rb');self.messages=self._messages()
             self.next_message=next(self.messages,None)
             if self.next_message is None:raise RecordedMcapError('video_messages_missing')
             self.codec=av.CodecContext.create('h264','r');self.codec.thread_count=1;self.codec.options={'err_detect':'explode'}
@@ -75,11 +78,13 @@ class RecordedMcapReader:
         def records():
             reader=StreamReader(self.stream,emit_chunks=True,validate_crcs=True,record_size_limit=MAX_RECORD)
             for record in reader.records:
+                self.guard()
                 if isinstance(record,Chunk):
                     data=_bounded_chunk(record);self.integrity['chunks_checked']+=1
                     self.integrity['chunks_with_crc']+=int(record.uncompressed_crc!=0)
                     sub=ReadDataStream(io.BytesIO(data))
                     while sub.count<len(data):
+                        self.guard()
                         if len(data)-sub.count<9:raise RecordedMcapError('truncated_chunk_record')
                         opcode=sub.read1();length=sub.read8();start=sub.count
                         if length>len(data)-sub.count:raise RecordedMcapError('invalid_chunk_record_length')
@@ -128,6 +133,7 @@ class RecordedMcapReader:
 
     def _frames(self,frames):
         for frame in frames:
+            self.guard()
             if frame.is_corrupt:raise RecordedMcapError('decoded_frame_corrupt')
             if frame.pts is None:raise RecordedMcapError('decoded_frame_timestamp_missing')
             if frame.time_base is None:
@@ -156,6 +162,7 @@ class RecordedMcapReader:
         if self.closed:raise RecordedMcapError('recorded_mcap_reader_closed')
         if self.eof:return None
         try:
+            self.guard()
             while not self.queue:
                 if self.next_message is None:
                     if not self.flushed:
@@ -175,7 +182,7 @@ class RecordedMcapReader:
                 packet=self.av.Packet(payload);packet.pts=packet.dts=timestamp;packet.time_base=NS_BASE
                 self._frames(self.codec.decode(packet))
                 self.next_message=next(self.messages,None)
-            return self.queue.popleft()
+            self.guard();return self.queue.popleft()
         except BaseException:
             self.close();raise
 
