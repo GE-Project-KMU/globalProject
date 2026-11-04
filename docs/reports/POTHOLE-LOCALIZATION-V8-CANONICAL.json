@@ -1,0 +1,32 @@
+{
+  "format": "pothole-family-canonical-results-v1",
+  "manifest_sha256": "d45897d802dfa7d13b19d52c664f06a989c685e6aa810d47b224c62edf276cc2",
+  "checkpoint_sha256": "ca846f416269a860bb6002bfce7d763efd999d01b48d2257773a276fd10947e2",
+  "plan_sha256": "c66e613d6ef44c76d6358c77b1ee3d4e26932f0b03849a90149981e9466aa0a8",
+  "rtol": 0.001,
+  "atol": 0.0001,
+  "all_passed": true,
+  "positive_VAL_cases": 3,
+  "results": [
+    {
+      "index": 0,
+      "passed": true,
+      "proof_sha256": "b5bc90a6d03ef6e42fc4fd4780d0e942785b045997e02af01258eca00ddcd3c3",
+      "adapter_result_count": 4
+    },
+    {
+      "index": 1,
+      "passed": true,
+      "proof_sha256": "a0574a4695d20c4d4c9fe9e6605468a88ad5735778c65fa82115b80df2405113",
+      "adapter_result_count": 1
+    },
+    {
+      "index": 2,
+      "passed": true,
+      "proof_sha256": "0255f944b938c239875c0ad1e7f3b83b55467df0a9467a19dda2b2d67b9a2e58",
+      "adapter_result_count": 2
+    }
+  ],
+  "TEST_inference_performed": false,
+  "reference_ORT": "1.31.1"
+}
