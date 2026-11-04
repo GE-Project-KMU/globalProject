@@ -1,0 +1,48 @@
+{
+  "format": "pothole-TRAIN7540-hardness-v8",
+  "source_sha256": "453b088a8269a6f7a60b1719e1b4674d5d39601c2c3208cd9b45c5ca07797da4",
+  "dependencies_sha256": {
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "agent/pipeline.py": "2676daa2607cbaf926d4709edbec1ce6bf3271c5cf5d2b9e4c76cae918834dc6",
+    "scripts/analyze_pothole_validation.py": "81c8344a29049bc4d53f8f259f4f1783962ebea824db80756b5b8ec4c79d8b4b"
+  },
+  "manifest_sha256": "b1d5c070c2b4c769531e404e887c604dee3945bf04ddbc9ebd9a01dc588cbdca",
+  "weights_sha256": "201cbb306a5f332a57a4a9b1a5a51aecca639a3088974078895429bb0b940330",
+  "source_release_sha256": {
+    "RDD": "6c5618898d96dd032ae5d9579c8c79aa676a063d6557c1c2f361a37fe5a8388c",
+    "MWPD": "a0877b4dcde07b0115199fae2dbd30d24caa743c9b6d0cd6298a319d39772bcd",
+    "baseline_combined": "5b1798968f27eb60939d80d5952447135b6bb49bf6ad16e9f64cfe75d2f8faca"
+  },
+  "training_membership_sha256": "d09ec91ff2732380279cf0b1c5793af59d460d238c5c2c0cc29c3d16894a5537",
+  "train_images": 7540,
+  "strata": {
+    "RDD_positive": 2676,
+    "RDD_negative": 2676,
+    "MWPD_positive": 2188
+  },
+  "matching": "confidence>=0.1; class pothole; descending-confidence greedy one-to-one IoU>=0.5; same GT order as release",
+  "positive_weight": "1+2*min(1,(FN+FP)/(GT+3))",
+  "negative_weight": "1+2*min(1,FP/3)",
+  "weight_min": 1,
+  "weight_max": 3,
+  "source_quotas_owned_by_trainer": {
+    "RDD_positive": 0.25,
+    "RDD_negative": 0.25,
+    "MWPD_positive": 0.5
+  },
+  "weights_do_not_change_source_quota": true,
+  "selection_or_confidence_tuning": false,
+  "val_images_inferred": 0,
+  "test_images_inferred": 0,
+  "US100_used": false,
+  "source_expires_at": "2026-11-10T17:14:46.862846+00:00",
+  "expires_at": "2026-11-10T17:14:46.862846+00:00",
+  "cpu_threads": 2,
+  "cv2_threads": 1,
+  "allow_spinning": false,
+  "runtime": "CPUExecutionProvider",
+  "gpu_used": false,
+  "raw_photos_copied": false,
+  "human_privacy_reviewed": false,
+  "not_for_deployment": true
+}
