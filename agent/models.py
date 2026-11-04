@@ -209,18 +209,21 @@ class OnnxModel:
             image = np.full((height, width, 3), 114, np.uint8)
             image[:resized.shape[0], :resized.shape[1]] = resized
             # YOLOX reference preprocessing is BGR float32 with no /255.
-            blob = image.transpose(2, 0, 1)[None].astype(np.float32)
+            blob = np.ascontiguousarray(image.transpose(2, 0, 1)[None], dtype=np.float32)
         else:
             scale = min(width / source_w, height / source_h)
             resized = cv2.resize(frame, (max(1, round(source_w * scale)), max(1, round(source_h * scale))))
             canvas = np.full((height, width, 3), 114, np.uint8)
             canvas[:resized.shape[0], :resized.shape[1]] = resized
-            image = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB).astype(np.float32) / 255
+            image = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB).astype(np.float32)
+            image /= 255
             mean = np.array(self.manifest.get("mean", [.485, .456, .406]), np.float32)
             std = np.array(self.manifest.get("std", [.229, .224, .225]), np.float32)
             if np.any(std <= 0):
                 raise ValueError("invalid_normalization_std")
-            blob = ((image - mean) / std).transpose(2, 0, 1)[None].astype(np.float32)
+            image -= mean
+            image /= std
+            blob = np.ascontiguousarray(image.transpose(2, 0, 1)[None], dtype=np.float32)
         self.net.setInput(blob)
         output = self.net.forward()
         if not np.isfinite(output).all():

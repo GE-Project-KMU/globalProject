@@ -1,0 +1,558 @@
+{
+  "format": "synthetic-preprocessing-microbenchmark-v1",
+  "source_sha256": "42975fa098b84bc2fa40301b1601780016d7e2d6d8d4958d73c49b8388ddf9fe",
+  "benchmark_script_sha256": "4b5c345194a1fb001c36d163215bcb66ee336522de68016b780059250cf4dfce",
+  "bitwise_equivalence_checks": 828,
+  "all_bitwise_exact": true,
+  "numpy_version": "2.5.4",
+  "opencv_version": "5.0.0",
+  "opencv_threads": 2,
+  "results": [
+    {
+      "task": "pothole",
+      "source_size": [
+        64,
+        48
+      ],
+      "target_size": [
+        640,
+        640
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 5.5846,
+      "candidate_median_ms": 3.0073,
+      "median_saved_ms": 2.5773,
+      "speedup_ratio": 1.857014597811991,
+      "baseline_min_max_ms": [
+        4.0315,
+        13.8574
+      ],
+      "candidate_min_max_ms": [
+        2.2833,
+        4.3039
+      ],
+      "paired_block_mean_saved_ms": [
+        2.45575,
+        2.7070000000000007,
+        3.4532499999999997,
+        6.552299999999999,
+        2.43895,
+        2.621599999999999,
+        2.0186500000000005,
+        1.4181000000000008
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "pothole",
+      "source_size": [
+        65,
+        49
+      ],
+      "target_size": [
+        640,
+        640
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 4.48415,
+      "candidate_median_ms": 2.7916,
+      "median_saved_ms": 1.6925499999999998,
+      "speedup_ratio": 1.6063010459951281,
+      "baseline_min_max_ms": [
+        3.715,
+        6.6112
+      ],
+      "candidate_min_max_ms": [
+        2.164,
+        3.6001
+      ],
+      "paired_block_mean_saved_ms": [
+        0.8644999999999996,
+        1.6535000000000002,
+        1.7283999999999997,
+        2.5786499999999997,
+        2.7478500000000006,
+        1.4448999999999996,
+        2.8258000000000005,
+        2.3945
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "pothole",
+      "source_size": [
+        1280,
+        720
+      ],
+      "target_size": [
+        640,
+        640
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 4.003550000000001,
+      "candidate_median_ms": 2.2986,
+      "median_saved_ms": 1.7049500000000006,
+      "speedup_ratio": 1.741734099016793,
+      "baseline_min_max_ms": [
+        3.8086,
+        4.6461
+      ],
+      "candidate_min_max_ms": [
+        2.2119,
+        2.4579
+      ],
+      "paired_block_mean_saved_ms": [
+        1.6907,
+        1.7483000000000004,
+        1.7718499999999997,
+        1.6353,
+        1.7725000000000004,
+        1.6591999999999998,
+        1.6763000000000003,
+        1.93905
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "pothole",
+      "source_size": [
+        1920,
+        1080
+      ],
+      "target_size": [
+        640,
+        640
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 4.26595,
+      "candidate_median_ms": 2.69705,
+      "median_saved_ms": 1.5689000000000002,
+      "speedup_ratio": 1.5817096457240318,
+      "baseline_min_max_ms": [
+        3.9435,
+        5.6845
+      ],
+      "candidate_min_max_ms": [
+        2.4031,
+        3.1622
+      ],
+      "paired_block_mean_saved_ms": [
+        1.98155,
+        1.2391499999999995,
+        1.7798500000000006,
+        2.47085,
+        1.5202999999999998,
+        1.5572499999999998,
+        1.6797,
+        1.6323500000000002
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "redaction",
+      "source_size": [
+        64,
+        48
+      ],
+      "target_size": [
+        1920,
+        1920
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 41.5038,
+      "candidate_median_ms": 22.2566,
+      "median_saved_ms": 19.2472,
+      "speedup_ratio": 1.864786175786059,
+      "baseline_min_max_ms": [
+        37.2962,
+        52.0195
+      ],
+      "candidate_min_max_ms": [
+        19.4784,
+        27.3123
+      ],
+      "paired_block_mean_saved_ms": [
+        18.695200000000007,
+        21.715649999999997,
+        20.524349999999995,
+        18.3588,
+        19.9966,
+        15.58885,
+        24.443099999999994,
+        17.41215
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "redaction",
+      "source_size": [
+        65,
+        49
+      ],
+      "target_size": [
+        1920,
+        1920
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 41.7031,
+      "candidate_median_ms": 22.81885,
+      "median_saved_ms": 18.884249999999998,
+      "speedup_ratio": 1.8275723798526218,
+      "baseline_min_max_ms": [
+        35.9805,
+        52.6651
+      ],
+      "candidate_min_max_ms": [
+        21.0186,
+        31.9438
+      ],
+      "paired_block_mean_saved_ms": [
+        15.419999999999995,
+        20.957,
+        14.350099999999998,
+        14.602049999999998,
+        18.331749999999996,
+        16.21745,
+        23.42,
+        20.00275
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "redaction",
+      "source_size": [
+        1280,
+        720
+      ],
+      "target_size": [
+        1920,
+        1920
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 41.66165,
+      "candidate_median_ms": 23.56025,
+      "median_saved_ms": 18.1014,
+      "speedup_ratio": 1.768302543478953,
+      "baseline_min_max_ms": [
+        36.4996,
+        45.4994
+      ],
+      "candidate_min_max_ms": [
+        18.8503,
+        30.3458
+      ],
+      "paired_block_mean_saved_ms": [
+        21.03635,
+        16.581350000000008,
+        19.27785,
+        15.880849999999995,
+        15.32395,
+        17.655450000000002,
+        14.388200000000005,
+        20.056499999999996
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "redaction",
+      "source_size": [
+        1920,
+        1080
+      ],
+      "target_size": [
+        1920,
+        1920
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 41.1229,
+      "candidate_median_ms": 23.35065,
+      "median_saved_ms": 17.77225,
+      "speedup_ratio": 1.76110300998045,
+      "baseline_min_max_ms": [
+        34.205,
+        46.2983
+      ],
+      "candidate_min_max_ms": [
+        18.4082,
+        33.8264
+      ],
+      "paired_block_mean_saved_ms": [
+        17.45625,
+        16.785850000000003,
+        18.265400000000003,
+        14.764400000000002,
+        12.597050000000003,
+        20.294800000000002,
+        16.731650000000002,
+        17.44905
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "lane",
+      "source_size": [
+        64,
+        48
+      ],
+      "target_size": [
+        1024,
+        1024
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 34.544200000000004,
+      "candidate_median_ms": 22.410200000000003,
+      "median_saved_ms": 12.134,
+      "speedup_ratio": 1.541449875503119,
+      "baseline_min_max_ms": [
+        28.083,
+        46.4679
+      ],
+      "candidate_min_max_ms": [
+        18.7014,
+        32.6721
+      ],
+      "paired_block_mean_saved_ms": [
+        12.244100000000003,
+        17.815249999999995,
+        9.69625,
+        12.60785,
+        12.943549999999995,
+        9.727350000000001,
+        10.832300000000004,
+        11.258650000000003
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "lane",
+      "source_size": [
+        65,
+        49
+      ],
+      "target_size": [
+        1024,
+        1024
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 33.16315,
+      "candidate_median_ms": 21.16775,
+      "median_saved_ms": 11.9954,
+      "speedup_ratio": 1.5666828075728407,
+      "baseline_min_max_ms": [
+        27.9741,
+        45.4
+      ],
+      "candidate_min_max_ms": [
+        18.9762,
+        30.0995
+      ],
+      "paired_block_mean_saved_ms": [
+        9.412850000000002,
+        11.840399999999995,
+        9.288849999999996,
+        6.190799999999996,
+        12.0425,
+        12.546450000000004,
+        14.436999999999998,
+        14.598149999999997
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "lane",
+      "source_size": [
+        1280,
+        720
+      ],
+      "target_size": [
+        1024,
+        1024
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 34.3836,
+      "candidate_median_ms": 22.3708,
+      "median_saved_ms": 12.012800000000002,
+      "speedup_ratio": 1.5369857135194094,
+      "baseline_min_max_ms": [
+        31.8609,
+        48.1211
+      ],
+      "candidate_min_max_ms": [
+        20.652,
+        33.9924
+      ],
+      "paired_block_mean_saved_ms": [
+        11.316900000000004,
+        6.927900000000001,
+        15.380699999999994,
+        13.191799999999994,
+        12.181999999999999,
+        20.1807,
+        8.749700000000004,
+        11.330599999999997
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    },
+    {
+      "task": "lane",
+      "source_size": [
+        1920,
+        1080
+      ],
+      "target_size": [
+        1024,
+        1024
+      ],
+      "order_per_block": [
+        "baseline",
+        "candidate",
+        "candidate",
+        "baseline"
+      ],
+      "blocks": 8,
+      "warmup_calls_each": 3,
+      "baseline_median_ms": 34.73635,
+      "candidate_median_ms": 22.07825,
+      "median_saved_ms": 12.658100000000001,
+      "speedup_ratio": 1.5733289549669924,
+      "baseline_min_max_ms": [
+        29.4726,
+        37.9897
+      ],
+      "candidate_min_max_ms": [
+        19.6496,
+        29.8454
+      ],
+      "paired_block_mean_saved_ms": [
+        12.748400000000004,
+        12.31955,
+        15.0139,
+        10.513850000000001,
+        4.4970500000000015,
+        10.2712,
+        13.704050000000002,
+        11.706050000000001
+      ],
+      "candidate_faster_blocks": 8,
+      "bitwise_exact": true
+    }
+  ],
+  "weights_read": 0,
+  "model_manifests_read": 0,
+  "public_or_user_images_read": 0,
+  "raw_network_inferences": 0,
+  "GPU_operations": 0,
+  "shared_runtime_edited": false,
+  "candidate_scope": "Detector direct contiguous float32 cast; lane same-order inplace divide/subtract/divide then contiguous NCHW. Includes unchanged setInput finite check and ascontiguous marshalling.",
+  "limits": [
+    "Synthetic uint8 CPU microbenchmark only; no inference, CUDA transfer, network postprocess, PNG or JSON storage timing.",
+    "Concurrent unrelated GPU training can contend for CPU/memory bandwidth; ABBA paired blocks reduce but do not remove host load effects.",
+    "Bitwise equivalence is measured for tested patterns, scalar values and shapes on the recorded NumPy/OpenCV versions.",
+    "No changed runtime or end-to-end FPS improvement is claimed."
+  ],
+  "applied_after_measurement": {
+    "runtime_tensor_copy_optimization_applied": true,
+    "applied_runtime_source_sha256": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "actual_runtime_blob_bitwise_checks": 828,
+    "actual_runtime_blob_all_exact": true,
+    "actual_runtime_raw_forward_calls": 0,
+    "C_contiguous_no_second_marshalling_copy": true,
+    "source_frame_unchanged": true,
+    "preprocessing_tests_passed": 15,
+    "related_framework_tests_passed_before_three_additional_blob_tests": 147,
+    "preexisting_GPU_slot_test_skipped": 1,
+    "learned_external_baseline_inference_test_excluded": 1,
+    "isolated_numpy126_opencv410_checks": 828,
+    "isolated_all_exact": true,
+    "old_afb734a_throughput_retroactively_changed": false,
+    "new_end_to_end_FPS_claimed": false
+  }
+}
