@@ -14,10 +14,10 @@ from scripts import probe_recorded_models as tool
 def folder(monkeypatch):
     original_guard = tool.PeriodGuard
     monkeypatch.setattr(tool, 'PeriodGuard', lambda value: original_guard(value, now=lambda: datetime(2026, 11, 4, tzinfo=timezone.utc)))
-    path = ROOT/'.cache/test-recorded-models'/uuid.uuid4().hex
+    path = ROOT/'data/recorded-drive-validation/.tests'/uuid.uuid4().hex
     path.mkdir(parents=True)
     yield path
-    assert path.resolve().is_relative_to((ROOT/'.cache/test-recorded-models').resolve())
+    assert path.resolve().is_relative_to((ROOT/'data/recorded-drive-validation/.tests').resolve())
     shutil.rmtree(path)
 
 
@@ -154,3 +154,45 @@ def test_permission_change_and_expiry_block_replay(folder):
     atomic_json(value['permission'], receipt('2026-11-05T14:58:00+00:00'))
     with pytest.raises(ValueError, match='permission_changed'):
         tool.run_plan(plan, model_factory=FakeModel, reader_factory=FakeReader)
+
+
+def test_period_end_during_inference_stops_next_model_and_output(folder, monkeypatch):
+    plan, _, _ = plan_fixture(folder)
+    state = {'ended': False, 'calls': []}
+    def guard():
+        if state['ended']:
+            raise PermissionError('recording_validation_period_ended')
+    monkeypatch.setattr(tool, 'PeriodGuard', lambda value: guard)
+    class EndingModel(FakeModel):
+        def predict(self, image):
+            state['calls'].append(self.task)
+            prediction = super().predict(image)
+            state['ended'] = True
+            return prediction
+    with pytest.raises(PermissionError, match='period_ended'):
+        tool.run_plan(plan, model_factory=EndingModel, reader_factory=FakeReader)
+    assert state['calls'] == ['pothole']
+    assert not (folder/'private-results.json').exists()
+
+
+def test_private_plan_and_results_cannot_be_written_into_docs(folder):
+    _, _, models = plan_fixture(folder)
+    with pytest.raises(ValueError, match='private_recording_validation'):
+        tool.create_plan(folder/'inventory.json', folder/'audit.json', folder/'permission.json', models,
+                         ROOT/'docs/reports/forbidden-private-plan.json')
+    with pytest.raises(ValueError, match='private_recording_validation'):
+        tool.run_plan(ROOT/'docs/reports/forbidden-private-plan.json')
+    assert not (ROOT/'docs/reports/forbidden-private-plan.json').exists()
+
+
+def test_plan_change_during_inference_cannot_publish_misbound_result(folder):
+    plan, _, _ = plan_fixture(folder)
+    class MutatingModel(FakeModel):
+        def predict(self, image):
+            value = tool.read_json(plan); value['tampered'] = True
+            atomic_json(plan, value)
+            return super().predict(image)
+    with pytest.raises(ValueError, match='plan_changed_during_validation'):
+        tool.run_plan(plan, model_factory=MutatingModel, reader_factory=FakeReader)
+    assert not (folder/'private-results.json').exists()
+    assert not (folder/'aggregate.json').exists()

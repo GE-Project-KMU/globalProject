@@ -3,6 +3,7 @@ import argparse
 from collections import Counter
 from datetime import datetime, timezone
 import json
+import hashlib
 from pathlib import Path
 import sys
 import time
@@ -14,6 +15,14 @@ from agent.paths import workspace_path, atomic_json, sha256
 from agent.models import OnnxModel, frame_quality, runtime_metadata
 from agent.recorded_mcap import RecordedMcapReader
 MAX_AUTHORIZED = datetime.fromisoformat('2026-11-05T14:59:00+00:00')
+PRIVATE_ROOT = ROOT/'data/recorded-drive-validation'
+
+
+def private_path(value, *, exists=False):
+    path = workspace_path(value)
+    if not path.is_relative_to(PRIVATE_ROOT.resolve()):
+        raise ValueError('private_recording_validation_directory_required')
+    return workspace_path(path, exists=exists)
 
 
 class PeriodGuard:
@@ -62,7 +71,7 @@ def read_json(path):
 
 
 def create_plan(inventory_path, audit_path, permission_path, models, output):
-    output = workspace_path(output)
+    output = private_path(output)
     if output.exists():
         raise FileExistsError('new_plan_path_required')
     receipt = read_json(permission_path)
@@ -103,6 +112,7 @@ def create_plan(inventory_path, audit_path, permission_path, models, output):
             'view': 'left_only', 'labels_available': False, 'model_selection_performed': False,
             'training_performed': False, 'raw_pixel_files_written': False,
             'script_sha256': sha256(Path(__file__)),
+            'model_runtime_source_sha256': sha256(ROOT/'agent/models.py'),
             'reader_sha256': sha256(ROOT/'agent/recorded_mcap.py')}
     atomic_json(output, plan)
     return plan
@@ -153,17 +163,20 @@ def summarize(results, plan):
 
 
 def run_plan(plan_path, *, public_report=None, model_factory=OnnxModel, reader_factory=RecordedMcapReader):
-    plan_path = workspace_path(plan_path, exists=True)
+    plan_path = private_path(plan_path, exists=True)
     output = plan_path.parent/'private-results.json'
     public_report = workspace_path(public_report) if public_report else None
     if output.exists() or public_report and public_report.exists():
         raise FileExistsError('new_validation_output_required')
-    plan = read_json(plan_path)
+    raw_plan = plan_path.read_bytes()
+    plan_digest = hashlib.sha256(raw_plan).hexdigest()
+    plan = json.loads(raw_plan)
     receipt = read_json(plan['permission'])
     guard = PeriodGuard(receipt)
     if sha256(plan['permission']) != plan['permission_sha256'] or receipt['authorized_until_utc'] != plan['authorized_until_utc']:
         raise ValueError('permission_changed_since_plan')
-    if sha256(Path(__file__)) != plan['script_sha256'] or sha256(ROOT/'agent/recorded_mcap.py') != plan['reader_sha256']:
+    if (sha256(Path(__file__)) != plan['script_sha256'] or sha256(ROOT/'agent/recorded_mcap.py') != plan['reader_sha256']
+            or sha256(ROOT/'agent/models.py') != plan['model_runtime_source_sha256']):
         raise ValueError('probe_source_changed_since_plan')
     models = {}
     for task, spec in plan['models'].items():
@@ -214,11 +227,13 @@ def run_plan(plan_path, *, public_report=None, model_factory=OnnxModel, reader_f
     if not results:
         raise ValueError('recordings_required')
     aggregate = summarize(results, plan)
-    aggregate['frozen_plan_sha256'] = sha256(plan_path)
+    aggregate['frozen_plan_sha256'] = plan_digest
     aggregate['elapsed_seconds_including_decode_and_checksums'] = time.perf_counter() - started
     aggregate['runtime'] = runtime_metadata(models)
     guard()
-    atomic_json(output, {'plan_sha256': sha256(plan_path), 'results': results, 'aggregate': aggregate})
+    if checked_sha(plan_path, guard) != plan_digest:
+        raise ValueError('plan_changed_during_validation')
+    atomic_json(output, {'plan_sha256': plan_digest, 'results': results, 'aggregate': aggregate})
     atomic_json(plan_path.parent/'aggregate.json', aggregate)
     if public_report:
         atomic_json(public_report, aggregate)
