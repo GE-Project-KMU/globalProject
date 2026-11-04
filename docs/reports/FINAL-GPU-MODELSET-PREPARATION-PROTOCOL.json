@@ -1,0 +1,48 @@
+{
+  "format": "final-cycle2-gpu-preparation-protocol-v1",
+  "source_sha256": {
+    "agent/models.py": "5da04fcb3dc0458f5a5f5df093f4b48279df9eb73f8d389c599d7528a2d636a6",
+    "agent/gpu_worker_client.py": "d444966f4db0b56a1b6590baeb958873bb5fb4fe993fc394035e4b9073b19d74",
+    "scripts/gpu_inference_worker.py": "bd03f8fa4be19a3bbdb4a67280c5594ebbaac7f2ea5720fe2bf9f646a5a7a8ca",
+    "scripts/gpu_model_set.py": "7a9e92cd6103e7f506884b222a9db4c0b02fca9c9bfbd7c11c5d2763a04822c9",
+    "scripts/verify_trained_models.py": "378e8d5b68c5a48aeb27fc85fac35b507d2e5aa0c28a3fde5bbcf444adf2933f",
+    "scripts/benchmark_inference_cpu.py": "2490fa73aebb6513e8e9eca9fc35d210397c3bffddc6ab4417220496801acc50",
+    "scripts/prepare_final_gpu_model_set.py": "9ccebee35b5b48533332ad4c5e2a4441385d5c13b3dc741bee3ccb86dc88d813",
+    "scripts/evaluate_cycle2.py": "4af30037745430ecb7f4ea8789e53c0111dcd3a0508cd00ed150531d73b1b36e",
+    "scripts/check_lane_cycle2_runtime.py": "5a96a618af5199c820500598c2dbf3a6254ca3ae600825ebf03f1b0a899a1072"
+  },
+  "full_VAL_counts": {
+    "pothole": 652,
+    "lane": 179,
+    "redaction": 508
+  },
+  "GPU_subset_counts": {
+    "pothole": 20,
+    "lane": 100,
+    "redaction": 40
+  },
+  "required_canonical_counts": {
+    "pothole": 3,
+    "lane": 3,
+    "redaction": 2
+  },
+  "selection": "Required canonical first; remaining rows sorted by (source_id,sample_id) within each fixed group",
+  "groups": {
+    "pothole": {
+      "original": 10,
+      "mwpd": 10
+    },
+    "lane": "two recordings, 50 each from original100+new79",
+    "redaction": {
+      "face": 20,
+      "license_plate": 20
+    }
+  },
+  "row_values_changed": false,
+  "image_bytes_read_during_preparation": 0,
+  "GPU_sessions_during_preparation": 0,
+  "TEST_images": 0,
+  "source_expiries_extended": false,
+  "old_GPU_proofs_reused": false,
+  "model_or_threshold_changes": false
+}
