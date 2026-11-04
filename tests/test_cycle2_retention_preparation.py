@@ -186,7 +186,9 @@ def test_new_family_scopes_are_explicit_with_original_cap_and_no_parent_authorit
 
 @pytest.mark.parametrize('format',[
     'pothole-family-v10-CPU-validation-freeze-v1',
-    'pothole-family-v10-one-shot-comparison-v1'])
+    'pothole-family-v10-one-shot-comparison-v1',
+    'lane-cycle2-retry1-completed-CPU-artifact-freeze-v1',
+    'lane-cycle2-retry1-one-shot-comparison-v1'])
 def test_v10_control_keeps_model_proof_but_never_individual_metadata(case,format):
     root,_,_,_=case;path=root/'new-control.json'
     value={'format':format,'manifest':{'path':'data/training/experiment/model.json','sha256':'a'*64}}

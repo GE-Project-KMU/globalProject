@@ -52,6 +52,7 @@ POLICIES={
  'data/training/research-redaction-cycle2-v7':('privacy_source',[PRIVACY],PRIVACY_CAP),
  'data/training/lane-cycle2-v5':('lane_model',[LANE,'data/training/lane-cycle2-v5/provenance.json'],LANE_CAP),
  'data/training/lane-cycle2-v5-retry1':('lane_model',[LANE],LANE_CAP),
+ 'data/training/lane-cycle2-retry1-evaluation':('family_evaluation',[LANE],LANE_CAP),
  'data/training/redaction-p2-cycle2-v7':('privacy_model',[PRIVACY,'data/training/redaction-p2-cycle2-v7/provenance.json'],PRIVACY_CAP),
  'data/training/public-nextcycle':('mixed',[LANE,PRIVACY],PRIVACY_CAP),
  'data/training/cycle2-evaluation':('mixed',[LANE,PRIVACY,BLIND],PRIVACY_CAP),
@@ -61,7 +62,8 @@ POLICIES={
 OPTIONAL_ROOTS={'data/training/cycle2-logs','data/training/research-pothole-rdd2022-blind-v7',
                 'data/training/pothole-small-v9','data/training/redaction-rescue-v8',
                 'data/training/lane-cycle2-v5-retry1','data/training/pothole-family-v9',
-                'data/training/pothole-family-v10','data/training/privacy-family-v8-evaluation'}
+                'data/training/pothole-family-v10','data/training/privacy-family-v8-evaluation',
+                'data/training/lane-cycle2-retry1-evaluation'}
 CYCLE='public-cycle2-v7'
 
 
@@ -109,7 +111,8 @@ def minimal_control_provenance(path,formats=None):
     if path.suffix.lower()!='.json':return False
     value=r.read(path)
     allowed=formats if formats is not None else {'pothole-family-v9-validation-freeze-v1','pothole-family-one-shot-comparison-v1',
-        'pothole-family-v10-CPU-validation-freeze-v1','pothole-family-v10-one-shot-comparison-v1'}
+        'pothole-family-v10-CPU-validation-freeze-v1','pothole-family-v10-one-shot-comparison-v1',
+        'lane-cycle2-retry1-completed-CPU-artifact-freeze-v1','lane-cycle2-retry1-one-shot-comparison-v1'}
     if not isinstance(value,dict) or value.get('format') not in allowed:return False
     def individual(item):
         if isinstance(item,dict):

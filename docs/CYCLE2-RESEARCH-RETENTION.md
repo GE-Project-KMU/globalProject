@@ -16,6 +16,7 @@
 | pothole-train-hardness-v8 / pothole-localization-v8 / pothole-small-v9 | 원v6 release/provenance·각 실험 plan 최소값, 최대11/10 17:14:46.862846 UTC. Small은 계획 단계에서 미생성이면 optional |
 | pothole-small-v9-retry1 | 실제 순차 재시작 root. 원v6 release/provenance·복사 plan 최소값, 최대11/10 17:14:46.862846 UTC. 실패 원실험·receipt를 덮어쓰지 않음 |
 | lane-cycle2-v5-retry1 | 별도 순차 retry root(optional). 원 lane source 최소11/10 17:07:26.069653 UTC |
+| lane-cycle2-retry1-evaluation | 별도 CPU-gated artifact receipt·119 fresh/180 회귀 개별 수치 출력 root(optional). 원 lane source 최소11/10 17:07:26.069653 UTC. 개별 sample 정보가 없는 exact freeze/comparison control만 최소 provenance 보존 |
 | pothole-family-v9 | family/control·US100/회귀의 개별 GT/예측 root(optional). 원blind source와 v6 최소값, 최대11/10 17:07:24.286159 UTC |
 | pothole-resolution-v10 | 동일 CPU VAL652의 해상도 옵션·개별 예측. 원v6 release/provenance 최소값, 최대11/10 17:14:46.862846 UTC. 모델·비식별 집계 보존 |
 | pothole-family-v10 | 별도 family/control·US100/회귀 root(optional). 원blind source와 v6 최소값, 최대11/10 17:07:24.286159 UTC |
