@@ -1,0 +1,70 @@
+{
+  "format": "dense-recorded-visual-review-summary-v1",
+  "date": "2026-11-08",
+  "source_videos": 16,
+  "source_duration_seconds": 730.207682,
+  "fully_decoded_frames": 14753,
+  "visually_surveyed_road_crops": 2939,
+  "survey_contact_sheets": 251,
+  "sampling_target_interval_ms": 250,
+  "maximum_actual_sample_gap_seconds": 0.468625,
+  "road_crop_normalized_xyxy": [
+    0,
+    0.6,
+    1,
+    1
+  ],
+  "full_resolution_candidate_and_context_frames_reviewed": 49,
+  "representative_review_regions": 21,
+  "confirmed_pothole_regions": 0,
+  "hard_negative_review_regions": 9,
+  "held_review_regions": 12,
+  "AI_weak_negative_crop_training_candidates": 8,
+  "rejected_negative_crops": 1,
+  "full_frame_negative_labels_exported": 0,
+  "all_video_frames_visually_reviewed": false,
+  "human_reviewed": false,
+  "model_predictions_used": false,
+  "model_training_performed": false,
+  "independent_evaluation_ground_truth_eligible": false,
+  "source_hashes_unchanged": true,
+  "survey_coverage_and_hash_validation": "251_of_251_sheets_2939_of_2939_sampled_crops",
+  "annotation_validation": {
+    "valid": true,
+    "samples": 49,
+    "errors": [],
+    "frame_hashes_verified": true,
+    "human_reviewed": false,
+    "training_export_enabled": false,
+    "evaluation_ground_truth_eligible": false
+  },
+  "browser_validation": {
+    "status": "passed",
+    "frames_loaded_with_matching_original_dimensions": 49,
+    "overlay_viewboxes_matched": 49,
+    "held_filter_count": 12,
+    "empty_filter_unloads_image": true,
+    "mobile_horizontal_overflow": false,
+    "expired_view_loads_images": false,
+    "console_or_page_errors": [],
+    "external_network_requests": 0,
+    "expires_at": "2026-11-14T14:59:00+00:00"
+  },
+  "focused_tests_passed": 107,
+  "processing_and_retention_deadline_KST": "2026-11-14T23:59:00+09:00",
+  "source_code_sha256": {
+    "scripts/prepare_dense_recording_review.py": "fb51deada4ebcc7714a19d2e07bbc3db3ecdd871de3fadb1330c4ec53ca8ce1b",
+    "scripts/render_visual_annotation_review.py": "924c7eeb5f3c44d721f8f7ebae36ee311e2f860e6abfd91f4f9a708aecf6ab94",
+    "tests/test_dense_recording_review.py": "570c1822327ee1ac6df3e265207cec7c9cb604294a9745d6fcc420ad88bdec06",
+    "tests/test_visual_annotation_review.py": "6b87d0b15c602bd20d8cc5b00bb067ea085d18d6d68852ed483bef5fdf2054f0"
+  },
+  "final_bundle_sha256": "45e83d2d2404dc29eda4dabb8843cc57b8d2a6b4c0e08265fd2a9a99c8e4587c",
+  "negative_crop_manifest_sha256": "5679b72af0428ab0346548ef79c47a2bdb7ad7abb8b16eb8c21020b09dc044a9",
+  "limitations": [
+    "포트홀 양성 미확보는 영상 전체 부재의 증명이 아님",
+    "약0.25초 간격의 노면 crop 조사와 후보 원본 확인이며 전체14753프레임 직접 라벨링이 아님",
+    "8개 크롭은 AI 약한 음성 후보로 독립 평가 정답 또는 단독 포트홀 학습세트가 아님",
+    "불확실영역과 가림을 전체정상음성으로 내보내지 않음",
+    "깊이/실제마모율/실물독립성/새모델정확도는 입증하지 않음"
+  ]
+}
