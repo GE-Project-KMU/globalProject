@@ -123,3 +123,77 @@ def test_label_bundle_outside_session_rejected_without_read(files,tmp_path,monke
     monkeypatch.setattr(Path,'open',no_read)
     with pytest.raises(ValueError,match='bundle_outside_session'):
         r.generate(source,base/'review.html',now=NOW)
+
+
+def test_new_session_review_note_and_legacy_default(files,tmp_path,monkeypatch):
+    base,source,bundle,image=files
+    bundle['samples'][0]['note']='legacy note'
+    source.write_text(json.dumps(bundle),encoding='utf-8')
+    r.generate(source,base/'legacy.html',now=NOW)
+    old=(base/'legacy.html').read_text(encoding='utf-8')
+    assert 'legacy note' in old
+    new=tmp_path/'session-v2-dense'
+    new.mkdir()
+    picture=new/'frame.png'
+    picture.write_bytes(b'synthetic-only')
+    bundle['samples'][0]['image']['path']=str(picture)
+    bundle['samples'][0]['review_note']='AI reviewed road surface; uncertain shadow remains'
+    new_source=new/'labels.json'
+    new_source.write_text(json.dumps(bundle),encoding='utf-8')
+    original=Path.open
+    def guarded(path,*a,**kw):
+        assert path not in (image,picture)
+        return original(path,*a,**kw)
+    monkeypatch.setattr(Path,'open',guarded)
+    result=r.generate(new_source,new/'review.html',now=NOW,session_root=new)
+    assert result['image_bytes_read'] is False
+    html=(new/'review.html').read_text(encoding='utf-8')
+    assert 'AI 검토 라벨 · 학습 후보 검수' in html
+    assert '사람 검수용' not in html
+    assert '사람 검수: 미완료' in html and '독립 평가 정답: 불가' in html
+    assert 'AI reviewed road surface; uncertain shadow remains' in html
+    assert 'legacy note' not in html
+    assert '"relative_path": "frame.png"' in html
+    # Old invocation remains pinned to v1; opting into v2 does not widen it.
+    with pytest.raises(ValueError,match='bundle_outside_session'):
+        r.generate(new_source,new/'not-created.html',now=NOW)
+    assert not (new/'not-created.html').exists()
+
+
+def test_sessions_cannot_mix_bundle_output_or_images(files,tmp_path):
+    base,source,bundle,_=files
+    new=tmp_path/'session-v2-dense'
+    new.mkdir()
+    with pytest.raises(ValueError,match='bundle_outside_session'):
+        r.generate(source,new/'review.html',now=NOW,session_root=new)
+    with pytest.raises(ValueError,match='output_outside_session'):
+        r.generate(source,new/'review.html',now=NOW,session_root=base)
+    picture=new/'frame.png'
+    picture.write_bytes(b'synthetic-only')
+    bundle['samples'][0]['image']['path']=str(picture)
+    source.write_text(json.dumps(bundle),encoding='utf-8')
+    with pytest.raises(ValueError,match='frame_outside_session'):
+        r.generate(source,base/'not-created.html',now=NOW,session_root=base)
+    assert not (new/'review.html').exists()
+    assert not (base/'not-created.html').exists()
+
+
+@pytest.mark.parametrize('relative',['.', 'arbitrary', 'session-', 'session-v2/nested', '../session-foreign', 'session-v2.html'])
+def test_only_direct_session_directories(files,tmp_path,relative):
+    base,source,_,_=files
+    requested=tmp_path/relative
+    with pytest.raises(ValueError,match='invalid_session_root'):
+        r.generate(source,base/'rejected.html',now=NOW,session_root=requested)
+    assert not (base/'rejected.html').exists()
+
+
+def test_foreign_session_path_rejected_before_resolve(files,monkeypatch):
+    base,source,_,_=files
+    foreign=r.ROOT.parent/'outside-session-fixture'/'session-v2'
+    original=Path.resolve
+    def trap(path,*a,**kw):
+        assert 'outside-session-fixture' not in str(path)
+        return original(path,*a,**kw)
+    monkeypatch.setattr(Path,'resolve',trap)
+    with pytest.raises(ValueError,match='invalid_session_root'):
+        r.generate(source,base/'rejected.html',now=NOW,session_root=foreign)
